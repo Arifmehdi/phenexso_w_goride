@@ -1,0 +1,26 @@
+<?php
+ return [
+    'logo_name' => 'North Bengal Dairy Farm',
+    'location' => 'Location',
+    'address' => 'Abdul Latif Khandakar Road, Solmaid, Vatara, Dhaka, Bangladesh',
+    'find' => 'Find Us',
+    'opening' => 'Opening Hours',
+    'everyday' => 'Everyday',
+    'emergency' => 'Emergency Cases',
+    'payment' => 'Payment Methods',
+    'follow' =>' Follow Us',
+    'num_0' => '0',
+    'num_1' => '1',
+    'num_01' => '01',
+    'num_2' => '2',
+    'num_02' => '02',
+    'num_3' => '3',
+    'num_4' => '4',
+    'num_5' => '5',
+    'num_6' => '6',
+    'num_7' => '7',
+    'num_8' => '8',
+    'num_9' => '9',
+    'num_10' => '10',
+
+ ];

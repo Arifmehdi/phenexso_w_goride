@@ -1,0 +1,43 @@
+git rev-list --objects --all | Select-String 7deb6e676211ba5ef7d326813d25bd9797c4e705
+output : 7deb6e676211ba5ef7d326813d25bd9797c4e705 public/old_frontend/assets/php/newsletter-subscribe.php
+git rm --cached public/old_frontend/assets/php/newsletter-subscribe.php
+git commit -m "Remove Mailchimp API key and sensitive file"
+	
+	"Table: website_parameters"
+	================================
+	
+	#	Name	Type	Collation	Attributes	Null	Default	Comments	Extra	Action
+	1	id Primary	bigint		UNSIGNED	No	None		AUTO_INCREMENT	Change Change	Drop Drop	
+	2	logo	varchar(255)	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	3	logo_alt	varchar(255)	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	4	favicon	varchar(255)	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	5	diagnostic_img	varchar(255)	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	6	eccomerce_img	varchar(255)	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	7	hospital_img	varchar(255)	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	8	ambulance_img	varchar(255)	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	9	doctor_img	varchar(255)	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	10	footer_bottom_bg_color	varchar(255)	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	11	footer_bottom_text_color	varchar(255)	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	12	website_title	varchar(255)	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	13	shipping_cahrge	decimal(10,2)			Yes	NULL			Change Change	Drop Drop	
+	14	google_analytics_code	text	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	15	google_search_console	text	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	16	facebook_pixel_code	text	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	17	meta_author	varchar(255)	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	18	meta_description	text	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	19	footer_copyright	varchar(255)	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	20	fb_url	varchar(255)	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	21	contact_mobile	varchar(255)	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	22	contact_address	varchar(255)	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	23	contact_email	varchar(255)	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	24	twitter_url	varchar(255)	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	25	youtube_url	varchar(255)	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	26	twitter_title	varchar(255)	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	27	twitter_description	text	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	28	twitter_creator	varchar(255)	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	29	og_title	varchar(255)	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	30	og_description	varchar(255)	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	31	addedby_id	bigint		UNSIGNED	Yes	NULL			Change Change	Drop Drop	
+	32	editedby_id	bigint		UNSIGNED	Yes	NULL			Change Change	Drop Drop	
+	33	created_at	timestamp			Yes	NULL			Change Change	Drop Drop	
+	34	updated_at	timestamp			Yes	NULL			Change Change	Drop Drop	

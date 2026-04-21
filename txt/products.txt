@@ -1,0 +1,25 @@
+
+#	Name	Type	Collation	Attributes	Null	Default	Comments	Extra	Action
+	1	id Primary	bigint		UNSIGNED	No	None		AUTO_INCREMENT	Change Change	Drop Drop	
+	2	name_en	varchar(255)	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	3	name_bn	varchar(255)	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	4	sku	varchar(255)	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	5	slug	text	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	6	excerpt_en	text	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	7	excerpt_bn	text	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	8	description_en	longtext	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	9	description_bn	longtext	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	10	featured_image	varchar(255)	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	11	price	decimal(10,2)			No	0.00			Change Change	Drop Drop	
+	12	discount	decimal(10,2)			No	0.00			Change Change	Drop Drop	
+	13	discount_price	decimal(10,2)			No	0.00			Change Change	Drop Drop	
+	14	final_price	decimal(10,2)			No	0.00			Change Change	Drop Drop	
+	15	stock	int			No	1			Change Change	Drop Drop	
+	16	unit	text	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	17	tags	text	utf8mb4_unicode_ci		Yes	NULL			Change Change	Drop Drop	
+	18	active	tinyint(1)			No	1			Change Change	Drop Drop	
+	19	editor	tinyint(1)			No	1			Change Change	Drop Drop	
+	20	addedby_id	bigint		UNSIGNED	Yes	NULL			Change Change	Drop Drop	
+	21	editedby_id	bigint		UNSIGNED	Yes	NULL			Change Change	Drop Drop	
+	22	created_at	timestamp			Yes	NULL			Change Change	Drop Drop	
+	23	updated_at	timestamp			Yes	NULL			Change Change	Drop Drop	

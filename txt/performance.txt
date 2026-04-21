@@ -1,0 +1,44 @@
+1. Using Sentry for Error Tracking & Performance Monitoring
+===========================================================
+
+Sentry is a popular tool for tracking errors, exceptions, and performance issues in production.
+
+Step 1: Install Sentry SDK
+-----------------------------
+
+Run this in your Laravel project:
+
+composer require sentry/sentry-laravel
+
+Step 2: Publish the Sentry configuration
+-----------------------------------------
+php artisan vendor:publish --provider="Sentry\Laravel\ServiceProvider"
+
+
+This will create a config/sentry.php file.
+
+Step 3: Add your DSN
+
+
+https://3affb4825123e9b63ed3c3b7b8b3bdd8@o4510357623144454.ingest.us.sentry.io/4510357624586240
+----------------------
+
+In your .env file, add the DSN from your Sentry project:
+
+SENTRY_LARAVEL_DSN=https://examplePublicKey@o0.ingest.sentry.io/0
+SENTRY_TRACES_SAMPLE_RATE=1.0
+
+
+SENTRY_TRACES_SAMPLE_RATE controls performance monitoring sample rate (0 to 1). For production, you might use 0.1 or 0.2.
+
+Step 4: Test Error Tracking
+------------------------------
+
+Trigger an error in a route or controller:
+
+Route::get('/debug-sentry', function () {
+    throw new Exception('Sentry is working!');
+});
+
+
+Visit /debug-sentry and check your Sentry dashboard.

@@ -1,0 +1,50 @@
+
+
+	users table 
+	=========================	
+	
+	# 	Name 	Type 	Collation 	Attributes 	Null 	Default 	Comments 	Extra 	Action
+	1 	id Primary 	bigint 		UNSIGNED 	No 	None 		AUTO_INCREMENT 	Change Change 	Drop Drop 	
+	2 	name 	varchar(255) 	utf8mb4_unicode_ci 		No 	None 			Change Change 	Drop Drop 	
+	3 	father_name 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	4 	address 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	5 	reg_date 	date 			Yes 	NULL 			Change Change 	Drop Drop 	
+	6 	bkash_number 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	7 	dob 	date 			Yes 	NULL 			Change Change 	Drop Drop 	
+	8 	blood_group 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	9 	email Index 	varchar(255) 	utf8mb4_unicode_ci 		No 	None 			Change Change 	Drop Drop 	
+	10 	email_verified_at 	timestamp 			Yes 	NULL 			Change Change 	Drop Drop 	
+	11 	image 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	12 	short_bio 	text 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	13 	writer 	tinyint 			Yes 	NULL 			Change Change 	Drop Drop 	
+	14 	mobile 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	15 	password 	varchar(255) 	utf8mb4_unicode_ci 		No 	None 			Change Change 	Drop Drop 	
+	16 	password_temp 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	17 	remember_token 	varchar(100) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	18 	created_at 	timestamp 			Yes 	NULL 			Change Change 	Drop Drop 	
+	19 	updated_at 	timestamp 			Yes 	NULL 			Change Change 	Drop Drop 	
+	20 	present_address 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	21 	permanent_address 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	22 	nid 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	23 	tin_number 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	24 	ssc_passing 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	25 	ssc_registration 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	26 	health_history 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 
+
+
+
+	******************************************************************************************************************
+	roles table 
+	---------------
+
+	 	# 	Name 	Type 	Collation 	Attributes 	Null 	Default 	Comments 	Extra 	Action
+	1 	id Primary 	bigint 		UNSIGNED 	No 	None 		AUTO_INCREMENT 	Change Change 	Drop Drop 	
+	2 	user_id 	bigint 		UNSIGNED 	Yes 	NULL 			Change Change 	Drop Drop 	
+	3 	role_name 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	4 	role_value 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	5 	added_by_id 	int 		UNSIGNED 	Yes 	NULL 			Change Change 	Drop Drop 	
+	6 	edited_by_id 	int 		UNSIGNED 	Yes 	NULL 			Change Change 	Drop Drop 	
+	7 	created_at 	timestamp 			Yes 	NULL 			Change Change 	Drop Drop 	
+	8 	updated_at 	timestamp 			Yes 	NULL 			Change Change 	Drop Drop 	
+	
+	******************************************************************************************************************

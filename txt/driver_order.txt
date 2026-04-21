@@ -1,0 +1,113 @@
+
+
+	users table 
+	=========================	
+	
+ 	# 	Name 	Type 	Collation 	Attributes 	Null 	Default 	Comments 	Extra 	Action
+	1 	id Primary 	bigint 		UNSIGNED 	No 	None 		AUTO_INCREMENT 	Change Change 	Drop Drop 	
+	2 	name 	varchar(255) 	utf8mb4_unicode_ci 		No 	None 			Change Change 	Drop Drop 	
+	3 	father_name 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	4 	address 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	5 	reg_date 	date 			Yes 	NULL 			Change Change 	Drop Drop 	
+	6 	bkash_number 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	7 	dob 	date 			Yes 	NULL 			Change Change 	Drop Drop 	
+	8 	blood_group 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	9 	email Index 	varchar(255) 	utf8mb4_unicode_ci 		No 	None 			Change Change 	Drop Drop 	
+	10 	email_verified_at 	timestamp 			Yes 	NULL 			Change Change 	Drop Drop 	
+	11 	image 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	12 	short_bio 	text 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	13 	writer 	tinyint 			Yes 	NULL 			Change Change 	Drop Drop 	
+	14 	mobile 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	15 	password 	varchar(255) 	utf8mb4_unicode_ci 		No 	None 			Change Change 	Drop Drop 	
+	16 	password_temp 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	17 	remember_token 	varchar(100) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	18 	created_at 	timestamp 			Yes 	NULL 			Change Change 	Drop Drop 	
+	19 	updated_at 	timestamp 			Yes 	NULL 			Change Change 	Drop Drop 	
+	20 	present_address 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	21 	permanent_address 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	22 	nid 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	23 	tin_number 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	24 	license_no 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	25 	ssc_passing 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	26 	ssc_registration 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	27 	health_history 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	28 	role 	varchar(50) 	utf8mb4_unicode_ci 		Yes 	0 			Change Change 	Drop Drop 	
+	29 	user_type 	enum('admin', 'seller', 'rider') 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	30 	is_approve 	tinyint(1) 			Yes 	NULL 			Change Change 	Drop Drop 	
+
+
+
+
+	******************************************************************************************************************
+
+
+	Orders table
+	-----------------
+
+	 	# 	Name 	Type 	Collation 	Attributes 	Null 	Default 	Comments 	Extra 	Action
+	1 	id Primary 	bigint 		UNSIGNED 	No 	None 		AUTO_INCREMENT 	Change Change 	Drop Drop 	
+	2 	user_id 	bigint 		UNSIGNED 	Yes 	NULL 			Change Change 	Drop Drop 	
+	3 	name 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	4 	mobile 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	5 	email 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	6 	address_title 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	7 	delivery_cost 	decimal(10,2) 			No 	0.00 			Change Change 	Drop Drop 	
+	8 	subtotal 	decimal(10,2) 			No 	0.00 			Change Change 	Drop Drop 	
+	9 	grand_total 	decimal(10,2) 			No 	0.00 			Change Change 	Drop Drop 	
+	10 	paid_amount 	decimal(10,2) 			No 	0.00 			Change Change 	Drop Drop 	
+	11 	order_status 	varchar(255) 	utf8mb4_unicode_ci 		No 	pending 			Change Change 	Drop Drop 	
+	12 	payment_status 	varchar(255) 	utf8mb4_unicode_ci 		No 	unpaid 			Change Change 	Drop Drop 	
+	13 	payment_method 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	14 	payment_gateway 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	15 	payment_trx_id 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	16 	pending_at 	timestamp 			Yes 	NULL 			Change Change 	Drop Drop 	
+	17 	order_note 	text 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	18 	confirmed_at 	timestamp 			Yes 	NULL 			Change Change 	Drop Drop 	
+	19 	ready_to_ship_at 	timestamp 			Yes 	NULL 			Change Change 	Drop Drop 	
+	20 	shiped_at 	timestamp 			Yes 	NULL 			Change Change 	Drop Drop 	
+	21 	delivered_at 	timestamp 			Yes 	NULL 			Change Change 	Drop Drop 	
+	22 	canceled_at 	timestamp 			Yes 	NULL 			Change Change 	Drop Drop 	
+	23 	addedby_id 	bigint 		UNSIGNED 	Yes 	NULL 			Change Change 	Drop Drop 	
+	24 	editedby_id 	bigint 		UNSIGNED 	Yes 	NULL 			Change Change 	Drop Drop 	
+	25 	created_at 	timestamp 			Yes 	NULL 			Change Change 	Drop Drop 	
+	26 	updated_at 	timestamp 			Yes 	NULL 			Change Change 	Drop Drop 	
+	27 	driver_id Index 	bigint 		UNSIGNED 	Yes 	NULL 			Change Change 	Drop Drop 	
+	28 	vehicle_id Index 	bigint 		UNSIGNED 	Yes 	NULL 			Change Change 	Drop Drop 	
+	29 	assigned_at 	timestamp 			Yes 	NULL 			Change Change 	Drop Drop 	
+
+
+
+
+
+order_items table
+------------------
+
+ 	# 	Name 	Type 	Collation 	Attributes 	Null 	Default 	Comments 	Extra 	Action
+	1 	id Primary 	bigint 		UNSIGNED 	No 	None 		AUTO_INCREMENT 	Change Change 	Drop Drop 	
+	2 	user_id 	bigint 		UNSIGNED 	Yes 	NULL 			Change Change 	Drop Drop 	
+	3 	order_id 	bigint 		UNSIGNED 	Yes 	NULL 			Change Change 	Drop Drop 	
+	4 	product_id 	bigint 		UNSIGNED 	Yes 	NULL 			Change Change 	Drop Drop 	
+	5 	product_name 	varchar(255) 	utf8mb4_unicode_ci 		Yes 	NULL 			Change Change 	Drop Drop 	
+	6 	product_price 	decimal(10,2) 			No 	0.00 			Change Change 	Drop Drop 	
+	7 	quantity 	int 			Yes 	NULL 			Change Change 	Drop Drop 	
+	8 	total_cost 	decimal(10,2) 			No 	0.00 			Change Change 	Drop Drop 	
+	9 	addedby_id 	bigint 		UNSIGNED 	Yes 	NULL 			Change Change 	Drop Drop 	
+	10 	editedby_id 	bigint 		UNSIGNED 	Yes 	NULL 			Change Change 	Drop Drop 	
+	11 	created_at 	timestamp 			Yes 	NULL 			Change Change 	Drop Drop 	
+	12 	updated_at 	timestamp 			Yes 	NULL 			Change Change 	Drop Drop 	
+
+
+vehicles table 
+--------------
+
+# 	Name 	Type 	Collation 	Attributes 	Null 	Default 	Comments 	Extra 	Action
+	1 	id Primary 	bigint 		UNSIGNED 	No 	None 		AUTO_INCREMENT 	Change Change 	Drop Drop 	
+	2 	vehicle_type 	varchar(255) 	utf8mb4_unicode_ci 		No 	None 			Change Change 	Drop Drop 	
+	3 	plate_number Index 	varchar(255) 	utf8mb4_unicode_ci 		No 	None 			Change Change 	Drop Drop 	
+	4 	capacity 	decimal(10,2) 			No 	None 			Change Change 	Drop Drop 	
+	5 	status 	tinyint 			No 	1 			Change Change 	Drop Drop 	
+	6 	created_at 	timestamp 			Yes 	NULL 			Change Change 	Drop Drop 	
+	7 	updated_at 	timestamp 			Yes 	NULL 			Change Change 	Drop Drop 	
+
+
+	******************************************************************************************************************

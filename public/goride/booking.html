@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book a Ride | GoRide Bangladesh</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header>
+    <div class="nav-container">
+        <div class="logo"><a href="index.html"><img src="assets/go_ride_logo.png" alt="GoRide Bangladesh"></a></div>
+        <button class="mobile-menu-btn"><i class="fas fa-bars"></i></button>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="services.html">Services</a></li>
+                <li><a href="fleet.html">Fleet</a></li>
+                <li><a href="tours.html">Tours</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+        </nav>
+        <div class="nav-right"><a href="login.html" class="login-btn">Login</a></div>
+    </div>
+</header>
+
+<div class="page-hero">
+    <div class="page-hero-content">
+        <h1>Book Your Ride</h1>
+        <p>Fast, simple, and transparent. Fill in your journey details and confirm with OTP.</p>
+        <div class="breadcrumb"><a href="index.html">Home</a><i class="fas fa-chevron-right"></i><span>Booking</span></div>
+    </div>
+</div>
+
+<section style="background:var(--accent);">
+    <div class="container">
+        <div class="booking-layout">
+            <div class="form-container">
+                <h3 style="font-family:'Sora',sans-serif;font-size:1.4rem;font-weight:800;margin-bottom:6px;">Journey Details</h3>
+                <p style="color:var(--text-light);margin-bottom:32px;font-size:0.875rem;">Complete the form below — we'll match you with a verified driver.</p>
+                <form id="bookingForm">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" class="form-control" name="name" required placeholder="e.g. Rahim Sarkar">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Pickup Location</label>
+                            <input type="text" class="form-control" name="pickup" required placeholder="From...">
+                        </div>
+                        <div class="form-group">
+                            <label>Destination</label>
+                            <input type="text" class="form-control" name="destination" required placeholder="To...">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Journey Date</label>
+                            <input type="date" class="form-control" name="date" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Journey Time</label>
+                            <input type="time" class="form-control" name="time" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Trip Type</label>
+                            <select class="form-control" name="trip_type">
+                                <option value="one-way">One-way</option>
+                                <option value="round-trip">Round Trip</option>
+                                <option value="hourly">Hourly Rental</option>
+                                <option value="airport">Airport Service</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Vehicle Type</label>
+                            <select class="form-control" name="car_type">
+                                <option value="sedan">Sedan (4 Seats)</option>
+                                <option value="suv">SUV / Noah (7 Seats)</option>
+                                <option value="micro">Microbus (12 Seats)</option>
+                                <option value="premium">Premium SUV</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Mobile Number <span style="color:var(--text-light);font-weight:400;">(for OTP verification)</span></label>
+                        <input type="tel" class="form-control" name="phone" required placeholder="017XXXXXXXX">
+                    </div>
+                    <div class="form-group">
+                        <label>Special Notes <span style="color:var(--text-light);font-weight:400;">(optional)</span></label>
+                        <textarea class="form-control" name="notes" rows="3" placeholder="Any specific requirements or requests?"></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary">Request Vehicle &amp; Verify OTP <i class="fas fa-arrow-right"></i></button>
+                </form>
+            </div>
+
+            <div class="booking-sidebar">
+                <div class="booking-info-card">
+                    <h4><i class="fas fa-shield-halved"></i> Safe &amp; Verified</h4>
+                    <div class="booking-features">
+                        <div class="booking-feat"><i class="fas fa-check-circle"></i> All drivers verified &amp; licensed</div>
+                        <div class="booking-feat"><i class="fas fa-check-circle"></i> OTP confirmation for every booking</div>
+                        <div class="booking-feat"><i class="fas fa-check-circle"></i> Real-time GPS tracking via app</div>
+                        <div class="booking-feat"><i class="fas fa-check-circle"></i> No hidden charges</div>
+                        <div class="booking-feat"><i class="fas fa-check-circle"></i> 24/7 customer support</div>
+                    </div>
+                </div>
+                <div class="booking-info-card">
+                    <h4><i class="fas fa-mobile-screen-button"></i> Book Faster on App</h4>
+                    <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:16px;">Get live tracking, push notifications, and easy payment on the GoRide app.</p>
+                    <div style="display:flex;flex-direction:column;gap:10px;">
+                        <a href="#" style="display:flex;align-items:center;gap:10px;background:var(--primary);color:white;padding:11px 16px;border-radius:10px;font-family:'Sora',sans-serif;font-size:13px;font-weight:700;"><i class="fab fa-apple" style="font-size:18px;"></i> Download on App Store</a>
+                        <a href="#" style="display:flex;align-items:center;gap:10px;background:var(--text);color:white;padding:11px 16px;border-radius:10px;font-family:'Sora',sans-serif;font-size:13px;font-weight:700;"><i class="fab fa-google-play" style="font-size:16px;"></i> Get on Google Play</a>
+                    </div>
+                </div>
+                <div class="booking-info-card">
+                    <h4><i class="fas fa-headset"></i> Need Help?</h4>
+                    <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:16px;">Our support team is available around the clock.</p>
+                    <a href="https://wa.me/8801234567890" style="display:flex;align-items:center;gap:10px;background:#25D366;color:white;padding:11px 16px;border-radius:10px;font-family:'Sora',sans-serif;font-size:13px;font-weight:700;"><i class="fab fa-whatsapp" style="font-size:18px;"></i> Chat on WhatsApp</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- OTP Modal -->
+<div id="otpModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-icon"><i class="fas fa-shield-halved"></i></div>
+        <h3>Verify Your Number</h3>
+        <p>We've sent a 6-digit OTP to your mobile. Enter it below to confirm your booking.</p>
+        <input type="text" class="otp-input" maxlength="6" placeholder="000000" inputmode="numeric">
+        <button class="btn-primary" id="verifyOtpBtn">Confirm Booking <i class="fas fa-check"></i></button>
+        <p style="margin-top:20px;font-size:13px;color:var(--text-light);">Didn't receive code? <a href="#" style="color:var(--primary);font-weight:700;">Resend OTP</a></p>
+    </div>
+</div>
+
+<footer>
+    <div class="container">
+        <div class="footer-top">
+            <div class="footer-top-text"><h3>Get the GoRide App</h3><p>Book rides faster on iOS &amp; Android</p></div>
+            <div class="footer-app-btns"><a href="#" class="footer-app-btn"><i class="fab fa-apple"></i> App Store</a><a href="#" class="footer-app-btn"><i class="fab fa-google-play"></i> Google Play</a></div>
+        </div>
+        <div class="footer-grid">
+            <div class="footer-about"><img src="assets/go_ride_logo.png" alt="GoRide"><p>GoRide Bangladesh — the leading transport marketplace.</p><div class="footer-socials"><a href="#"><i class="fab fa-facebook-f"></i></a><a href="#"><i class="fab fa-twitter"></i></a><a href="#"><i class="fab fa-linkedin-in"></i></a><a href="#"><i class="fab fa-instagram"></i></a></div></div>
+            <div class="footer-links"><h4>Quick Links</h4><ul><li><a href="index.html">Home</a></li><li><a href="about.html">About</a></li><li><a href="services.html">Services</a></li><li><a href="fleet.html">Fleet</a></li><li><a href="tours.html">Tours</a></li></ul></div>
+            <div class="footer-links"><h4>Support</h4><ul><li><a href="contact.html">Contact</a></li><li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li><li><a href="#">FAQ</a></li></ul></div>
+            <div class="footer-contact"><h4>Contact Us</h4><p><i class="fas fa-phone-alt"></i> +880 1234 567890</p><p><i class="fas fa-envelope"></i> info@goride.com.bd</p><p><i class="fas fa-map-marker-alt"></i> Gulshan 1, Dhaka</p><p><i class="fab fa-whatsapp"></i> +880 1234 567890</p></div>
+        </div>
+        <div class="footer-bottom"><p>&copy; 2026 GoRide Bangladesh. All rights reserved.</p><div class="footer-bottom-links"><a href="#">Privacy</a><a href="#">Terms</a></div></div>
+    </div>
+</footer>
+<a href="https://wa.me/8801234567890" class="whatsapp-float" target="_blank"><i class="fab fa-whatsapp"></i></a>
+<script src="js/main.js"></script>
+</body>
+</html>
