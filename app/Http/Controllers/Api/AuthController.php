@@ -20,11 +20,18 @@ class AuthController extends Controller
     public function login(Request $request, CartController $cartController) // Inject CartController
     {
         $request->validate([
-            'email' => 'required|email',
-            'password' => 'required'
+            'login'    => 'required|string',
+            'password' => 'required|string',
         ]);
 
-        if (!Auth::attempt($request->only('email', 'password'))) {
+        $login_type = filter_var($request->input('login'), FILTER_VALIDATE_EMAIL) ? 'email' : 'mobile';
+        
+        $credentials = [
+            $login_type => $request->input('login'),
+            'password' => $request->input('password'),
+        ];
+
+        if (!Auth::attempt($credentials)) {
             return response()->json([
                 'message' => 'Invalid credentials'
             ], 401);
@@ -32,12 +39,21 @@ class AuthController extends Controller
 
         $user = Auth::user();
 
-        // Merge guest cart items with the authenticated user's cart
+        // Check if user is active
+        if ($user->status !== 'active') {
+            Auth::logout();
+            return response()->json([
+                'message' => 'Your account is ' . $user->status . '. Please contact support.'
+            ], 403);
+        }
+
+        // Merge guest cart items
         $guestSessionId = $request->header('X-Session-ID') ?: $request->session_id;
-        $cartController->mergeGuestCart($user->id, $guestSessionId);
+        if ($guestSessionId) {
+            $cartController->mergeGuestCart($user->id, $guestSessionId);
+        }
 
-
-        // delete old tokens (optional but recommended)
+        // delete old tokens
         $user->tokens()->delete();
 
         $token = $user->createToken('flutter')->plainTextToken;
@@ -51,28 +67,31 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'name' => 'required|string',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:6',
-            'mobile' => 'required|string',
-            'role' => 'required|string',
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|email|unique:users,email',
+            'mobile'   => 'required|string|unique:users,mobile',
+            'password' => 'required|string|min:8',
+            'role'     => 'nullable|string|in:user,driver,owner,corporate,solo',
         ]);
+
+        $role = $request->input('role', 'solo');
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => bcrypt($request->password),
-            'mobile' => $request->mobile,
-            'role' => $request->role,
+            'name'       => $request->name,
+            'email'      => $request->email,
+            'mobile'     => $request->mobile,
+            'password'   => bcrypt($request->password),
+            'role'       => $role,
+            'status'     => ($role === 'solo' || $role === 'user') ? 'active' : 'pending',
             'ip_address' => $request->ip(),
-            'is_approve' => 0
+            'is_approve' => ($role === 'solo' || $role === 'user') ? 1 : 0
         ]);
 
-        // Notification for admin or system
+        // Notification for admin
         $this->createNotification(
             'New User Registration',
-            $user->name.' registered from IP '.$request->ip(),
-            null, // null = send to all
+            $user->name.' registered as '.$role.' from IP '.$request->ip(),
+            null,
             $request->ip(),
             'register'
         );
@@ -82,7 +101,7 @@ class AuthController extends Controller
         return response()->json([
             'token' => $token,
             'user' => new UserResource($user)
-        ]);
+        ], 201);
     }
 
     public function logout(Request $request)

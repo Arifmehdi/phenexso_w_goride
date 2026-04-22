@@ -1,0 +1,88 @@
+GoRide Bangladesh - Flutter API Documentation
+==========================================
+
+Base URL: http://your-domain.com/api
+
+1. Login
+--------
+Endpoint: POST /login
+Description: Authenticate user using either Email or Mobile number.
+
+Payload:
+{
+    "login": "user@example.com", // OR "017XXXXXXXX"
+    "password": "yourpassword"
+}
+
+Response (Success - 200):
+{
+    "token": "1|AbCdeFgHiJk...",
+    "user": {
+        "id": 1,
+        "name": "John Doe",
+        "email": "john@example.com",
+        "mobile": "01711223344",
+        "role": "solo",
+        "status": "active",
+        ...
+    }
+}
+
+Response (Error - 401/403):
+{
+    "message": "Invalid credentials" // OR "Your account is pending. Please contact support."
+}
+
+
+2. Register
+-----------
+Endpoint: POST /register
+Description: Create a new user account.
+
+Payload:
+{
+    "name": "John Doe",
+    "email": "john@example.com",
+    "mobile": "01711223344",
+    "password": "yourpassword",
+    "role": "solo" // Options: solo, driver, owner, corporate
+}
+
+Response (Success - 201):
+{
+    "token": "2|XyZ123...",
+    "user": {
+        "id": 2,
+        "name": "John Doe",
+        ...
+    }
+}
+
+Note: 
+- 'solo' users are set to 'active' status immediately.
+- 'driver', 'owner', 'corporate' users are set to 'pending' and require admin approval.
+
+
+3. Logout
+---------
+Endpoint: POST /logout
+Headers: Authorization: Bearer {token}
+
+Response (200):
+{
+    "message": "Logged out successfully"
+}
+
+
+4. Get Current User Profile
+---------------------------
+Endpoint: GET /user
+Headers: Authorization: Bearer {token}
+
+Response (200):
+{
+    "id": 1,
+    "name": "John Doe",
+    "role": "solo",
+    ...
+}

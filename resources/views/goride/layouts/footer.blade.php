@@ -59,7 +59,7 @@
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; {{ date('Y') }} GoRide Bangladesh. {{ __('goride.footer.rights_reserved') }} {{ __('goride.footer.built_for') }} 🇧🇩</p>
+            <p>&copy; 2026 GoRide Bangladesh. All rights reserved <a href="https://phenexsoft.com/" target="_blank" style="color: var(--primary); font-weight: 700;">Phenexsoft IT</a>. Built for Bangladesh 🇧🇩</p>
             <div class="footer-bottom-links">
                 <a href="#">Privacy</a>
                 <a href="#">Terms</a>

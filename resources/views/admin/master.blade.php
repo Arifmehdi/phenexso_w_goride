@@ -729,8 +729,7 @@
     </div>
 
     <footer class="main-footer">
-        <strong>Copyright &copy; {{ date('Y')}} <a href="javascript:void(0)">Phenex Soft.</a></strong>
-        All rights reserved.
+        <strong>&copy; 2026 GoRide Bangladesh. All rights reserved <a href="https://phenexsoft.com/" target="_blank">Phenexsoft IT</a>. Built for Bangladesh 🇧🇩</strong>
     </footer>
 
     <aside class="control-sidebar control-sidebar-dark">

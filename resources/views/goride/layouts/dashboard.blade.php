@@ -45,6 +45,8 @@
         </main>
     </div>
 
+   {{-- @include('goride.layouts.footer')--}}
+
     <!-- Mobile sidebar backdrop -->
     <div class="sidebar-backdrop"></div>
     <!-- Mobile sidebar toggle FAB -->

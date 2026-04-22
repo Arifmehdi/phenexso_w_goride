@@ -27,6 +27,7 @@ class UserResource extends JsonResource
             'short_bio' => $this->short_bio,
             'mobile' => $this->mobile,
             'role' => $this->role,
+            'status' => $this->status,
             'is_approve' => $this->is_approve,
             // Add any other user attributes you want to expose
             'created_at' => $this->created_at,
