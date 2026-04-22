@@ -65,7 +65,7 @@ header {
     border-bottom: 1px solid rgba(26,122,60,0.08);
     position: sticky;
     top: 0;
-    z-index: 1000;
+    z-index: 1200;
     height: var(--header-height);
     display: flex;
     align-items: center;
@@ -1559,7 +1559,10 @@ footer {
 .sidebar-backdrop {
     display: none;
     position: fixed;
-    inset: 0;
+    top: var(--header-height);
+    left: 0;
+    right: 0;
+    bottom: 0;
     background: rgba(0,0,0,0.35);
     z-index: 1050;
     backdrop-filter: blur(2px);

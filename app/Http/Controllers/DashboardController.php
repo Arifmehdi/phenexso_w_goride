@@ -101,4 +101,16 @@ class DashboardController extends Controller
         // Drivers typically use the same UI as owners but with restricted data
         return view('goride.owner.dashboard');
     }
+
+    // --- User (Solo) Specific Methods ---
+
+    public function userTrips()
+    {
+        return view('goride.user.trips');
+    }
+
+    public function userSavedPlaces()
+    {
+        return view('goride.user.saved-places');
+    }
 }

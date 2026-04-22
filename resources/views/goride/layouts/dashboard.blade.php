@@ -45,6 +45,11 @@
         </main>
     </div>
 
+    <!-- Mobile sidebar backdrop -->
+    <div class="sidebar-backdrop"></div>
+    <!-- Mobile sidebar toggle FAB -->
+    <button class="sidebar-toggle" aria-label="Toggle menu"><i class="fas fa-bars"></i></button>
+
     <script src="{{ asset('goride/js/main.js') }}"></script>
     @stack('js')
 </body>

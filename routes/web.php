@@ -231,6 +231,12 @@ Route::middleware(['auth'])->group(function() {
         Route::get('/documents', [App\Http\Controllers\DashboardController::class, 'ownerDocuments'])->name('documents');
     });
 
+    // User (Solo) Specific Routes
+    Route::prefix('dashboard/user')->name('user.')->group(function() {
+        Route::get('/trips', [App\Http\Controllers\DashboardController::class, 'userTrips'])->name('trips');
+        Route::get('/saved-places', [App\Http\Controllers\DashboardController::class, 'userSavedPlaces'])->name('saved-places');
+    });
+
     Route::get('/dashboard/driver', [App\Http\Controllers\DashboardController::class, 'driverDashboard'])->name('driver.dashboard');
 });
 

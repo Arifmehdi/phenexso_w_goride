@@ -16,8 +16,8 @@
     <li><a href="{{ route('contact') }}"><i class="fas fa-question-circle"></i> <span>Help Center</span></a></li>
 @elseif(Auth::user()->role === 'solo')
     <li><a href="{{ route('dashboard.index') }}" class="{{ request()->routeIs('dashboard.index') ? 'active' : '' }}"><i class="fas fa-th-large"></i> <span>Overview</span></a></li>
-    <li><a href="#"><i class="fas fa-history"></i> <span>My Trips</span></a></li>
-    <li><a href="#"><i class="fas fa-heart"></i> <span>Saved Places</span></a></li>
+    <li><a href="{{ route('user.trips') }}" class="{{ request()->routeIs('user.trips') ? 'active' : '' }}"><i class="fas fa-history"></i> <span>My Trips</span></a></li>
+    <li><a href="{{ route('user.saved-places') }}" class="{{ request()->routeIs('user.saved-places') ? 'active' : '' }}"><i class="fas fa-heart"></i> <span>Saved Places</span></a></li>
     <li><a href="{{ route('owner.profile') }}"><i class="fas fa-user-cog"></i> <span>My Profile</span></a></li>
     <li><a href="{{ route('contact') }}"><i class="fas fa-headset"></i> <span>Support</span></a></li>
 @endif
