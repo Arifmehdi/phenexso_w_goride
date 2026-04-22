@@ -26,9 +26,9 @@ class AuthController extends Controller
             if(Auth::user()->hasRole('retailer')){
                 return redirect('retailer/dashboard');
             }
-            return redirect('/');
+            return redirect()->route('user.dashboard');
         }
-        return view('auth.login');
+        return view('goride.auth.login');
     }
 
 
@@ -43,17 +43,22 @@ class AuthController extends Controller
         if (Auth::check()) {
             return redirect()->route('user.dashboard');
         }
-
+        // dd('Login attempted with: ' . $request->input('login'));
         // Validate request
         $request->validate([
-            'email'    => 'required|string|email',
+            'login'    => 'required|string',
             'password' => 'required|string',
         ], [
-            'email.required'    => 'Email is required',
+            'login.required'    => 'Email or Mobile is required',
             'password.required' => 'Password is required',
         ]);
 
-        $credentials = $request->only('email', 'password');
+        $login_type = filter_var($request->input('login'), FILTER_VALIDATE_EMAIL) ? 'email' : 'mobile';
+        
+        $credentials = [
+            $login_type => $request->input('login'),
+            'password' => $request->input('password'),
+        ];
 
         // Attempt login
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
@@ -74,7 +79,7 @@ class AuthController extends Controller
         }
 
         // Failed login
-        return back()->withInput($request->only('email'))
+        return back()->withInput($request->only('login'))
                     ->with('error', 'Login details are not valid');
     }
 
@@ -90,13 +95,33 @@ class AuthController extends Controller
 
     }
 
-    public function registration(){ 
+    public function registration(){
 
         if(Auth::check()){
             return redirect()->route('user.dashboard');;
         }
         else{
-            return view('auth.main-register');
+            return view('goride.auth.register');
+        }
+    }
+
+    public function registrationDriver(){
+
+        if(Auth::check()){
+            return redirect()->route('user.dashboard');;
+        }
+        else{
+            return view('goride.auth.register-driver');
+        }
+    }
+
+    public function registrationCorporate(){
+
+        if(Auth::check()){
+            return redirect()->route('user.dashboard');;
+        }
+        else{
+            return view('goride.auth.register-corporate');
         }
     }
 
@@ -312,6 +337,13 @@ class AuthController extends Controller
             'name'     => $request->name,
             'email'    => $request->email,
             'password' => Hash::make($request->password),
+        ]);
+
+        // Assign default 'user' role
+        Role::create([
+            'user_id'   => $user->id,
+            'role_name' => 'user',
+            'role_value'=> 'User'
         ]);
 
         // Auto login

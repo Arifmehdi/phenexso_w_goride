@@ -128,6 +128,8 @@ Route::post('/wishlist/remove', [WishlistController::class, 'remove'])->name('wi
 Route::get('/contact',[FrontendController::class,'contact'])->name('contact');
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 Route::get('/service',[FrontendController::class,'service'])->name('service');
+Route::get('/fleet',[FrontendController::class,'fleet'])->name('fleet');
+Route::get('/tours',[FrontendController::class,'tours'])->name('tours');
 // Route::get('/product',[HomeController::class,'product'])->name('product');
 
 Route::get('agent/dashboard',[FrontendController::class, 'memberDashboard'])->name('agent.dashboard');
@@ -198,8 +200,10 @@ Route::get('galleries/video',[FrontendController::class,'videoGalleries'])->name
 
 //Authentication
 Route::get('/login',[AuthController::class,'index'])->name('login');
-Route::post('/login',[AuthController::class,'login'])->name('login');
+Route::post('/login',[AuthController::class,'login'])->name('login.user');
 Route::get('/registration',[AuthController::class,'registration'])->name('registration');
+Route::get('/registration/driver',[AuthController::class,'registrationDriver'])->name('registration.driver');
+Route::get('/registration/corporate',[AuthController::class,'registrationCorporate'])->name('registration.corporate');
 Route::get('/health-card',[AuthController::class,'healthCard'])->name('health.registration');
 Route::post('/register',[AuthController::class,'register'])->name('register');
 Route::post('/main-register',[AuthController::class,'mainRegister'])->name('main.register');

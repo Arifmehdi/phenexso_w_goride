@@ -35,6 +35,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Cookie;
 use App\Mail\OrderConfirmationEmail;
 use App\Models\Testimonial;
 
@@ -191,7 +192,7 @@ class FrontendController extends Controller
 
     public function about()
     {
-        return view('website.about' );  
+        return view('goride.about');  
     }
 
     public function testimonial()
@@ -208,18 +209,27 @@ class FrontendController extends Controller
 
     public function contact()
     {
-        return view('website.contact');
+        return view('goride.contact');
     }
 
     public function service()
     {
-        $data['services'] = Hospital::latest()->whereActive(true)->get(); 
-        return view('website.service', $data);
+        return view('goride.services');
+    }
+
+    public function fleet()
+    {
+        return view('goride.fleet');
+    }
+
+    public function tours()
+    {
+        return view('goride.tours');
     }
 
     public function login()
     {
-        return view('website.login');
+        return view('goride.auth.login');
     }
 
 
@@ -430,18 +440,18 @@ class FrontendController extends Controller
     public function languageChange(Request $request)
     {
         $locale = $request->lang;
-
+        // dd($locale);
         if (in_array($locale, config('app.locales')))
         {
-            // $cookie = cookie('locale', $locale, 43200)
-
-            $request->session()->forget(['locale']);
-            $request->session()->put(['locale'=>$locale]);
-            // return redirect()->back()->withCookie($cookie);
+            session(['locale' => $locale]);
+            session()->save();
+            \App::setLocale($locale);
+            
+            // Set a cookie that lasts for 1 year (525600 minutes)
+            Cookie::queue('locale', $locale, 525600);
         }
 
         return back();
-
     }
 
 

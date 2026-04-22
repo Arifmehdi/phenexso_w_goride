@@ -109,38 +109,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /* ── LANGUAGE TOGGLE ── */
-    const langBtn = document.querySelector('.lang-toggle');
-    if (langBtn) {
-        langBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const isBangla = langBtn.textContent.trim() === 'বাংলা';
-            langBtn.textContent = isBangla ? 'English' : 'বাংলা';
-            document.documentElement.lang = isBangla ? 'bn' : 'en';
-        });
-    }
+    // const langBtn = document.querySelector('.lang-toggle');
+    // if (langBtn) {
+    //     langBtn.addEventListener('click', (e) => {
+    //         e.preventDefault();
+    //         const isBangla = langBtn.textContent.trim() === 'বাংলা';
+    //         langBtn.textContent = isBangla ? 'English' : 'বাংলা';
+    //         document.documentElement.lang = isBangla ? 'bn' : 'en';
+    //     });
+    // }
 
     /* ── FORM SUBMIT FEEDBACK (generic) ── */
-    document.querySelectorAll('form').forEach(form => {
-        if (form.id === 'bookingForm' || form.id === 'contactForm' || form.id === 'loginForm') return;
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const btn = form.querySelector('button[type="submit"]');
-            if (!btn) return;
-            const orig = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-            setTimeout(() => {
-                btn.innerHTML = '<i class="fas fa-check"></i> Sent Successfully!';
-                btn.style.background = 'var(--success)';
-                setTimeout(() => {
-                    btn.innerHTML = orig;
-                    btn.disabled = false;
-                    btn.style.background = '';
-                    form.reset();
-                }, 3000);
-            }, 1800);
-        });
-    });
+    // document.querySelectorAll('form').forEach(form => {
+    //     if (form.id === 'bookingForm' || form.id === 'contactForm' || form.id === 'loginForm') return;
+    //     form.addEventListener('submit', (e) => {
+    //         e.preventDefault();
+    //         const btn = form.querySelector('button[type="submit"]');
+    //         if (!btn) return;
+    //         const orig = btn.innerHTML;
+    //         btn.disabled = true;
+    //         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    //         setTimeout(() => {
+    //             btn.innerHTML = '<i class="fas fa-check"></i> Sent Successfully!';
+    //             btn.style.background = 'var(--success)';
+    //             setTimeout(() => {
+    //                 btn.innerHTML = orig;
+    //                 btn.disabled = false;
+    //                 btn.style.background = '';
+    //                 form.reset();
+    //             }, 3000);
+    //         }, 1800);
+    //     });
+    // });
 
     /* ── BOOKING FORM + OTP MODAL ── */
     const bookingForm = document.getElementById('bookingForm');
@@ -190,25 +190,25 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     /* ── LOGIN FORM ── */
-    const loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-        loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const btn = loginForm.querySelector('button[type="submit"]');
-            const orig = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing In...';
-            setTimeout(() => {
-                btn.innerHTML = '<i class="fas fa-check"></i> Success!';
-                btn.style.background = 'var(--success)';
-                setTimeout(() => {
-                    btn.innerHTML = orig;
-                    btn.disabled = false;
-                    btn.style.background = '';
-                }, 3000);
-            }, 1800);
-        });
-    }
+    // const loginForm = document.getElementById('loginForm');
+    // if (loginForm) {
+    //     loginForm.addEventListener('submit', (e) => {
+    //         e.preventDefault();
+    //         const btn = loginForm.querySelector('button[type="submit"]');
+    //         const orig = btn.innerHTML;
+    //         btn.disabled = true;
+    //         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing In...';
+    //         setTimeout(() => {
+    //             btn.innerHTML = '<i class="fas fa-check"></i> Success!';
+    //             btn.style.background = 'var(--success)';
+    //             setTimeout(() => {
+    //                 btn.innerHTML = orig;
+    //                 btn.disabled = false;
+    //                 btn.style.background = '';
+    //             }, 3000);
+    //         }, 1800);
+    //     });
+    // }
 
     /* ── CONTACT FORM ── */
     const contactForm = document.getElementById('contactForm');

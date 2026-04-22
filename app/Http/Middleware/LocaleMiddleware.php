@@ -2,8 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App;
-use Cookie;
+use Illuminate\Support\Facades\Cookie;
 use Closure;
 use Illuminate\Http\Request;
 
@@ -18,29 +17,22 @@ class LocaleMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
+        $locale = session('locale');
 
-        $locale = session('locale') ?: config('app.locale');
-        if (in_array($locale, config('app.locales')))
-        {
-            App::setLocale($locale);
+        if (!$locale) {
+            $locale = Cookie::get('locale');
+        }
 
-            if(session('locale') == null)
-            {
+        if (!$locale) {
+            $locale = config('app.locale');
+        }
+
+        if (in_array($locale, config('app.locales'))) {
+            \App::setLocale($locale);
+            if (!session()->has('locale') || session('locale') !== $locale) {
                 session(['locale' => $locale]);
             }
         }
-
-        // $locale = Cookie::get('locale') ?: config('app.locale');
-        // if (in_array($locale, config('app.locales')))
-        // {
-        //     App::setLocale($locale);
-
-        //     if(Cookie::get('locale') == null)
-        //     {
-        //         $cookie = cookie('locale', $locale, 43200);
-        //         return $next($request)->withCookie($cookie);
-        //     }
-        // }
 
         return $next($request);
     }

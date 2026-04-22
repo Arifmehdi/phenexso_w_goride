@@ -3,24 +3,36 @@
 @section('title', 'GoRide Bangladesh | Car Rental & Transport Marketplace')
 
 @section('content')
+<style>
+    .hero-bg {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        background: linear-gradient(160deg, rgba(10,40,22,0.90) 0%, rgba(20,94,46,0.78) 60%, rgba(26,122,60,0.65) 100%),
+                    url("{{ asset('goride/css/assets/banner_01.jpg') }}") center/cover no-repeat;
+        /* background: linear-gradient(160deg, rgba(10,40,22,0.90) 0%, rgba(20,94,46,0.78) 60%, rgba(26,122,60,0.65) 100%),
+                    url("{{ asset('goride/assets/banner_01.jpg') }}") center/cover no-repeat; */
+        background-attachment: fixed;
+    }
+</style>
 <!-- ── HERO ── -->
 <section class="hero">
     <div class="hero-bg"></div>
     <div class="hero-dots"></div>
     <div class="hero-content">
-        <div class="hero-badge"><i class="fas fa-circle-check"></i> Trusted by 5,000+ Customers Nationwide</div>
-        <h1>Reliable Car Rental<br><span>Across Bangladesh</span></h1>
-        <p>The leading transport marketplace for individuals, corporates &amp; tour groups. Mobile-first, bilingual, and always on time.</p>
+        <div class="hero-badge"><i class="fas fa-circle-check"></i> {{ __('goride.hero.badge') }}</div>
+        <h1>{{ __('goride.hero.title') }}<br><span>{{ __('goride.hero.span') }}</span></h1>
+        <p>{{ __('goride.hero.subtitle') }}</p>
         <div class="hero-actions">
-            <a href="#" class="btn-hero-primary"><i class="fas fa-car"></i> Book a Ride Now</a>
-            <a href="#" class="btn-hero-secondary"><i class="fas fa-map-marked-alt"></i> Explore Tours</a>
+            <a href="#" class="btn-hero-primary"><i class="fas fa-car"></i> {{ __('goride.hero.book_now') }}</a>
+            <a href="{{ route('tours') }}" class="btn-hero-secondary"><i class="fas fa-map-marked-alt"></i> {{ __('goride.hero.explore_tours') }}</a>
         </div>
     </div>
     <div class="hero-stats-bar">
-        <div class="hstat"><strong>5,000+</strong><span>Happy<br>Customers</span></div>
-        <div class="hstat"><strong>1,200+</strong><span>Vehicles<br>in Fleet</span></div>
-        <div class="hstat"><strong>64</strong><span>Districts<br>Covered</span></div>
-        <div class="hstat"><strong>150+</strong><span>Corporate<br>Clients</span></div>
+        <div class="hstat"><strong>5,000+</strong><span>{{ __('goride.stats.happy_customers') }}</span></div>
+        <div class="hstat"><strong>1,200+</strong><span>{{ __('goride.stats.fleet_vehicles') }}</span></div>
+        <div class="hstat"><strong>64</strong><span>{{ __('goride.stats.districts_simple') }}</span></div>
+        <div class="hstat"><strong>150+</strong><span>{{ __('goride.stats.corporate') }}</span></div>
     </div>
     <div class="hero-scroll-hint"><span>Scroll</span><i class="fas fa-chevron-down"></i></div>
 </section>
@@ -28,29 +40,29 @@
 <!-- ── ENTRY CARDS ── -->
 <div class="entry-section">
     <div class="entry-cards">
-        <a href="#" class="entry-card">
+        <a href="{{ route('registration.driver') }}" class="entry-card">
             <div class="icon-wrap"><i class="fas fa-car-side"></i></div>
-            <h3>Owners &amp; Drivers</h3>
-            <p>Register your vehicle and start earning with our growing nationwide network.</p>
-            <span class="card-link">Join Now <i class="fas fa-arrow-right"></i></span>
+            <h3>{{ __('goride.entry.owners') }}</h3>
+            <p>{{ __('goride.entry.owners_desc') }}</p>
+            <span class="card-link">{{ __('goride.entry.join_now') }} <i class="fas fa-arrow-right"></i></span>
         </a>
-        <a href="#" class="entry-card">
+        <a href="{{ route('registration.corporate') }}" class="entry-card">
             <div class="icon-wrap"><i class="fas fa-building"></i></div>
-            <h3>Corporate Clients</h3>
-            <p>Manage company transport with dedicated tools and transparent billing.</p>
-            <span class="card-link">Learn More <i class="fas fa-arrow-right"></i></span>
+            <h3>{{ __('goride.entry.corporate') }}</h3>
+            <p>{{ __('goride.entry.corporate_desc') }}</p>
+            <span class="card-link">{{ __('goride.entry.learn_more') }} <i class="fas fa-arrow-right"></i></span>
         </a>
-        <a href="#" class="entry-card">
+        <a href="{{ route('registration') }}" class="entry-card">
             <div class="icon-wrap"><i class="fas fa-user-check"></i></div>
-            <h3>Solo Clients</h3>
-            <p>Travel anywhere, anytime. Fast, reliable booking in just a few taps.</p>
-            <span class="card-link">Book Now <i class="fas fa-arrow-right"></i></span>
+            <h3>{{ __('goride.entry.solo') }}</h3>
+            <p>{{ __('goride.entry.solo_desc') }}</p>
+            <span class="card-link">{{ __('goride.entry.book_now') }} <i class="fas fa-arrow-right"></i></span>
         </a>
-        <a href="#" class="entry-card">
+        <a href="{{ route('tours') }}" class="entry-card">
             <div class="icon-wrap"><i class="fas fa-map-marked-alt"></i></div>
-            <h3>Tours &amp; Travels</h3>
-            <p>Structured packages across Bangladesh's most beautiful destinations.</p>
-            <span class="card-link">Explore <i class="fas fa-arrow-right"></i></span>
+            <h3>{{ __('goride.entry.tours') }}</h3>
+            <p>{{ __('goride.entry.tours_desc') }}</p>
+            <span class="card-link">{{ __('goride.entry.explore') }} <i class="fas fa-arrow-right"></i></span>
         </a>
     </div>
 </div>
@@ -62,22 +74,22 @@
             <div class="stat-item">
                 <i class="fas fa-users stat-icon"></i>
                 <h3 id="count-customers">5000</h3>
-                <p>Customers</p>
+                <p>{{ __('goride.stats.customers') }}</p>
             </div>
             <div class="stat-item">
                 <i class="fas fa-car stat-icon"></i>
                 <h3 id="count-fleet">1200</h3>
-                <p>Fleet Vehicles</p>
+                <p>{{ __('goride.stats.fleet_vehicles') }}</p>
             </div>
             <div class="stat-item">
                 <i class="fas fa-map-pin stat-icon"></i>
                 <h3 id="count-dest">64</h3>
-                <p>Districts</p>
+                <p>{{ __('goride.stats.districts_simple') }}</p>
             </div>
             <div class="stat-item">
                 <i class="fas fa-briefcase stat-icon"></i>
                 <h3 id="count-corp">150</h3>
-                <p>Corporate Clients</p>
+                <p>{{ __('goride.stats.corporate') }}</p>
             </div>
         </div>
     </div>
@@ -87,25 +99,25 @@
 <section style="background: white; padding: 100px 0;">
     <div class="container">
         <div class="section-title">
-            <div class="section-label"><i class="fas fa-star"></i> Why GoRide</div>
-            <h2>The Smarter Way to Travel<br>Across Bangladesh</h2>
-            <p>We combine local expertise with modern technology to deliver a transport experience that's reliable, affordable, and friction-free.</p>
+            <div class="section-label"><i class="fas fa-star"></i> {{ __('goride.why.label') }}</div>
+            <h2>{{ __('goride.why.title') }}</h2>
+            <p>{{ __('goride.why.subtitle') }}</p>
         </div>
         <div class="why-grid">
             <div class="why-card">
                 <div class="wc-icon"><i class="fas fa-shield-halved"></i></div>
-                <h4>Verified Drivers &amp; Vehicles</h4>
-                <p>Every driver and vehicle on our platform is thoroughly verified for safety, licensing, and fitness before listing.</p>
+                <h4>{{ __('goride.why.verified') }}</h4>
+                <p>{{ __('goride.why.verified_desc') }}</p>
             </div>
             <div class="why-card">
                 <div class="wc-icon"><i class="fas fa-mobile-screen-button"></i></div>
-                <h4>Mobile-First Booking</h4>
-                <p>Book, track, and manage rides entirely from your phone — in English or Bangla. Available on iOS &amp; Android.</p>
+                <h4>{{ __('goride.why.mobile') }}</h4>
+                <p>{{ __('goride.why.mobile_desc') }}</p>
             </div>
             <div class="why-card">
                 <div class="wc-icon"><i class="fas fa-bangladeshi-taka-sign"></i></div>
-                <h4>Transparent Pricing</h4>
-                <p>No hidden fees. Know the full fare before you confirm. We display all charges upfront so you can plan with confidence.</p>
+                <h4>{{ __('goride.why.pricing') }}</h4>
+                <p>{{ __('goride.why.pricing_desc') }}</p>
             </div>
             <div class="why-card">
                 <div class="wc-icon"><i class="fas fa-clock"></i></div>
@@ -119,8 +131,8 @@
             </div>
             <div class="why-card">
                 <div class="wc-icon"><i class="fas fa-headset"></i></div>
-                <h4>Dedicated Support</h4>
-                <p>A real support team available via phone, WhatsApp, and in-app chat to resolve any issue within minutes.</p>
+                <h4>{{ __('goride.why.support') }}</h4>
+                <p>{{ __('goride.why.support_desc') }}</p>
             </div>
         </div>
     </div>
@@ -131,43 +143,43 @@
     <div class="container">
         <div class="app-inner">
             <div class="app-text">
-                <span class="app-label"><i class="fas fa-mobile-screen-button"></i> Mobile App</span>
-                <h2>GoRide Is In<br><span>Your Pocket</span></h2>
-                <p>Download the GoRide Bangladesh app and book rides, track your driver, pay securely, and manage all your trips — all in one place. Available in both English and বাংলা.</p>
+                <span class="app-label"><i class="fas fa-mobile-screen-button"></i> {{ __('goride.app.label') }}</span>
+                <h2>{{ __('goride.app.title') }}<br><span>{{ __('goride.app.span') }}</span></h2>
+                <p>{{ __('goride.app.desc') }}</p>
                 <div class="app-features">
                     <div class="app-feat-item">
                         <i class="fas fa-location-dot"></i>
-                        <span>Real-time GPS tracking of your driver</span>
+                        <span>{{ __('goride.app.feature1') }}</span>
                     </div>
                     <div class="app-feat-item">
                         <i class="fas fa-bell"></i>
-                        <span>Instant booking confirmations &amp; ride alerts</span>
+                        <span>{{ __('goride.app.feature2') }}</span>
                     </div>
                     <div class="app-feat-item">
                         <i class="fas fa-wallet"></i>
-                        <span>Pay via bKash, Nagad, card or cash</span>
+                        <span>{{ __('goride.app.feature3') }}</span>
                     </div>
                     <div class="app-feat-item">
                         <i class="fas fa-star"></i>
-                        <span>Rate drivers and give feedback after trips</span>
+                        <span>{{ __('goride.app.feature4') }}</span>
                     </div>
                     <div class="app-feat-item">
                         <i class="fas fa-language"></i>
-                        <span>Full bilingual support — English &amp; বাংলা</span>
+                        <span>{{ __('goride.app.feature5') }}</span>
                     </div>
                 </div>
                 <div class="app-download-btns">
                     <a href="#" class="app-store-btn">
                         <i class="fab fa-apple"></i>
                         <div class="store-text">
-                            <small>Download on the</small>
+                            <small>{{ __('goride.app.download_apple') }}</small>
                             <strong>App Store</strong>
                         </div>
                     </a>
                     <a href="#" class="app-store-btn">
                         <i class="fab fa-google-play"></i>
                         <div class="store-text">
-                            <small>Get it on</small>
+                            <small>{{ __('goride.app.download_google') }}</small>
                             <strong>Google Play</strong>
                         </div>
                     </a>
@@ -177,8 +189,8 @@
                 <div class="app-float-badge left">
                     <div class="badge-icon green"><i class="fas fa-star"></i></div>
                     <div class="badge-text">
-                        <strong>4.8 ★ Rating</strong>
-                        <span>10k+ Reviews</span>
+                        <strong>{{ __('goride.app.rating') }}</strong>
+                        <span>{{ __('goride.app.reviews') }}</span>
                     </div>
                 </div>
                 <div class="phone-mockup-wrap">
@@ -213,8 +225,8 @@
                 <div class="app-float-badge right">
                     <div class="badge-icon yellow"><i class="fas fa-bolt"></i></div>
                     <div class="badge-text">
-                        <strong>3 Min Pickup</strong>
-                        <span>Average wait time</span>
+                        <strong>{{ __('goride.app.pickup') }}</strong>
+                        <span>{{ __('goride.app.wait_time') }}</span>
                     </div>
                 </div>
             </div>
@@ -226,9 +238,9 @@
 <section class="testimonials-section">
     <div class="container">
         <div class="section-title">
-            <div class="section-label"><i class="fas fa-heart"></i> Customer Stories</div>
-            <h2>What Our Riders Say</h2>
-            <p>Thousands of satisfied customers across Bangladesh trust GoRide for their daily transport needs.</p>
+            <div class="section-label"><i class="fas fa-heart"></i> {{ __('goride.testimonials.label') }}</div>
+            <h2>{{ __('goride.testimonials.title') }}</h2>
+            <p>{{ __('goride.testimonials.desc') }}</p>
         </div>
         <div class="testimonials-grid">
             <div class="testimonial-card">

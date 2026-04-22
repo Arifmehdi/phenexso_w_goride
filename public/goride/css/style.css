@@ -177,12 +177,17 @@ nav ul li a:hover, nav ul li a.active {
     color: white;
     overflow: hidden;
 }
-.hero-bg {
-    position: absolute; inset: 0;
+
+/* .hero-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
     background: linear-gradient(160deg, rgba(10,40,22,0.90) 0%, rgba(20,94,46,0.78) 60%, rgba(26,122,60,0.65) 100%),
-                url('../../assets/banner/banner_01.jpg') center/cover no-repeat;
+                url("{{ asset('goride/assets/banner_01.jpg') }}") center/cover no-repeat;
     background-attachment: fixed;
-}
+} */
+
+
 .hero-dots {
     position: absolute; inset: 0; z-index: 1;
     background-image: radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px);
