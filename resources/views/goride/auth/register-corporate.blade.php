@@ -19,6 +19,7 @@
 
         <form action="{{ route('main.register') }}" method="POST">
             @csrf
+            <input type="hidden" name="role" value="corporate">
             <div class="form-group">
                 <label>Company Name</label>
                 <input type="text" name="company_name" class="form-control" placeholder="Enter company name" value="{{ old('company_name') }}" required autofocus>

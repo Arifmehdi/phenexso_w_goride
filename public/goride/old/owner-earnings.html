@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Earnings | Owner Dashboard</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="../assets/go_ride_logo.png" alt="GoRide Logo">
+                </a>
+            </div>
+            <div class="nav-right">
+                <span style="font-weight: 600; color: var(--text-color);"><i class="fas fa-user-circle" style="margin-right: 8px; color: var(--primary-color);"></i> Rahim Uddin</span>
+                <a href="login.html" class="lang-toggle">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="dashboard-wrapper">
+        <aside class="sidebar">
+            <ul class="sidebar-menu">
+                <li><a href="dashboard-owner.html"><i class="fas fa-chart-line"></i> <span>My Stats</span></a></li>
+                <li><a href="owner-cars.html"><i class="fas fa-car-side"></i> <span>My Cars</span></a></li>
+                <li><a href="owner-history.html"><i class="fas fa-route"></i> <span>Trip History</span></a></li>
+                <li><a href="owner-earnings.html" class="active"><i class="fas fa-wallet"></i> <span>Earnings</span></a></li>
+                <li><a href="owner-profile.html"><i class="fas fa-user-edit"></i> <span>Profile</span></a></li>
+                <li><a href="owner-documents.html"><i class="fas fa-file-alt"></i> <span>Documents</span></a></li>
+                <li><a href="contact.html"><i class="fas fa-question-circle"></i> <span>Help Center</span></a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="dashboard-header">
+                <h2>Earnings Overview</h2>
+                <button class="btn-primary" style="width: auto; padding: 10px 25px;">Withdraw Funds</button>
+            </div>
+
+            <div class="dash-grid">
+                <div class="dash-card">
+                    <div class="icon" style="background: #dcfce7; color: #166534;"><i class="fas fa-wallet"></i></div>
+                    <h4>Available Balance</h4>
+                    <div class="value">৳ 4,250</div>
+                </div>
+                <div class="dash-card">
+                    <div class="icon" style="background: #e0f2fe; color: #0369a1;"><i class="fas fa-hand-holding-usd"></i></div>
+                    <h4>Total Earned</h4>
+                    <div class="value">৳ 12,450</div>
+                </div>
+                <div class="dash-card">
+                    <div class="icon" style="background: #fef9c3; color: #854d0e;"><i class="fas fa-clock"></i></div>
+                    <h4>Pending</h4>
+                    <div class="value">৳ 850</div>
+                </div>
+            </div>
+
+            <h3 style="margin-bottom: 25px; font-size: 1.5rem;">Recent Transactions</h3>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>21 Mar 2026</td>
+                            <td>Trip #TR-8820 Payment</td>
+                            <td>৳ 1,200</td>
+                            <td>Credit</td>
+                            <td><span class="status-badge status-active">Settled</span></td>
+                        </tr>
+                        <tr>
+                            <td>20 Mar 2026</td>
+                            <td>Trip #TR-8815 Payment</td>
+                            <td>৳ 2,500</td>
+                            <td>Credit</td>
+                            <td><span class="status-badge status-active">Settled</span></td>
+                        </tr>
+                        <tr>
+                            <td>15 Mar 2026</td>
+                            <td>Weekly Withdrawal</td>
+                            <td>- ৳ 5,000</td>
+                            <td>Debit</td>
+                            <td><span class="status-badge status-active">Paid</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

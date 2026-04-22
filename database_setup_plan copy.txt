@@ -1,0 +1,99 @@
+GoRide Bangladesh - Database Setup & Field Expansion Plan
+=====================================================
+
+This document outlines the step-by-step database modifications and new table creations required to align the current "partially implemented" database with the GoRide PRD v3.0 requirements.
+
+Phase 1: Modifying Existing Tables
+----------------------------------
+
+1.  Table: `users`
+    - Goal: Support multiple roles and standard status.
+    - Fields to Add:
+        - `role`: enum('admin', 'corporate', 'owner', 'driver', 'solo') DEFAULT 'solo'
+        - `status`: enum('pending', 'active', 'suspended', 'rejected') DEFAULT 'pending'
+    - Existing fields to keep/verify: `name`, `email`, `mobile`, `password`, `nid`, `dob`, `image`, `present_address`, `permanent_address`.
+
+2.  Table: `drivers`
+    - Goal: Link to user account and add professional details.
+    - Fields to Add:
+        - `user_id`: bigint unsigned (FK to users.id)
+        - `license_expiry`: date
+        - `experience_years`: integer
+        - `photo_path`: string
+        - `nid_verified`: boolean DEFAULT false
+    - Verify: Ensure `license_no` and `nid` are present.
+
+3.  Table: `vehicles` (currently `vehicles` table)
+    - Goal: Comprehensive vehicle details and ownership.
+    - Fields to Add:
+        - `owner_id`: bigint unsigned (FK to users.id)
+        - `driver_id`: bigint unsigned (FK to drivers.id, optional/nullable)
+        - `brand`: string
+        - `model`: string
+        - `category`: enum('sedan', 'suv', 'microbus', 'premium', 'economy')
+        - `seat_capacity`: integer
+        - `ac_non_ac`: enum('ac', 'non-ac')
+        - `fuel_type`: string (e.g., CNG, Octane, Diesel)
+        - `color`: string
+        - `reg_number`: string (use existing `plate_number` or rename)
+        - `operating_area`: text
+        - `is_airport_service`: boolean DEFAULT false
+        - `is_outstation_service`: boolean DEFAULT false
+
+Phase 2: Creating New Tables
+----------------------------
+
+4.  Table: `otp_logs`
+    - Purpose: Handle secure mobile verification.
+    - Fields: `id`, `phone`, `otp_code`, `attempts`, `verified_at`, `expires_at`, `created_at`, `updated_at`.
+
+5.  Table: `corporate_accounts`
+    - Purpose: Manage company-specific data and billing.
+    - Fields:
+        - `id`, `user_id` (FK to users.id), `company_name`, `contact_person`, `designation`, `phone`, `email`, `office_address`, `city`, `billing_cycle` (weekly/monthly), `payment_method`, `status`.
+
+6.  Table: `one_time_bookings`
+    - Purpose: Capture leads from the low-friction booking form.
+    - Fields:
+        - `id`, `name`, `phone`, `pickup_location`, `destination`, `journey_date`, `journey_time`, `trip_type` (one-way, round, hourly, airport), `car_type`, `passengers`, `notes`, `status` (pending, confirmed, completed, cancelled), `otp_verified_at`.
+
+7.  Table: `corporate_car_requests`
+    - Purpose: Specific requests from corporate clients.
+    - Fields:
+        - `id`, `corporate_id` (FK to corporate_accounts.id), `pickup_location`, `date`, `car_type`, `duration`, `notes`, `status`.
+
+8.  Table: `vehicle_documents`
+    - Purpose: Store and track verification for cars.
+    - Fields:
+        - `id`, `vehicle_id` (FK to vehicles.id), `doc_type` (registration, tax_token, fitness, insurance), `file_path`, `expiry_date`, `ocr_data` (json), `is_verified` (boolean).
+
+9.  Table: `trips`
+    - Purpose: Record actual trip execution.
+    - Fields:
+        - `id`, `booking_id` (can be FK to one_time_bookings or corporate_requests), `vehicle_id`, `driver_id`, `start_time`, `end_time`, `start_location`, `end_location`, `fare`, `status`.
+
+10. Table: `invoices`
+    - Purpose: Billing for corporate clients.
+    - Fields:
+        - `id`, `corporate_id`, `amount`, `due_date`, `paid_at`, `status` (unpaid, paid, overdue), `pdf_path`.
+
+11. Table: `site_settings` (or `site_counters`)
+    - Purpose: Manage dynamic homepage content like statistics.
+    - Fields: `key`, `value`, `type` (counter, text, image).
+
+Phase 3: Implementation Steps
+-----------------------------
+
+1. Create Migration for `users` table modification.
+2. Create Migration for `drivers` table modification.
+3. Create Migration for `vehicles` table modification.
+4. Create Migrations for all new tables in Phase 2.
+5. Update Eloquent Models (`User`, `Driver`, `Vehicle`) with new fillables and relationships.
+6. Create new Models for all new tables.
+7. Run migrations: `php artisan migrate`.
+
+Phase 4: Data Integrity & Validation
+------------------------------------
+- Set up Foreign Key constraints.
+- Add Indexes on `phone`, `email`, `role`, and `status` for performance.
+- Implement soft deletes for `bookings` and `trips`.

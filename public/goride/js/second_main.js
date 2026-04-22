@@ -311,48 +311,47 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+});
 
+/* ── DASHBOARD SIDEBAR TOGGLE (mobile) ── */
+(function() {
+    const toggleBtn = document.querySelector('.sidebar-toggle');
+    const sidebar   = document.querySelector('.sidebar');
+    const backdrop  = document.querySelector('.sidebar-backdrop');
+    if (!toggleBtn || !sidebar) return;
 
-    /* ── DASHBOARD SIDEBAR TOGGLE (mobile) ── */
-    const sidebarToggleBtn = document.querySelector('.sidebar-toggle');
-    const dashSidebar      = document.querySelector('.sidebar');
-    const sidebarBackdrop  = document.querySelector('.sidebar-backdrop');
-
-    if (sidebarToggleBtn && dashSidebar) {
-        function openSidebar() {
-            dashSidebar.classList.add('open');
-            if (sidebarBackdrop) sidebarBackdrop.classList.add('show');
-            document.body.style.overflow = 'hidden';
-            const icon = sidebarToggleBtn.querySelector('i');
-            if (icon) icon.className = 'fas fa-times';
-        }
-        function closeSidebar() {
-            dashSidebar.classList.remove('open');
-            if (sidebarBackdrop) sidebarBackdrop.classList.remove('show');
-            document.body.style.overflow = '';
-            const icon = sidebarToggleBtn.querySelector('i');
-            if (icon) icon.className = 'fas fa-bars';
-        }
-
-        sidebarToggleBtn.addEventListener('click', () => {
-            dashSidebar.classList.contains('open') ? closeSidebar() : openSidebar();
-        });
-
-        if (sidebarBackdrop) sidebarBackdrop.addEventListener('click', closeSidebar);
-
-        dashSidebar.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', () => {
-                if (window.innerWidth <= 768) closeSidebar();
-            });
-        });
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeSidebar();
-        });
-
-        window.addEventListener('resize', () => {
-            if (window.innerWidth > 768) closeSidebar();
-        }, { passive: true });
+    function openSidebar() {
+        sidebar.classList.add('open');
+        if (backdrop) backdrop.classList.add('show');
+        document.body.style.overflow = 'hidden';
+        const icon = toggleBtn.querySelector('i');
+        if (icon) icon.className = 'fas fa-times';
+    }
+    function closeSidebar() {
+        sidebar.classList.remove('open');
+        if (backdrop) backdrop.classList.remove('show');
+        document.body.style.overflow = '';
+        const icon = toggleBtn.querySelector('i');
+        if (icon) icon.className = 'fas fa-bars';
     }
 
-});
+    toggleBtn.addEventListener('click', () => {
+        sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+    });
+    if (backdrop) backdrop.addEventListener('click', closeSidebar);
+
+    // Close when a sidebar link is tapped on mobile
+    sidebar.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth <= 768) closeSidebar();
+        });
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeSidebar();
+    });
+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) closeSidebar();
+    }, { passive: true });
+})();

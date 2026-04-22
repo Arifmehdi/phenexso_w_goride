@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Cars | Owner Dashboard</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="../assets/go_ride_logo.png" alt="GoRide Logo">
+                </a>
+            </div>
+            <div class="nav-right">
+                <span style="font-weight: 600; color: var(--text-color);"><i class="fas fa-user-circle" style="margin-right: 8px; color: var(--primary-color);"></i> Rahim Uddin</span>
+                <a href="login.html" class="lang-toggle">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="dashboard-wrapper">
+        <aside class="sidebar">
+            <ul class="sidebar-menu">
+                <li><a href="dashboard-owner.html"><i class="fas fa-chart-line"></i> <span>My Stats</span></a></li>
+                <li><a href="owner-cars.html" class="active"><i class="fas fa-car-side"></i> <span>My Cars</span></a></li>
+                <li><a href="owner-history.html"><i class="fas fa-route"></i> <span>Trip History</span></a></li>
+                <li><a href="owner-earnings.html"><i class="fas fa-wallet"></i> <span>Earnings</span></a></li>
+                <li><a href="owner-profile.html"><i class="fas fa-user-edit"></i> <span>Profile</span></a></li>
+                <li><a href="owner-documents.html"><i class="fas fa-file-alt"></i> <span>Documents</span></a></li>
+                <li><a href="contact.html"><i class="fas fa-question-circle"></i> <span>Help Center</span></a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="dashboard-header">
+                <h2>My Vehicles</h2>
+                <button class="btn-primary" style="width: auto; padding: 10px 25px;">+ Add New Car</button>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Vehicle Model</th>
+                            <th>Reg. Number</th>
+                            <th>Assigned Driver</th>
+                            <th>Current Status</th>
+                            <th>Documents</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="font-weight: 600;">Toyota Noah 2019</td>
+                            <td>DHK-METRO-KA-1234</td>
+                            <td>Self</td>
+                            <td><span class="status-badge status-active">Active</span></td>
+                            <td><span style="color: var(--success);"><i class="fas fa-check-circle"></i> Complete</span></td>
+                            <td><a href="#" style="color: var(--primary-color); font-weight: 600;">Edit</a></td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600;">Toyota Axio 2017</td>
+                            <td>DHK-METRO-GA-8890</td>
+                            <td>Karimullah</td>
+                            <td><span class="status-badge status-pending">In Review</span></td>
+                            <td><span style="color: var(--danger);"><i class="fas fa-clock"></i> Pending</span></td>
+                            <td><a href="#" style="color: var(--primary-color); font-weight: 600;">Edit</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Owner/Driver Registration | GoRide Bangladesh</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 50px;
+            position: relative;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .step-indicator::before {
+            content: '';
+            position: absolute;
+            top: 25px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: #e2e8f0;
+            z-index: 1;
+        }
+        .step {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid #e2e8f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2;
+            font-weight: 800;
+            color: #94a3b8;
+            transition: var(--transition);
+        }
+        .step.active {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            transform: scale(1.1);
+            box-shadow: 0 0 0 10px rgba(26, 122, 60, 0.1);
+        }
+        .step.completed {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+        .form-step { display: none; }
+        .form-step.active { display: block; animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        .btn-prev {
+            background: #f1f5f9;
+            color: var(--text-color);
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="../assets/go_ride_logo.png" alt="GoRide Logo">
+                </a>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="about.html">About Us</a></li>
+                    <li><a href="services.html">Services</a></li>
+                    <li><a href="fleet.html">Car Fleet</a></li>
+                    <li><a href="tours.html">Tours & Travels</a></li>
+                    <li><a href="contact.html">Contact Us</a></li>
+                </ul>
+            </nav>
+            <div class="nav-right">
+                <a href="login.html" class="login-btn">Login</a>
+            </div>
+        </div>
+    </header>
+
+    <section style="background: var(--accent-color);">
+        <div class="container">
+            <div class="section-title">
+                <h2>Join Our Fleet</h2>
+                <p>Register as an owner or driver in 3 simple phases.</p>
+            </div>
+
+            <div class="step-indicator">
+                <div class="step active" data-step="1">1</div>
+                <div class="step" data-step="2">2</div>
+                <div class="step" data-step="3">3</div>
+            </div>
+
+            <div class="form-container">
+                <form id="regForm">
+                    <!-- Step 1 -->
+                    <div class="form-step active" id="step1">
+                        <h3 style="margin-bottom: 25px; color: var(--primary-color);"><i class="fas fa-bolt"></i> Phase 1: Quick Signup</h3>
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" class="form-control" name="fullname" required placeholder="Full Name">
+                        </div>
+                        <div class="form-group">
+                            <label>Mobile Number</label>
+                            <input type="tel" class="form-control" name="phone" required placeholder="017XXXXXXXX">
+                        </div>
+                        <div class="form-group">
+                            <label>Role</label>
+                            <select class="form-control" name="role">
+                                <option value="driver">Driver</option>
+                                <option value="owner">Car Owner</option>
+                                <option value="both">Both (Driver & Owner)</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; justify-content: flex-end; margin-top: 30px;">
+                            <button type="button" class="btn-primary" style="width: auto; padding-left: 50px; padding-right: 50px;" onclick="nextStep(2)">Next Step <i class="fas fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="form-step" id="step2">
+                        <h3 style="margin-bottom: 25px; color: var(--primary-color);"><i class="fas fa-id-card"></i> Phase 2: Personal Details</h3>
+                        <div class="form-group">
+                            <label>NID Number</label>
+                            <input type="text" class="form-control" name="nid" required placeholder="13 or 17 digit NID">
+                        </div>
+                        <div class="form-group">
+                            <label>Home Address</label>
+                            <textarea class="form-control" name="address" rows="2" placeholder="Full address..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Emergency Contact Number</label>
+                            <input type="tel" class="form-control" name="emergency" placeholder="01XXXXXXXXX">
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-top: 30px;">
+                            <button type="button" class="btn-prev" onclick="prevStep(1)"><i class="fas fa-arrow-left"></i> Back</button>
+                            <button type="button" class="btn-primary" style="width: auto; padding-left: 50px; padding-right: 50px;" onclick="nextStep(3)">Next Step <i class="fas fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="form-step" id="step3">
+                        <h3 style="margin-bottom: 25px; color: var(--primary-color);"><i class="fas fa-car"></i> Phase 3: Vehicle & Documents</h3>
+                        <div class="form-group">
+                            <label>Car Model & Year</label>
+                            <input type="text" class="form-control" name="car_model" placeholder="e.g. Toyota Premio 2018">
+                        </div>
+                        <div class="form-group">
+                            <label>Vehicle Registration Number</label>
+                            <input type="text" class="form-control" name="reg_no" placeholder="DHK-METRO-XXXXXX">
+                        </div>
+                        <div class="form-group">
+                            <label>Upload Documents (Photos/PDF)</label>
+                            <div style="border: 2px dashed #cbd5e1; padding: 30px; border-radius: 12px; text-align: center; background: #f8fafc;">
+                                <i class="fas fa-cloud-upload-alt" style="font-size: 40px; color: #94a3b8; margin-bottom: 15px;"></i>
+                                <p style="color: #64748b; font-size: 14px;">Select NID, License, and Car Documents</p>
+                                <input type="file" multiple style="display: none;" id="fileUpload">
+                                <button type="button" class="btn-prev" style="margin-top: 15px; padding: 10px 20px;" onclick="document.getElementById('fileUpload').click()">Choose Files</button>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-top: 30px;">
+                            <button type="button" class="btn-prev" onclick="prevStep(2)"><i class="fas fa-arrow-left"></i> Back</button>
+                            <button type="submit" class="btn-primary" style="width: auto; padding-left: 50px; padding-right: 50px;">Submit Registration</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-about">
+                    <img src="../assets/go_ride_logo.png" alt="GoRide Logo">
+                    <p>GoRide Bangladesh is the leading transport marketplace. We provide reliable car rentals for individuals and corporate clients nationwide.</p>
+                    <div class="footer-socials">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="services.html">Our Services</a></li>
+                        <li><a href="fleet.html">Our Fleet</a></li>
+                        <li><a href="tours.html">Tours & Travels</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="contact.html">Contact Us</a></li>
+                        <li><a href="privacy.html">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-contact">
+                    <h4>Contact Us</h4>
+                    <p><i class="fas fa-phone-alt"></i> +880 1234 567890</p>
+                    <p><i class="fas fa-envelope"></i> info@goride.com.bd</p>
+                    <p><i class="fas fa-map-marker-alt"></i> Gulshan, Dhaka, Bangladesh</p>
+                    <p><i class="fab fa-whatsapp"></i> +880 1234 567890</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 GoRide Bangladesh. All rights reserved. Built for Bangladesh.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function nextStep(step) {
+            document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
+            document.getElementById('step' + step).classList.add('active');
+            
+            document.querySelectorAll('.step').forEach(s => {
+                const sStep = parseInt(s.dataset.step);
+                if (sStep < step) s.classList.add('completed');
+                if (sStep === step) s.classList.add('active');
+                else s.classList.remove('active');
+            });
+            window.scrollTo({ top: 200, behavior: 'smooth' });
+        }
+
+        function prevStep(step) {
+            document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
+            document.getElementById('step' + step).classList.add('active');
+            
+            document.querySelectorAll('.step').forEach(s => {
+                const sStep = parseInt(s.dataset.step);
+                if (sStep > step) {
+                    s.classList.remove('completed');
+                    s.classList.remove('active');
+                }
+                if (sStep === step) {
+                    s.classList.remove('completed');
+                    s.classList.add('active');
+                }
+            });
+            window.scrollTo({ top: 200, behavior: 'smooth' });
+        }
+
+        document.getElementById('regForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('Registration Submitted! Our team will verify your profile.');
+            window.location.href = 'index.html';
+        });
+    </script>
+</body>
+</html>

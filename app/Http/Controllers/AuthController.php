@@ -20,13 +20,7 @@ class AuthController extends Controller
 {
     public function index(){
         if(Auth::check()){
-            if(Auth::user()->hasRole('admin')){
-                return redirect('admin/dashboard');
-            }
-            if(Auth::user()->hasRole('retailer')){
-                return redirect('retailer/dashboard');
-            }
-            return redirect()->route('user.dashboard');
+            return redirect()->route('dashboard.index');
         }
         return view('goride.auth.login');
     }
@@ -41,7 +35,7 @@ class AuthController extends Controller
     {
         // Redirect if already logged in
         if (Auth::check()) {
-            return redirect()->route('user.dashboard');
+            return redirect()->route('dashboard.index');
         }
         // dd('Login attempted with: ' . $request->input('login'));
         // Validate request
@@ -65,17 +59,7 @@ class AuthController extends Controller
             // Merge session cart to user cart
             $this->cartSessionToUser();
 
-            $user = Auth::user();
-
-            // Redirect based on role
-            if ($user->hasRole('admin')) {
-                return redirect()->route('admin.dashboard')->with('success', 'Signed in successfully');
-            }
-            if ($user->hasRole('retailer')) {
-                return redirect()->route('retailer.dashboard')->with('success', 'Signed in successfully');
-            }
-
-            return redirect()->route('user.dashboard')->with('success', 'Signed in successfully');
+            return redirect()->route('dashboard.index')->with('success', 'Signed in successfully');
         }
 
         // Failed login
@@ -325,25 +309,21 @@ class AuthController extends Controller
 
     public function mainRegister(Request $request)
     {
-
         $request->validate([
             'name'               => 'required|string|max:255',
             'email'              => 'required|email|unique:users,email',
-            'password'           =>  'required|string|min:8|confirmed',
-            // 'password'           => 'required|string|min:8',
+            'password'           => 'required|string|min:8|confirmed',
+            'role'               => 'nullable|string|in:user,driver,owner,corporate,solo',
         ]);
+
+        $role = $request->input('role', 'solo'); // Default to solo/user
 
         $user = User::create([
             'name'     => $request->name,
             'email'    => $request->email,
             'password' => Hash::make($request->password),
-        ]);
-
-        // Assign default 'user' role
-        Role::create([
-            'user_id'   => $user->id,
-            'role_name' => 'user',
-            'role_value'=> 'User'
+            'role'     => $role,
+            'status'   => ($role === 'solo' || $role === 'user') ? 'active' : 'pending',
         ]);
 
         // Auto login
@@ -352,8 +332,8 @@ class AuthController extends Controller
         // Merge session cart
         $this->cartSessionToUser();
 
-        // Redirect
-        return redirect()->route('user.dashboard')
+        // Redirect based on dashboard index
+        return redirect()->route('dashboard.index')
                         ->with('success', 'Registration successful! Welcome, ' . $user->name);
     }
 

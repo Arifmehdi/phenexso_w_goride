@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Settings | Corporate Dashboard</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="../assets/go_ride_logo.png" alt="GoRide Logo">
+                </a>
+            </div>
+            <div class="nav-right">
+                <span style="font-weight: 600; color: var(--text-color);"><i class="fas fa-building" style="margin-right: 8px; color: var(--primary-color);"></i> Acme Corporation</span>
+                <a href="login.html" class="lang-toggle">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="dashboard-wrapper">
+        <aside class="sidebar">
+            <ul class="sidebar-menu">
+                <li><a href="dashboard-corporate.html"><i class="fas fa-th-large"></i> <span>Overview</span></a></li>
+                <li><a href="corporate-fleet.html"><i class="fas fa-car"></i> <span>My Fleet</span></a></li>
+                <li><a href="corporate-billing.html"><i class="fas fa-file-invoice-dollar"></i> <span>Billing</span></a></li>
+                <li><a href="corporate-new-request.html"><i class="fas fa-plus-circle"></i> <span>New Request</span></a></li>
+                <li><a href="corporate-history.html"><i class="fas fa-history"></i> <span>History</span></a></li>
+                <li><a href="contact.html"><i class="fas fa-headset"></i> <span>Support</span></a></li>
+                <li><a href="corporate-settings.html" class="active"><i class="fas fa-cog"></i> <span>Settings</span></a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="dashboard-header">
+                <h2>Account Settings</h2>
+                <button class="btn-primary" style="width: auto; padding: 10px 25px;">Save Changes</button>
+            </div>
+
+            <div class="form-container" style="margin: 0; max-width: none;">
+                <h3 style="margin-bottom: 25px; color: var(--primary-color);">Company Profile</h3>
+                <div class="form-grid-2col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                    <div class="form-group">
+                        <label>Company Name</label>
+                        <input type="text" class="form-control" value="Acme Corporation">
+                    </div>
+                    <div class="form-group">
+                        <label>Tax ID (TIN)</label>
+                        <input type="text" class="form-control" value="123456789012">
+                    </div>
+                    <div class="form-group">
+                        <label>Primary Contact Person</label>
+                        <input type="text" class="form-control" value="John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Designation</label>
+                        <input type="text" class="form-control" value="Operations Manager">
+                    </div>
+                    <div class="form-group">
+                        <label>Official Email</label>
+                        <input type="email" class="form-control" value="admin@acme.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Notification Phone</label>
+                        <input type="tel" class="form-control" value="01700000000">
+                    </div>
+                </div>
+
+                <h3 style="margin-bottom: 25px; color: var(--primary-color); margin-top: 40px;">Security</h3>
+                <div style="max-width: 400px;">
+                    <div class="form-group">
+                        <label>Current Password</label>
+                        <input type="password" class="form-control" placeholder="••••••••">
+                    </div>
+                    <div class="form-group">
+                        <label>New Password</label>
+                        <input type="password" class="form-control" placeholder="New password">
+                    </div>
+                    <button class="btn-prev" style="padding: 10px 20px;">Change Password</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/main.js"></script>
+
+    <!-- Mobile sidebar backdrop -->
+    <div class="sidebar-backdrop"></div>
+    <!-- Mobile sidebar toggle FAB -->
+    <button class="sidebar-toggle" aria-label="Toggle menu"><i class="fas fa-bars"></i></button>
+
+</body>
+</html>

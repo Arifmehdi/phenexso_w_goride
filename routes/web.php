@@ -198,7 +198,7 @@ Route::get('galleries/image',[FrontendController::class,'imageGalleries'])->name
 Route::get('galleries/video',[FrontendController::class,'videoGalleries'])->name('video.galleries');
 
 
-//Authentication
+// Authentication and Dashboard
 Route::get('/login',[AuthController::class,'index'])->name('login');
 Route::post('/login',[AuthController::class,'login'])->name('login.user');
 Route::get('/registration',[AuthController::class,'registration'])->name('registration');
@@ -207,6 +207,32 @@ Route::get('/registration/corporate',[AuthController::class,'registrationCorpora
 Route::get('/health-card',[AuthController::class,'healthCard'])->name('health.registration');
 Route::post('/register',[AuthController::class,'register'])->name('register');
 Route::post('/main-register',[AuthController::class,'mainRegister'])->name('main.register');
+
+Route::middleware(['auth'])->group(function() {
+    Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard.index');
+    
+    // Corporate Dashboard Routes
+    Route::prefix('dashboard/corporate')->name('corporate.')->group(function() {
+        Route::get('/', [App\Http\Controllers\DashboardController::class, 'corporateDashboard'])->name('dashboard');
+        Route::get('/fleet', [App\Http\Controllers\DashboardController::class, 'corporateFleet'])->name('fleet');
+        Route::get('/billing', [App\Http\Controllers\DashboardController::class, 'corporateBilling'])->name('billing');
+        Route::get('/new-request', [App\Http\Controllers\DashboardController::class, 'corporateNewRequest'])->name('new-request');
+        Route::get('/history', [App\Http\Controllers\DashboardController::class, 'corporateHistory'])->name('history');
+        Route::get('/settings', [App\Http\Controllers\DashboardController::class, 'corporateSettings'])->name('settings');
+    });
+
+    // Owner Dashboard Routes
+    Route::prefix('dashboard/owner')->name('owner.')->group(function() {
+        Route::get('/', [App\Http\Controllers\DashboardController::class, 'ownerDashboard'])->name('dashboard');
+        Route::get('/cars', [App\Http\Controllers\DashboardController::class, 'ownerCars'])->name('cars');
+        Route::get('/history', [App\Http\Controllers\DashboardController::class, 'ownerHistory'])->name('history');
+        Route::get('/earnings', [App\Http\Controllers\DashboardController::class, 'ownerEarnings'])->name('earnings');
+        Route::get('/profile', [App\Http\Controllers\DashboardController::class, 'ownerProfile'])->name('profile');
+        Route::get('/documents', [App\Http\Controllers\DashboardController::class, 'ownerDocuments'])->name('documents');
+    });
+
+    Route::get('/dashboard/driver', [App\Http\Controllers\DashboardController::class, 'driverDashboard'])->name('driver.dashboard');
+});
 
 // Password Reset Frontend Bridge
 Route::get('/reset-password', function (Illuminate\Http\Request $request) {

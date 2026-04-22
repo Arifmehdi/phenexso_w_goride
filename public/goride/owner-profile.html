@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile | Owner Dashboard</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="../assets/go_ride_logo.png" alt="GoRide Logo">
+                </a>
+            </div>
+            <div class="nav-right">
+                <span style="font-weight: 600; color: var(--text-color);"><i class="fas fa-user-circle" style="margin-right: 8px; color: var(--primary-color);"></i> Rahim Uddin</span>
+                <a href="login.html" class="lang-toggle">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="dashboard-wrapper">
+        <aside class="sidebar">
+            <ul class="sidebar-menu">
+                <li><a href="dashboard-owner.html"><i class="fas fa-chart-line"></i> <span>My Stats</span></a></li>
+                <li><a href="owner-cars.html"><i class="fas fa-car-side"></i> <span>My Cars</span></a></li>
+                <li><a href="owner-history.html"><i class="fas fa-route"></i> <span>Trip History</span></a></li>
+                <li><a href="owner-earnings.html"><i class="fas fa-wallet"></i> <span>Earnings</span></a></li>
+                <li><a href="owner-profile.html" class="active"><i class="fas fa-user-edit"></i> <span>Profile</span></a></li>
+                <li><a href="owner-documents.html"><i class="fas fa-file-alt"></i> <span>Documents</span></a></li>
+                <li><a href="contact.html"><i class="fas fa-question-circle"></i> <span>Help Center</span></a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="dashboard-header">
+                <h2>Account Profile</h2>
+                <button class="btn-primary" style="width: auto; padding: 10px 25px;">Update Profile</button>
+            </div>
+
+            <div class="form-container" style="margin: 0; max-width: none;">
+                <div class="form-grid-2col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" class="form-control" value="Rahim Uddin">
+                    </div>
+                    <div class="form-group">
+                        <label>Mobile Number</label>
+                        <input type="tel" class="form-control" value="01711223344" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" class="form-control" value="rahim@gmail.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Date of Birth</label>
+                        <input type="date" class="form-control" value="1990-05-15">
+                    </div>
+                    <div class="form-group">
+                        <label>Present Address</label>
+                        <textarea class="form-control" rows="2">House 23, Block C, Mirpur 12, Dhaka</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Emergency Contact</label>
+                        <input type="tel" class="form-control" value="01822334455">
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Mobile sidebar backdrop -->
+    <div class="sidebar-backdrop"></div>
+    <!-- Mobile sidebar toggle FAB -->
+    <button class="sidebar-toggle" aria-label="Toggle menu"><i class="fas fa-bars"></i></button>
+
+</body>
+</html>

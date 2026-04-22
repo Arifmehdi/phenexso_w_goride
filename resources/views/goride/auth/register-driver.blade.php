@@ -19,6 +19,7 @@
 
         <form action="{{ route('main.register') }}" method="POST">
             @csrf
+            <input type="hidden" name="role" value="driver">
             <div class="form-group">
                 <label>Full Name</label>
                 <input type="text" name="name" class="form-control" placeholder="Enter your full name" value="{{ old('name') }}" required autofocus>

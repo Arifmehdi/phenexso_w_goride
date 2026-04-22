@@ -20,7 +20,7 @@
                 <a href="{{ route('welcome.changeLanguage', ['lang' => 'en']) }}" class="lang-toggle">English</a>
             @endif
             @if(Auth::check())
-                <a href="{{ route('user.dashboard') }}" class="login-btn">{{ __('goride.nav.dashboard') }}</a>
+                <a href="{{ route('dashboard.index') }}" class="login-btn">{{ __('goride.nav.dashboard') }}</a>
             @else
                 <a href="{{ route('login') }}" class="login-btn">{{ __('goride.nav.login') }}</a>
             @endif

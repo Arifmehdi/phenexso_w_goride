@@ -1,0 +1,83 @@
+GoRide Bangladesh - Multi-Type User & Login Management Plan
+===========================================================
+
+This document details how we will restructure the `users` table and authentication 
+logic to support all user types (Admin, Corporate, Owner, Driver, Solo) 
+under a single unified login system.
+
+1. Architectural Overview
+-------------------------
+Instead of having separate tables for each login type, we use the `users` table 
+as the "Identity Provider." Type-specific data is then stored in related tables 
+linked by `user_id`.
+
+User Types & Roles:
+- 'admin': Full access to the backend.
+- 'corporate': Access to the Corporate Dashboard (fleet, billing, requests).
+- 'owner': Access to Owner Dashboard (manage multiple cars/drivers).
+- 'driver': Access to Driver Dashboard (view assigned trips, profile).
+- 'solo': One-time clients (mostly for history tracking after OTP).
+
+2. User Table Structural Changes
+--------------------------------
+We need to ensure the `users` table has these core fields:
+
+Field           | Type              | Description
+----------------|-------------------|---------------------------------------
+role            | ENUM              | admin, corporate, owner, driver, solo
+status          | ENUM              | pending, active, suspended, rejected
+mobile          | String (Unique)   | Primary login identifier in BD context
+email           | String (Unique)   | Secondary login identifier (optional)
+password        | String            | Hashed password
+otp_verified_at | Timestamp         | For Solo/One-time client verification
+
+3. Relationship Mapping
+-----------------------
+The `User` model will act as the parent for:
+- User -> hasOne(Driver)
+- User -> hasOne(CorporateAccount)
+- User -> hasMany(Vehicles) [if role is Owner]
+
+4. Unified Login Logic (AuthController)
+---------------------------------------
+The login process will follow these steps:
+1. Identification: Accept Mobile or Email.
+2. Authentication: Verify password via `Auth::attempt()`.
+3. Status Check: Ensure `status == 'active'`.
+4. Redirection:
+   - If 'admin' -> Redirect to `/admin/dashboard`
+   - If 'corporate' -> Redirect to `/corporate/dashboard`
+   - If 'owner' -> Redirect to `/owner/dashboard`
+   - If 'driver' -> Redirect to `/driver/dashboard`
+   - Default -> Redirect to `/home` or `/profile`
+
+5. Implementation Step-by-Step
+------------------------------
+
+Step 1: Migration
+- Add `role` and `status` to `users` table.
+- Ensure `mobile` is unique and indexed.
+- Remove redundant fields if they belong in type-specific tables (e.g., license_no should be in `drivers` table, not `users`).
+
+Step 2: Model Update (User.php)
+- Update `$fillable` to include `role` and `status`.
+- Add helper methods: `isAdmin()`, `isCorporate()`, `isDriver()`, etc.
+- Define relationships to `Driver`, `CorporateAccount`, and `Vehicle` models.
+
+Step 3: Middleware Implementation
+- Create or update Role-based Middleware (e.g., `CheckRole:admin`) to protect specific routes.
+
+Step 4: AuthController Refactoring
+- Update the `login` method to handle the redirection logic based on `Auth::user()->role`.
+- Update `registration` methods to assign the correct role during account creation.
+
+Step 5: Registration Flows
+- Solo Client: Quick OTP -> Create 'solo' user (status: active).
+- Driver/Owner: Progressive Form -> Create 'driver'/'owner' user (status: pending).
+- Corporate: Form -> Create 'corporate' user (status: pending).
+
+6. Security & Validation
+------------------------
+- Password Hashing: Always use `Hash::make()`.
+- Session Management: Regenerate session on login to prevent fixation.
+- Access Control: Ensure a Driver cannot access Corporate billing, etc.

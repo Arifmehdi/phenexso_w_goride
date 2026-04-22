@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Documents | Owner Dashboard</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .doc-card {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            border: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            transition: var(--transition);
+        }
+        .doc-card:hover {
+            border-color: var(--primary-color);
+            transform: translateX(5px);
+        }
+        .doc-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .doc-icon {
+            width: 50px;
+            height: 50px;
+            background: #f8fafc;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="../assets/go_ride_logo.png" alt="GoRide Logo">
+                </a>
+            </div>
+            <div class="nav-right">
+                <span style="font-weight: 600; color: var(--text-color);"><i class="fas fa-user-circle" style="margin-right: 8px; color: var(--primary-color);"></i> Rahim Uddin</span>
+                <a href="login.html" class="lang-toggle">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="dashboard-wrapper">
+        <aside class="sidebar">
+            <ul class="sidebar-menu">
+                <li><a href="dashboard-owner.html"><i class="fas fa-chart-line"></i> <span>My Stats</span></a></li>
+                <li><a href="owner-cars.html"><i class="fas fa-car-side"></i> <span>My Cars</span></a></li>
+                <li><a href="owner-history.html"><i class="fas fa-route"></i> <span>Trip History</span></a></li>
+                <li><a href="owner-earnings.html"><i class="fas fa-wallet"></i> <span>Earnings</span></a></li>
+                <li><a href="owner-profile.html"><i class="fas fa-user-edit"></i> <span>Profile</span></a></li>
+                <li><a href="owner-documents.html" class="active"><i class="fas fa-file-alt"></i> <span>Documents</span></a></li>
+                <li><a href="contact.html"><i class="fas fa-question-circle"></i> <span>Help Center</span></a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="dashboard-header">
+                <h2>Document Verification</h2>
+                <div class="status-badge status-pending">4/6 Verified</div>
+            </div>
+
+            <div class="doc-list">
+                <div class="doc-card">
+                    <div class="doc-info">
+                        <div class="doc-icon"><i class="fas fa-id-card"></i></div>
+                        <div>
+                            <h4 style="margin: 0;">NID (National ID)</h4>
+                            <p style="font-size: 0.85rem; color: var(--text-light); margin: 0;">Verified via Porichoy API</p>
+                        </div>
+                    </div>
+                    <span class="status-badge status-active"><i class="fas fa-check-circle"></i> Verified</span>
+                </div>
+
+                <div class="doc-card">
+                    <div class="doc-info">
+                        <div class="doc-icon"><i class="fas fa-address-card"></i></div>
+                        <div>
+                            <h4 style="margin: 0;">Driving License</h4>
+                            <p style="font-size: 0.85rem; color: var(--text-light); margin: 0;">Expires: 12 Dec 2028</p>
+                        </div>
+                    </div>
+                    <span class="status-badge status-active"><i class="fas fa-check-circle"></i> Verified</span>
+                </div>
+
+                <div class="doc-card">
+                    <div class="doc-info">
+                        <div class="doc-icon"><i class="fas fa-file-invoice"></i></div>
+                        <div>
+                            <h4 style="margin: 0;">Vehicle Tax Token</h4>
+                            <p style="font-size: 0.85rem; color: var(--text-light); margin: 0;">Required for Toyota Noah</p>
+                        </div>
+                    </div>
+                    <button class="login-btn" style="padding: 5px 15px; font-size: 0.85rem;">Upload Now</button>
+                </div>
+
+                <div class="doc-card">
+                    <div class="doc-info">
+                        <div class="doc-icon"><i class="fas fa-shield-alt"></i></div>
+                        <div>
+                            <h4 style="margin: 0;">Insurance Documents</h4>
+                            <p style="font-size: 0.85rem; color: var(--text-light); margin: 0;">Comprehensive coverage</p>
+                        </div>
+                    </div>
+                    <span class="status-badge status-active"><i class="fas fa-check-circle"></i> Verified</span>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

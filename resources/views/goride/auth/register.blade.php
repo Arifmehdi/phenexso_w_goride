@@ -19,6 +19,16 @@
 
         <form action="{{ route('main.register') }}" method="POST">
             @csrf
+            @if ($errors->any())
+                <div style="background: #fee2e2; color: #991b1b; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 14px;">
+                    <ul style="margin: 0; padding-left: 20px;">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+            <input type="hidden" name="role" value="solo">
             <div class="form-group">
                 <label>Full Name</label>
                 <input type="text" name="name" class="form-control" placeholder="Enter your full name" value="{{ old('name') }}" required autofocus>
