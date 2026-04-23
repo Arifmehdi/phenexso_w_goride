@@ -25,8 +25,14 @@
                 <p>{{ $pageContents['about']->meta['paragraph_2'] ?? 'As a bilingual marketplace serving both English and Bangla speakers, we have eliminated communication barriers and brought together vehicle owners, professional drivers, and customers on one seamless platform.' }}</p>
                 <p>{{ $pageContents['about']->meta['paragraph_3'] ?? 'Our mobile-first approach means GoRide is always right in your pocket — ready when you need to book a quick city trip or a week-long inter-district journey.' }}</p>
                 <div class="about-highlights">
-                    @if($pageContents['about']->highlights)
-                        @foreach($pageContents['about']->highlights as $highlight)
+                    @php
+                        $highlights = $pageContents['about']->highlights;
+                        if (is_string($highlights)) {
+                            $highlights = json_decode($highlights, true);
+                        }
+                    @endphp
+                    @if($highlights && count($highlights) > 0)
+                        @foreach($highlights as $highlight)
                             <span class="about-highlight-item"><i class="fas fa-check"></i> {{ $highlight }}</span>
                         @endforeach
                     @else
