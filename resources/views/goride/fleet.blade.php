@@ -14,9 +14,9 @@
 <section style="background:white;">
     <div class="container">
         <div class="section-title">
-            <div class="section-label"><i class="fas fa-car"></i> Choose Your Ride</div>
-            <h2>Vehicles for Every Need &amp; Budget</h2>
-            <p>All vehicles are regularly serviced, verified, and driven by licensed professionals. Pick the one that suits your trip.</p>
+            <div class="section-label"><i class="fas fa-car"></i> {{ $pageContents['fleet']->title ?? 'Choose Your Ride' }}</div>
+            <h2>{{ $pageContents['fleet']->title ?? 'Vehicles for Every Need &amp; Budget' }}</h2>
+            <p>{{ $pageContents['fleet']->description ?? 'All vehicles are regularly serviced, verified, and driven by licensed professionals. Pick the one that suits your trip.' }}</p>
         </div>
         <div class="fleet-grid">
             <div class="fleet-card">

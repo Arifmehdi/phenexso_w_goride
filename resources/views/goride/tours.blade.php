@@ -14,9 +14,9 @@
 <section style="background:white;">
     <div class="container">
         <div class="section-title">
-            <div class="section-label"><i class="fas fa-map-marked-alt"></i> Destinations</div>
-            <h2>Handpicked Tour Packages</h2>
-            <p>Every package includes premium transport, experienced local drivers, and a stress-free journey to Bangladesh's finest destinations.</p>
+            <div class="section-label"><i class="fas fa-map-marked-alt"></i> {{ $pageContents['tours']->title ?? 'Destinations' }}</div>
+            <h2>{{ $pageContents['tours']->title ?? 'Handpicked Tour Packages' }}</h2>
+            <p>{{ $pageContents['tours']->description ?? 'Every package includes premium transport, experienced local drivers, and a stress-free journey to Bangladesh\'s finest destinations.' }}</p>
         </div>
         <div class="tours-grid">
             <div class="tour-card">

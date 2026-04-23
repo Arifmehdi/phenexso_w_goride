@@ -244,6 +244,30 @@
                         </ul>
                     </li>
 
+                    <li class="nav-item {{ session('lsbm') == 'pagecontents' ? ' menu-open ' : ''}}">
+                        <a href="#" class="nav-link {{ session('lsbm') == 'pagecontents' ? ' active ' : ''}}">
+                            <i class="nav-icon fas fa-file-alt"></i>
+                            <p>
+                                Page Contents
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{{route('admin.page_contents.index')}}" class="nav-link {{ session('lsbsm') == 'pageContentsAll' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>All Page Contents</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{route('admin.page_contents.create')}}" class="nav-link {{ session('lsbsm') == 'createPageContent' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Create Page Content</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
                     {{--<li class="nav-item {{ session('lsbm') == 'categories'? ' menu-open ' : ''}}">
                         <a href="#" class="nav-link {{ session('lsbm') == 'categories'? ' active ' : ''}}">
                             <i class="nav-icon fas fa-users"></i>

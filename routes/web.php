@@ -17,7 +17,7 @@ use App\Http\Controllers\Admin\SearchController;
 use App\Http\Controllers\Admin\ShippingMethodController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\UserRoleController;
-use App\Http\Controllers\Admin\WebsiteParameterController;
+use App\Http\Controllers\Admin\PageContentController;
 use App\Http\Controllers\Admin\AdminTestimonialController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
@@ -370,6 +370,16 @@ Route::middleware(['userRole:admin','auth'])->prefix('admin')->group(function(){
    
     Route::get('websiteparam',[WebsiteParameterController::class,'websiteparam'])->name('websiteparam');
     Route::post('websiteparam/update/{id}',[WebsiteParameterController::class,'update'])->name('websiteparam.update');
+
+    Route::resource('page_contents', PageContentController::class)->names([
+        'index' => 'admin.page_contents.index',
+        'create' => 'admin.page_contents.create',
+        'store' => 'admin.page_contents.store',
+        'show' => 'admin.page_contents.show',
+        'edit' => 'admin.page_contents.edit',
+        'update' => 'admin.page_contents.update',
+        'destroy' => 'admin.page_contents.destroy',
+    ]);
     
     
     //role assign

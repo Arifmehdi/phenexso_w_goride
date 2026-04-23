@@ -7,6 +7,8 @@ use App\Models\Menu;
 use App\Models\Page;
 use App\Models\Cart;
 use App\Models\WebsiteParameter;
+use App\Models\ProductCategory;
+use App\Models\PageContent;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use Illuminate\Pagination\Paginator;
@@ -47,6 +49,7 @@ class AppServiceProvider extends ServiceProvider
             View::share('headerMenus', Menu::whereActive(true)->where('type','header_menu')->orderBy('drag_id')->latest()->get());
             View::share('footerMenus', Menu::whereActive(true)->where('type','footer_menu')->orderBy('drag_id')->latest()->get());
             View::share('ws', WebsiteParameter::first());
+            View::share('pageContents', PageContent::where('active', true)->get()->keyBy('page_slug'));
             
             // Get current session id
             $sessionId = Session::getId();

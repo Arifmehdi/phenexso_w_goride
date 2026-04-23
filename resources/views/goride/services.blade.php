@@ -16,9 +16,9 @@
 <section style="background: white;">
     <div class="container">
         <div class="section-title">
-            <div class="section-label"><i class="fas fa-car"></i> What We Offer</div>
-            <h2>Transport Solutions for<br>Every Occasion</h2>
-            <p>From airport pickups to corporate fleets and curated tours — GoRide has a service that fits your journey.</p>
+            <div class="section-label"><i class="fas fa-car"></i> {{ $pageContents['services']->title ?? 'What We Offer' }}</div>
+            <h2>{{ $pageContents['services']->title ?? 'Transport Solutions for<br>Every Occasion' }}</h2>
+            <p>{{ $pageContents['services']->description ?? 'From airport pickups to corporate fleets and curated tours — GoRide has a service that fits your journey.' }}</p>
         </div>
         <div class="services-grid">
             <div class="service-card">

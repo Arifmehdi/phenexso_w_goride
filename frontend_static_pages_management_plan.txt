@@ -1,0 +1,104 @@
+Frontend Static Pages Admin Management Plan
+===========================================
+
+Goal:
+- Make the static frontend pages Home, About, Services, Fleet, and Tours fully manageable by admin.
+- Keep Contact page as-is since it is already handled separately.
+
+Current situation:
+------------------
+- `WebsiteParameterController` and `admin.websiteparam` already manage some global content and SEO data.
+- Home page uses `WebsiteParameter` values for About section, but most Home content is still hard-coded in views.
+- `resources/views/goride/services.blade.php` is static HTML with hard-coded service blocks.
+- `resources/views/goride/fleet.blade.php` is static HTML with hard-coded fleet card content.
+- `resources/views/goride/tours.blade.php` is static HTML with hard-coded tour packages.
+- Contact page is already functioning and does not need this change.
+
+What needs to be done:
+----------------------
+1. Use admin-driven content for the Home page.
+   - Add these fields to website parameters or a new page content table:
+     * homepage hero title, subtitle, CTA text, CTA link
+     * homepage statistics/counters
+     * homepage feature cards list
+     * homepage highlight section titles and descriptions
+     * homepage banner images
+   - Update the Home view to pull content from the database instead of fixed text.
+
+2. Make the About page editable by admin.
+   - Ensure `WebsiteParameter` stores:
+     * about page title
+     * about page subtitle/paragraphs
+     * about image(s)
+     * about feature bullets or list items
+   - Remove hard-coded about text from the view and use dynamic fields.
+
+3. Make the Services page fully admin-manageable.
+   - Create or reuse a service model/table for page sections.
+   - Required fields:
+     * title, short description, image, icon, link, order, active status
+   - Add an admin CRUD section for Services.
+   - Update the Services view to render records from the database.
+
+4. Make the Fleet page fully admin-manageable.
+   - Create a fleet item model/table with fields:
+     * title, description, image, capacity, price, features, category, active status
+   - Add an admin CRUD page for fleet items.
+   - Update Fleet view to display fleet items from the database.
+
+5. Make the Tours page fully admin-manageable.
+   - Create a tour package model/table with fields:
+     * title, price, badge, description, image, duration, highlights, active status
+   - Add an admin CRUD page for tour packages.
+   - Update Tours view to display current tour packages from the database.
+
+Recommended implementation strategy:
+------------------------------------
+A. Use the existing `website_parameters` admin screen for global, Home, and About content.
+   - Extend it with fields for hero section, counters, and About page content.
+   - Keep global SEO, contact and social links there.
+
+B. Use dedicated models/tables for repeated content lists:
+   - `services` (or `page_services`)
+   - `fleet_items`
+   - `tour_packages`
+
+C. Build admin pages for each table.
+   - Add routes under admin for services, fleet, and tours.
+   - Add CRUD views and list pages.
+   - Add enable/disable toggle so admin can hide/show items.
+
+D. Keep the Contact page unchanged.
+   - Existing contact form and admin contact message handling remain.
+
+High-level admin menu suggestion:
+----------------------------------
+- Website Content
+  * General Settings
+  * Home Page
+  * About Page
+  * Services
+  * Fleet
+  * Tours
+- Contact Messages
+
+Priority order:
+---------------
+1. About page content (already partly supported in `WebsiteParameter`).
+2. Home page hero/counters/feature sections.
+3. Services management.
+4. Fleet management.
+5. Tours management.
+
+Why this is the right approach:
+--------------------------------
+- Admin can change page copy, images, and featured offerings without code changes.
+- Using structured tables for Services/Fleet/Tours keeps the site scalable.
+- Global settings and About content can remain centralized in the existing `WebsiteParameter` pattern.
+- Contact page is left alone because it is already working and does not need this change.
+
+Next step for implementation:
+-----------------------------
+- Add the missing fields to `website_parameters` or create a new `page_contents` table.
+- Build admin forms to edit those fields.
+- Add service/fleet/tours CRUD modules and update frontend views accordingly.

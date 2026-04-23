@@ -20,11 +20,11 @@
     <div class="hero-bg"></div>
     <div class="hero-dots"></div>
     <div class="hero-content">
-        <div class="hero-badge"><i class="fas fa-circle-check"></i> {{ __('goride.hero.badge') }}</div>
-        <h1>{{ __('goride.hero.title') }}<br><span>{{ __('goride.hero.span') }}</span></h1>
-        <p>{{ __('goride.hero.subtitle') }}</p>
+            <div class="hero-badge"><i class="fas fa-circle-check"></i> {{ $pageContents['home']->meta['hero_badge'] ?? __('goride.hero.badge') }}</div>
+        <h1>{{ $pageContents['home']->meta['hero_title'] ?? __('goride.hero.title') }}<br><span>{{ $pageContents['home']->meta['hero_span'] ?? __('goride.hero.span') }}</span></h1>
+        <p>{{ $pageContents['home']->meta['hero_subtitle'] ?? __('goride.hero.subtitle') }}</p>
         <div class="hero-actions">
-            <a href="#" class="btn-hero-primary"><i class="fas fa-car"></i> {{ __('goride.hero.book_now') }}</a>
+            <a href="{{ $pageContents['home']->meta['hero_cta_link'] ?? '#' }}" class="btn-hero-primary"><i class="fas fa-car"></i> {{ $pageContents['home']->meta['hero_cta_text'] ?? __('goride.hero.book_now') }}</a>
             <a href="{{ route('tours') }}" class="btn-hero-secondary"><i class="fas fa-map-marked-alt"></i> {{ __('goride.hero.explore_tours') }}</a>
         </div>
     </div>
@@ -73,22 +73,22 @@
         <div class="stats-grid">
             <div class="stat-item">
                 <i class="fas fa-users stat-icon"></i>
-                <h3 id="count-customers">5000</h3>
+                <h3 id="count-customers">{{ $pageContents['home']->meta['stats_customers'] ?? '5000+' }}</h3>
                 <p>{{ __('goride.stats.customers') }}</p>
             </div>
             <div class="stat-item">
                 <i class="fas fa-car stat-icon"></i>
-                <h3 id="count-fleet">1200</h3>
+                <h3 id="count-fleet">{{ $pageContents['home']->meta['stats_fleet'] ?? '1200+' }}</h3>
                 <p>{{ __('goride.stats.fleet_vehicles') }}</p>
             </div>
             <div class="stat-item">
                 <i class="fas fa-map-pin stat-icon"></i>
-                <h3 id="count-dest">64</h3>
+                <h3 id="count-dest">{{ $pageContents['home']->meta['stats_districts'] ?? '64' }}</h3>
                 <p>{{ __('goride.stats.districts_simple') }}</p>
             </div>
             <div class="stat-item">
                 <i class="fas fa-briefcase stat-icon"></i>
-                <h3 id="count-corp">150</h3>
+                <h3 id="count-corp">{{ $pageContents['home']->meta['stats_corporate'] ?? '150+' }}</h3>
                 <p>{{ __('goride.stats.corporate') }}</p>
             </div>
         </div>
@@ -99,9 +99,9 @@
 <section style="background: white; padding: 100px 0;">
     <div class="container">
         <div class="section-title">
-            <div class="section-label"><i class="fas fa-star"></i> {{ __('goride.why.label') }}</div>
-            <h2>{{ __('goride.why.title') }}</h2>
-            <p>{{ __('goride.why.subtitle') }}</p>
+            <div class="section-label"><i class="fas fa-star"></i> {{ $pageContents['home']->meta['why_title'] ?? __('goride.why.label') }}</div>
+            <h2>{{ $pageContents['home']->meta['why_title'] ?? __('goride.why.title') }}</h2>
+            <p>{{ $pageContents['home']->meta['why_subtitle'] ?? __('goride.why.subtitle') }}</p>
         </div>
         <div class="why-grid">
             <div class="why-card">

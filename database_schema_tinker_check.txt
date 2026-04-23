@@ -1,0 +1,47 @@
+Database schema check via php artisan tinker
+==================================================
+
+Date: 2026-04-23
+
+Result: inspected the actual database schema using Laravel Tinker on the server.
+
+1. users table
+   - Columns present:
+     id, name, father_name, designation, address, reg_date, bkash_number, dob, blood_group, email,
+     role, status, otp_verified_at, email_verified_at, image, short_bio, writer, mobile,
+     membership_type, fb_url, twitter_url, insta_url, yt_url, local_url, password, password_temp,
+     remember_token, created_at, updated_at, present_address, permanent_address, nid, tin_number,
+     ssc_passing, ssc_registration, health_history, is_approve
+   - Notes:
+     * role/status/otp_verified_at columns exist and are in use.
+     * The user model appears to support additional profile fields beyond the original plan.
+     * The current table already has some dynamic profile fields like designation, membership_type, social URLs.
+
+2. drivers table
+   - Columns present:
+     id, name, mobile, license_no, nid, address, status, created_at, updated_at
+   - Notes:
+     * The table is very minimal.
+     * It does not currently have a user_id foreign key, license_expiry, experience_years, photo_path, or nid_verified.
+
+3. vehicles table
+   - Columns present:
+     id, vehicle_type, plate_number, capacity, status, created_at, updated_at
+   - Notes:
+     * The table is currently small and does not support owner_id, driver_id, brand, model, category, ac_non_ac, fuel_type, color, reg_number, operating_area, is_airport_service, or is_outstation_service.
+
+Summary and next actions
+-------------------------
+- The users table is already modified for role-based registration, but the current admin frontend only manages basic user details.
+- The drivers and vehicles tables still need enhancement to match the Phase 1 plan and support dynamic admin management.
+- To implement full admin management, add the missing driver and vehicle fields, add relationships, and update admin UI pages for driver, vehicle, and corporate management.
+
+What I recommend next
+---------------------
+1. Add a driver migration to include user_id, license_expiry, experience_years, photo_path, nid_verified, and proper foreign keys.
+2. Add a vehicle migration to include owner_id, driver_id, brand, model, category, seat_capacity, ac_non_ac, fuel_type, color, reg_number, operating_area, is_airport_service, and is_outstation_service.
+3. Add admin pages for driver and vehicle management so admin can create, edit, view, and delete records dynamically.
+4. Add an admin user role section to manage user role/status and assign drivers/owners to vehicles dynamically.
+5. Consider adding `otp_logs`, `corporate_accounts`, `one_time_bookings`, `corporate_car_requests`, `vehicle_documents`, `trips`, `invoices`, and `site_settings` tables for the next phase.
+
+This file is the direct tinker result and the recommended next steps for frontend admin management.

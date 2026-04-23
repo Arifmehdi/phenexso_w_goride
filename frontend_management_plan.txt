@@ -1,0 +1,126 @@
+Frontend Management Plan for GoRide
+===================================
+
+Date: 2026-04-23
+
+Purpose:
+- Review the current database tables and frontend admin management requirements.
+- Produce a clear plan for the next implementation phase for admin dynamic management.
+
+Current schema status (from server inspection):
+------------------------------------------------
+1. users
+   - Exists and contains role-based fields.
+   - Columns found:
+     id, name, father_name, designation, address, reg_date, bkash_number, dob, blood_group, email,
+     role, status, otp_verified_at, email_verified_at, image, short_bio, writer, mobile,
+     membership_type, fb_url, twitter_url, insta_url, yt_url, local_url, password, password_temp,
+     remember_token, created_at, updated_at, present_address, permanent_address, nid,
+     tin_number, ssc_passing, ssc_registration, health_history, is_approve
+   - Notes:
+     * `role` and `status` are present.
+     * The table already includes multiple profile fields and approval state.
+     * Current admin user pages only manage name, email, mobile, password, and approval.
+
+2. drivers
+   - Exists but is minimal.
+   - Columns found:
+     id, name, mobile, license_no, nid, address, status, created_at, updated_at
+   - Missing from plan:
+     * user_id foreign key
+     * license_expiry
+     * experience_years
+     * photo_path
+     * nid_verified
+     * driver-specific status details
+
+3. vehicles
+   - Exists but is minimal.
+   - Columns found:
+     id, vehicle_type, plate_number, capacity, status, created_at, updated_at
+   - Missing from plan:
+     * owner_id foreign key
+     * driver_id foreign key
+     * brand, model, category
+     * seat_capacity
+     * ac_non_ac
+     * fuel_type
+     * color
+     * reg_number
+     * operating_area
+     * is_airport_service
+     * is_outstation_service
+
+4. other planned tables
+   - Not present in current database:
+     * one_time_bookings
+     * corporate_accounts
+     * corporate_car_requests
+     * vehicle_documents
+     * trips
+     * invoices
+     * site_settings
+   - Also not present: corporate / booking / invoice management tables from Phase 2.
+
+Frontend management plan
+-------------------------
+Goal: build admin control panels so the administrator can manage every part dynamically.
+
+Phase A: Stabilize current user-role management
+- Admin should be able to view and edit users with:
+  * Name, email, mobile, role, status, approval status.
+  * Profile address fields: present_address, permanent_address.
+  * IDs / document fields: nid, tin_number, license_no.
+- Add admin UI controls for:
+  * Changing role (`admin`, `corporate`, `owner`, `driver`, `solo`).
+  * Changing status (`pending`, `active`, `suspended`, `rejected`).
+  * Toggling `is_approve` and viewing `otp_verified_at`.
+
+Phase B: Build driver management
+- Create or update driver admin pages:
+  * Driver list, create, edit, view, delete.
+  * Add missing fields: user_id, license_expiry, experience_years, photo_path, nid_verified.
+  * Connect driver to `users` if the app will use user accounts for drivers.
+- Ensure admin can search/filter drivers by license, approval, status, and name.
+
+Phase C: Build vehicle management
+- Add full vehicle admin panels:
+  * Fields: owner_id, driver_id, brand, model, category, seat_capacity, ac_non_ac,
+    fuel_type, color, reg_number, operating_area, is_airport_service, is_outstation_service.
+  * Support linking vehicles to owners and drivers.
+- Add vehicle status management and searchable lists.
+
+Phase D: Add new business tables and frontend flows
+- Create tables, models, controllers, and admin pages for:
+  * `one_time_bookings` — capture quick booking leads.
+  * `corporate_accounts` — manage corporate clients and billing.
+  * `corporate_car_requests` — corporate booking requests.
+  * `vehicle_documents` — document uploads and expiry/verification.
+  * `trips` — trip logs, start/end, fare, status.
+  * `invoices` — corporate billing and payment tracking.
+  * `site_settings` — homepage counters and editable text.
+- For each, add admin CRUD views and search/filter.
+
+Phase E: Admin dashboard and dynamic management
+- Add an admin dashboard overview:
+  * New users, driver statuses, vehicle statuses, pending bookings, overdue invoices.
+- Add dynamic content management:
+  * Editable homepage values from `site_settings`.
+  * Administrator-controlled options for car categories, fuel types, service flags.
+- Add role-based access so only admin can manage these sections.
+
+What to do next
+----------------
+1. Create migrations for driver and vehicle enhancements immediately.
+2. Add backend models and relationships:
+   - `User` ↔ `Driver` via `user_id`
+   - `User` ↔ `Vehicle` via `owner_id`
+   - `Driver` ↔ `Vehicle` via `driver_id`
+3. Create admin controllers and views for drivers and vehicles.
+4. Build the new tables for the corporate/booking ecosystem in Phase 2.
+5. Expand current admin user pages to full role/status management.
+
+Conclusion
+----------
+The current database has the core `users`, `drivers`, and `vehicles` tables, but only user role status is partially implemented.
+To support full frontend management, the next step is to complete driver/vehicle schema, then add admin CRUD screens for all business entities.

@@ -42,9 +42,42 @@ class WebsiteParameterController extends Controller
         $wp->og_title = $request->og_title;
         $wp->og_description = $request->og_description;
 
+        $wp->home_hero_badge = $request->home_hero_badge;
+        $wp->home_hero_title = $request->home_hero_title;
+        $wp->home_hero_span = $request->home_hero_span;
+        $wp->home_hero_subtitle = $request->home_hero_subtitle;
+        $wp->home_hero_cta_text = $request->home_hero_cta_text;
+        $wp->home_hero_cta_link = $request->home_hero_cta_link;
+        $wp->home_stats_customers = $request->home_stats_customers;
+        $wp->home_stats_fleet = $request->home_stats_fleet;
+        $wp->home_stats_districts = $request->home_stats_districts;
+        $wp->home_stats_corporate = $request->home_stats_corporate;
+        $wp->why_section_title = $request->why_section_title;
+        $wp->why_section_subtitle = $request->why_section_subtitle;
 
         $wp->about_title  = $request->about_title;
         $wp->about_subtitle = $request->about_subtitle;
+        $wp->about_page_title = $request->about_page_title;
+        $wp->about_page_subtitle = $request->about_page_subtitle;
+        $wp->about_page_paragraph_1 = $request->about_page_paragraph_1;
+        $wp->about_page_paragraph_2 = $request->about_page_paragraph_2;
+        $wp->about_page_paragraph_3 = $request->about_page_paragraph_3;
+        $wp->about_highlight_1 = $request->about_highlight_1;
+        $wp->about_highlight_2 = $request->about_highlight_2;
+        $wp->about_highlight_3 = $request->about_highlight_3;
+        $wp->about_highlight_4 = $request->about_highlight_4;
+        $wp->about_highlight_5 = $request->about_highlight_5;
+
+        $wp->services_page_title = $request->services_page_title;
+        $wp->services_page_subtitle = $request->services_page_subtitle;
+        $wp->services_page_description = $request->services_page_description;
+        $wp->fleet_page_title = $request->fleet_page_title;
+        $wp->fleet_page_subtitle = $request->fleet_page_subtitle;
+        $wp->fleet_page_description = $request->fleet_page_description;
+        $wp->tours_page_title = $request->tours_page_title;
+        $wp->tours_page_subtitle = $request->tours_page_subtitle;
+        $wp->tours_page_description = $request->tours_page_description;
+
         $wp->about_img = $request->about_us_image;
 
         $wp->editedby_id = Auth::id();
