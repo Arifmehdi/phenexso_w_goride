@@ -67,25 +67,29 @@
                                             </td>
                                             <td>
                                                 <div class="btn-group btn-group-sm" role="group">
+                                                    <a href="{{ route('admin.page_contents.show', $content->id) }}" class="btn btn-primary" title="View Admin Details">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+
                                                     @if($content->page_slug == 'home')
                                                         <a href="{{ route('home') }}" target="_blank" class="btn btn-info" title="View Frontend Page">
-                                                            <i class="fas fa-eye"></i>
+                                                            <i class="fas fa-link"></i>
                                                         </a>
                                                     @elseif($content->page_slug == 'about')
                                                         <a href="{{ route('about') }}" target="_blank" class="btn btn-info" title="View Frontend Page">
-                                                            <i class="fas fa-eye"></i>
+                                                            <i class="fas fa-link"></i>
                                                         </a>
                                                     @elseif($content->page_slug == 'services')
                                                         <a href="{{ route('service') }}" target="_blank" class="btn btn-info" title="View Frontend Page">
-                                                            <i class="fas fa-eye"></i>
+                                                            <i class="fas fa-link"></i>
                                                         </a>
                                                     @elseif($content->page_slug == 'fleet')
                                                         <a href="{{ route('fleet') }}" target="_blank" class="btn btn-info" title="View Frontend Page">
-                                                            <i class="fas fa-eye"></i>
+                                                            <i class="fas fa-link"></i>
                                                         </a>
                                                     @elseif($content->page_slug == 'tours')
                                                         <a href="{{ route('tours') }}" target="_blank" class="btn btn-info" title="View Frontend Page">
-                                                            <i class="fas fa-eye"></i>
+                                                            <i class="fas fa-link"></i>
                                                         </a>
                                                     @endif
 

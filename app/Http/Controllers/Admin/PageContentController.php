@@ -11,14 +11,14 @@ class PageContentController extends Controller
 {
     public function index()
     {
-        menuSubmenu('page_contents', 'all_page_contents');
+        menuSubmenu('pagecontents', 'pageContentsAll');
         $pageContents = PageContent::latest()->paginate(20);
         return view('admin.page_contents.index', compact('pageContents'));
     }
 
     public function create()
     {
-        menuSubmenu('page_contents', 'create_page_content');
+        menuSubmenu('pagecontents', 'createPageContent');
         return view('admin.page_contents.create');
     }
 
@@ -30,9 +30,17 @@ class PageContentController extends Controller
             'subtitle' => 'nullable|string',
             'description' => 'nullable|string',
             'content' => 'nullable|string',
-            'highlights' => 'nullable|array',
-            'meta' => 'nullable|array',
         ]);
+
+        $highlights = $request->highlights;
+        if (is_string($highlights)) {
+            $highlights = json_decode($highlights, true);
+        }
+
+        $meta = $request->meta;
+        if (is_string($meta)) {
+            $meta = json_decode($meta, true);
+        }
 
         PageContent::create([
             'page_slug' => $request->page_slug,
@@ -40,17 +48,24 @@ class PageContentController extends Controller
             'subtitle' => $request->subtitle,
             'description' => $request->description,
             'content' => $request->content,
-            'highlights' => $request->highlights,
-            'meta' => $request->meta,
+            'highlights' => $highlights,
+            'meta' => $meta,
             'addedby_id' => Auth::id(),
         ]);
 
         return redirect()->route('admin.page_contents.index')->with('success', 'Page content created successfully.');
     }
 
+    public function show($id)
+    {
+        menuSubmenu('pagecontents', 'pageContentsAll');
+        $pageContent = PageContent::findOrFail($id);
+        return view('admin.page_contents.show', compact('pageContent'));
+    }
+
     public function edit($id)
     {
-        menuSubmenu('page_contents', 'edit_page_content');
+        menuSubmenu('pagecontents', 'pageContentsAll');
         $pageContent = PageContent::findOrFail($id);
         return view('admin.page_contents.edit', compact('pageContent'));
     }
@@ -65,9 +80,17 @@ class PageContentController extends Controller
             'subtitle' => 'nullable|string',
             'description' => 'nullable|string',
             'content' => 'nullable|string',
-            'highlights' => 'nullable|array',
-            'meta' => 'nullable|array',
         ]);
+
+        $highlights = $request->highlights;
+        if (is_string($highlights)) {
+            $highlights = json_decode($highlights, true);
+        }
+
+        $meta = $request->meta;
+        if (is_string($meta)) {
+            $meta = json_decode($meta, true);
+        }
 
         $pageContent->update([
             'page_slug' => $request->page_slug,
@@ -75,8 +98,8 @@ class PageContentController extends Controller
             'subtitle' => $request->subtitle,
             'description' => $request->description,
             'content' => $request->content,
-            'highlights' => $request->highlights,
-            'meta' => $request->meta,
+            'highlights' => $highlights,
+            'meta' => $meta,
             'editedby_id' => Auth::id(),
         ]);
 
