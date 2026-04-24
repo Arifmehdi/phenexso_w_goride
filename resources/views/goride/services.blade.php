@@ -5,8 +5,8 @@
 @section('content')
 <div class="page-hero">
     <div class="page-hero-content">
-        <h1>Our Premium Services</h1>
-        <p>A full range of transport solutions built for every need across Bangladesh.</p>
+        <h1>{{ $pageContents['services']->title ?? 'Our Premium Services' }}</h1>
+        <p>{{ $pageContents['services']->subtitle ?? 'A full range of transport solutions built for every need across Bangladesh.' }}</p>
         <div class="breadcrumb">
             <a href="{{ route('home') }}">Home</a><i class="fas fa-chevron-right"></i><span>Services</span>
         </div>
@@ -16,47 +16,65 @@
 <section style="background: white;">
     <div class="container">
         <div class="section-title">
-            <div class="section-label"><i class="fas fa-car"></i> {{ $pageContents['services']->title ?? 'What We Offer' }}</div>
-            <h2>{{ $pageContents['services']->title ?? 'Transport Solutions for<br>Every Occasion' }}</h2>
-            <p>{{ $pageContents['services']->description ?? 'From airport pickups to corporate fleets and curated tours — GoRide has a service that fits your journey.' }}</p>
+            <div class="section-label"><i class="fas fa-car"></i> {{ $pageContents['services']->description ?? 'What We Offer' }}</div>
+            <h2>{{ $pageContents['services']->content ?? 'Transport Solutions for<br>Every Occasion' }}</h2>
+            <p>{{ $pageContents['services']->meta['intro_text'] ?? 'From airport pickups to corporate fleets and curated tours — GoRide has a service that fits your journey.' }}</p>
         </div>
         <div class="services-grid">
-            <div class="service-card">
-                <div class="service-icon"><i class="fas fa-plane-arrival"></i></div>
-                <h3>Airport Pickup &amp; Drop</h3>
-                <p>Hassle-free transfers to and from Hazrat Shahjalal International Airport. We track your flight for guaranteed punctuality — no matter when you land.</p>
-                <a href="#" class="login-btn" style="display:inline-block;">Book Now</a>
-            </div>
-            <div class="service-card">
-                <div class="service-icon"><i class="fas fa-briefcase"></i></div>
-                <h3>Corporate Fleet</h3>
-                <p>Customised transport for businesses — monthly rentals, executive vehicles, and seamless employee commute management with dedicated invoicing.</p>
-                <a href="{{ route('contact') }}" class="login-btn" style="display:inline-block;background:var(--text);">Inquire Now</a>
-            </div>
-            <div class="service-card">
-                <div class="service-icon"><i class="fas fa-heart"></i></div>
-                <h3>Event &amp; Wedding</h3>
-                <p>Make your special occasions unforgettable with our luxury fleet. Dedicated, well-dressed drivers for weddings, parties, and corporate events.</p>
-                <a href="#" class="login-btn" style="display:inline-block;">Book Now</a>
-            </div>
-            <div class="service-card">
-                <div class="service-icon"><i class="fas fa-route"></i></div>
-                <h3>Inter-City Travel</h3>
-                <p>Safe, comfortable long-distance travel across all 64 districts. Experienced drivers who know the highways, rest stops, and best routes.</p>
-                <a href="#" class="login-btn" style="display:inline-block;">Book Now</a>
-            </div>
-            <div class="service-card">
-                <div class="service-icon"><i class="fas fa-clock"></i></div>
-                <h3>Hourly Rentals</h3>
-                <p>Flexible hourly booking for city running. Perfect for multiple meetings, shopping trips, or errands where you need a car on standby all day.</p>
-                <a href="#" class="login-btn" style="display:inline-block;">Book Now</a>
-            </div>
-            <div class="service-card">
-                <div class="service-icon"><i class="fas fa-umbrella-beach"></i></div>
-                <h3>Tours &amp; Travels</h3>
-                <p>Explore Bangladesh's most beautiful destinations with our curated tour packages. We handle all transport so you can fully enjoy the journey.</p>
-                <a href="{{ route('tours') }}" class="login-btn" style="display:inline-block;">View Packages</a>
-            </div>
+            @php
+                $service_items = $pageContents['services']->meta['service_items'] ?? null;
+                if (is_string($service_items)) {
+                    $service_items = json_decode($service_items, true);
+                }
+            @endphp
+
+            @if($service_items && count($service_items) > 0)
+                @foreach($service_items as $item)
+                    <div class="service-card">
+                        <div class="service-icon"><i class="{{ $item['icon'] ?? 'fas fa-car' }}"></i></div>
+                        <h3>{{ $item['title'] ?? '' }}</h3>
+                        <p>{{ $item['description'] ?? '' }}</p>
+                        <a href="{{ $item['link'] ?? '#' }}" class="login-btn" style="display:inline-block;">{{ $item['btn_text'] ?? 'Book Now' }}</a>
+                    </div>
+                @endforeach
+            @else
+                <div class="service-card">
+                    <div class="service-icon"><i class="fas fa-plane-arrival"></i></div>
+                    <h3>Airport Pickup &amp; Drop</h3>
+                    <p>Hassle-free transfers to and from Hazrat Shahjalal International Airport. We track your flight for guaranteed punctuality — no matter when you land.</p>
+                    <a href="#" class="login-btn" style="display:inline-block;">Book Now</a>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon"><i class="fas fa-briefcase"></i></div>
+                    <h3>Corporate Fleet</h3>
+                    <p>Customised transport for businesses — monthly rentals, executive vehicles, and seamless employee commute management with dedicated invoicing.</p>
+                    <a href="{{ route('contact') }}" class="login-btn" style="display:inline-block;background:var(--text);">Inquire Now</a>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon"><i class="fas fa-heart"></i></div>
+                    <h3>Event &amp; Wedding</h3>
+                    <p>Make your special occasions unforgettable with our luxury fleet. Dedicated, well-dressed drivers for weddings, parties, and corporate events.</p>
+                    <a href="#" class="login-btn" style="display:inline-block;">Book Now</a>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon"><i class="fas fa-route"></i></div>
+                    <h3>Inter-City Travel</h3>
+                    <p>Safe, comfortable long-distance travel across all 64 districts. Experienced drivers who know the highways, rest stops, and best routes.</p>
+                    <a href="#" class="login-btn" style="display:inline-block;">Book Now</a>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon"><i class="fas fa-clock"></i></div>
+                    <h3>Hourly Rentals</h3>
+                    <p>Flexible hourly booking for city running. Perfect for multiple meetings, shopping trips, or errands where you need a car on standby all day.</p>
+                    <a href="#" class="login-btn" style="display:inline-block;">Book Now</a>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon"><i class="fas fa-umbrella-beach"></i></div>
+                    <h3>Tours &amp; Travels</h3>
+                    <p>Explore Bangladesh's most beautiful destinations with our curated tour packages. We handle all transport so you can fully enjoy the journey.</p>
+                    <a href="{{ route('tours') }}" class="login-btn" style="display:inline-block;">View Packages</a>
+                </div>
+            @endif
         </div>
     </div>
 </section>

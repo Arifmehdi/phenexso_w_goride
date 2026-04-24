@@ -1446,58 +1446,58 @@ ul {
   z-index: -1; }
 
 .bg-overlay-black-10:before {
-  background: rgba(0, 0, 0, 0.1); }
+  background: transparent; }
 
 .bg-overlay-black-20:before {
-  background: rgba(0, 0, 0, 0.2); }
+  background: transparent; }
 
 .bg-overlay-black-30:before {
-  background: rgba(0, 0, 0, 0.3); }
+  background: transparent; }
 
 .bg-overlay-black-40:before {
-  background: rgba(0, 0, 0, 0.4); }
+  background: transparent; }
 
 .bg-overlay-black-50:before {
-  background: rgba(0, 0, 0, 0.5); }
+  background: transparent; }
 
 .bg-overlay-black-60:before {
-  background: rgba(0, 0, 0, 0.6); }
+  background: transparent; }
 
 .bg-overlay-black-70:before {
-  background: rgba(0, 0, 0, 0.7); }
+  background: transparent; }
 
 .bg-overlay-black-80:before {
-  background: rgba(0, 0, 0, 0.8); }
+  background: transparent; }
 
 .bg-overlay-black-90:before {
-  background: rgba(0, 0, 0, 0.9); }
+  background: transparent; }
 
 .bg-overlay-white-10:before {
-  background: rgba(255, 255, 255, 0.1); }
+  background: transparent; }
 
 .bg-overlay-white-20:before {
-  background: rgba(255, 255, 255, 0.2); }
+  background: transparent; }
 
 .bg-overlay-white-30:before {
-  background: rgba(255, 255, 255, 0.3); }
+  background: transparent; }
 
 .bg-overlay-white-40:before {
-  background: rgba(255, 255, 255, 0.4); }
+  background: transparent; }
 
 .bg-overlay-white-50:before {
-  background: rgba(255, 255, 255, 0.5); }
+  background: transparent; }
 
 .bg-overlay-white-60:before {
-  background: rgba(255, 255, 255, 0.6); }
+  background: transparent; }
 
 .bg-overlay-white-70:before {
-  background: rgba(255, 255, 255, 0.7); }
+  background: transparent; }
 
 .bg-overlay-white-80:before {
-  background: rgba(255, 255, 255, 0.8); }
+  background: transparent; }
 
 .bg-overlay-white-90:before {
-  background: rgba(255, 255, 255, 0.9); }
+  background: transparent; }
 
 .bg-overlay-theme-10,
 .bg-overlay-theme-20,
@@ -1587,31 +1587,31 @@ ul {
   background-color: var(--ltn__primary-color); }
 
 .bg-overlay-theme-black-10:before {
-  opacity: 0.1; }
+  opacity: 0; }
 
 .bg-overlay-theme-black-20:before {
-  opacity: 0.2; }
+  opacity: 0; }
 
 .bg-overlay-theme-black-30:before {
-  opacity: 0.3; }
+  opacity: 0; }
 
 .bg-overlay-theme-black-40:before {
-  opacity: 0.4; }
+  opacity: 0; }
 
 .bg-overlay-theme-black-50:before {
-  opacity: 0.5; }
+  opacity: 0; }
 
 .bg-overlay-theme-black-60:before {
-  opacity: 0.6; }
+  opacity: 0; }
 
 .bg-overlay-theme-black-70:before {
-  opacity: 0.7; }
+  opacity: 0; }
 
 .bg-overlay-theme-black-80:before {
-  opacity: 0.8; }
+  opacity: 0; }
 
 .bg-overlay-theme-black-90:before {
-  opacity: 0.9; }
+  opacity: 0; }
 
 /* ----------------------------------------------
   Scrollbar 
