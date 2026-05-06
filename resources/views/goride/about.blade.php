@@ -45,31 +45,52 @@
                 </div>
             </div>
             <div class="about-img-wrap">
-                <img src="{{ asset('goride/assets/banner/banner_01.jpg') }}" alt="GoRide journey">
+                @if(isset($pageContents['about']->meta['image']) && $pageContents['about']->meta['image'])
+                    <img src="{{ asset('storage/page_contents/' . $pageContents['about']->meta['image']) }}" alt="{{ $pageContents['about']->title ?? 'GoRide journey' }}">
+                @else
+                    <img src="{{ asset('goride/assets/banner/banner_01.jpg') }}" alt="GoRide journey">
+                @endif
             </div>
         </div>
 
         <div class="vm-grid">
-            <div class="vm-card">
-                <div class="vm-icon"><i class="fas fa-eye"></i></div>
-                <h3>Our Vision</h3>
-                <p>To become the backbone of Bangladesh's transport industry — providing seamless connectivity between every city, village, and airport through technology, trust, and an unwavering commitment to quality.</p>
-            </div>
-            <div class="vm-card">
-                <div class="vm-icon"><i class="fas fa-bullseye"></i></div>
-                <h3>Our Mission</h3>
-                <p>To empower vehicle owners and drivers with sustainable earning opportunities while giving corporate and individual clients safe, professional, and transparent car rental services nationwide.</p>
-            </div>
-            <div class="vm-card">
-                <div class="vm-icon"><i class="fas fa-heart"></i></div>
-                <h3>Our Values</h3>
-                <p>Safety first. Transparency always. Customer satisfaction guaranteed. We operate with honesty, respect for every rider and driver, and a relentless drive to improve Bangladesh's mobility.</p>
-            </div>
-            <div class="vm-card">
-                <div class="vm-icon"><i class="fas fa-mobile-screen-button"></i></div>
-                <h3>Technology Focus</h3>
-                <p>From real-time GPS tracking to OTP-verified bookings and digital receipts — our tech stack is built to make every journey smoother, safer, and more transparent for all parties involved.</p>
-            </div>
+            @php
+                $vm_cards = $pageContents['about']->meta['vm_cards'] ?? null;
+                if (is_string($vm_cards)) {
+                    $vm_cards = json_decode($vm_cards, true);
+                }
+            @endphp
+
+            @if($vm_cards && count($vm_cards) > 0)
+                @foreach($vm_cards as $card)
+                    <div class="vm-card">
+                        <div class="vm-icon"><i class="{{ $card['icon'] ?? 'fas fa-check' }}"></i></div>
+                        <h3>{{ $card['title'] ?? '' }}</h3>
+                        <p>{{ $card['description'] ?? '' }}</p>
+                    </div>
+                @endforeach
+            @else
+                <div class="vm-card">
+                    <div class="vm-icon"><i class="fas fa-eye"></i></div>
+                    <h3>Our Vision</h3>
+                    <p>To become the backbone of Bangladesh's transport industry — providing seamless connectivity between every city, village, and airport through technology, trust, and an unwavering commitment to quality.</p>
+                </div>
+                <div class="vm-card">
+                    <div class="vm-icon"><i class="fas fa-bullseye"></i></div>
+                    <h3>Our Mission</h3>
+                    <p>To empower vehicle owners and drivers with sustainable earning opportunities while giving corporate and individual clients safe, professional, and transparent car rental services nationwide.</p>
+                </div>
+                <div class="vm-card">
+                    <div class="vm-icon"><i class="fas fa-heart"></i></div>
+                    <h3>Our Values</h3>
+                    <p>Safety first. Transparency always. Customer satisfaction guaranteed. We operate with honesty, respect for every rider and driver, and a relentless drive to improve Bangladesh's mobility.</p>
+                </div>
+                <div class="vm-card">
+                    <div class="vm-icon"><i class="fas fa-mobile-screen-button"></i></div>
+                    <h3>Technology Focus</h3>
+                    <p>From real-time GPS tracking to OTP-verified bookings and digital receipts — our tech stack is built to make every journey smoother, safer, and more transparent for all parties involved.</p>
+                </div>
+            @endif
         </div>
     </div>
 </section>
