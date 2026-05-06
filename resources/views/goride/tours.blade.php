@@ -19,60 +19,87 @@
             <p>{{ $pageContents['tours']->description ?? 'Every package includes premium transport, experienced local drivers, and a stress-free journey to Bangladesh\'s finest destinations.' }}</p>
         </div>
         <div class="tours-grid">
-            <div class="tour-card">
-                <div class="tour-img">
-                    <img src="{{ asset('goride/assets/banner/banner_02.jpg') }}" alt="Cox's Bazar">
-                    <div class="tour-img-overlay"></div>
-                    <span class="tour-badge">Most Popular</span>
-                    <div class="tour-price">৳ 12,000</div>
-                </div>
-                <div class="tour-info">
-                    <div class="tour-meta">
-                        <span><i class="fas fa-clock"></i> 3 Days 2 Nights</span>
-                        <span><i class="fas fa-users"></i> Up to 7 People</span>
-                        <span><i class="fas fa-star" style="color:#f59e0b;"></i> 4.9</span>
+            @php
+                $toursList = $pageContents['tours']->meta['tours_list'] ?? [];
+            @endphp
+            @if(!empty($toursList))
+                @foreach($toursList as $tour)
+                    <div class="tour-card">
+                        <div class="tour-img">
+                            <img src="{{ asset($tour['image'] ?? 'goride/assets/banner/banner_02.jpg') }}" alt="{{ $tour['title'] ?? '' }}">
+                            <div class="tour-img-overlay"></div>
+                            @if(!empty($tour['badge']))
+                                <span class="tour-badge">{{ $tour['badge'] }}</span>
+                            @endif
+                            <div class="tour-price">৳ {{ $tour['price'] ?? '0' }}</div>
+                        </div>
+                        <div class="tour-info">
+                            <div class="tour-meta">
+                                <span><i class="fas fa-clock"></i> {{ $tour['meta'] ?? '' }}</span>
+                                <span><i class="fas fa-star" style="color:#f59e0b;"></i> 4.9</span>
+                            </div>
+                            <h3>{{ $tour['title'] ?? '' }}</h3>
+                            <p>{{ $tour['desc'] ?? '' }}</p>
+                            <a href="{{ route('login') }}" class="login-btn" style="display:block;text-align:center;">Book Now</a>
+                        </div>
                     </div>
-                    <h3>Cox's Bazar Beach Getaway</h3>
-                    <p>Relax at the world's longest natural sea beach with our premium transport and experienced guide. Hotel pickup included.</p>
-                    <a href="#" class="login-btn" style="display:block;text-align:center;">Book This Tour</a>
-                </div>
-            </div>
-            <div class="tour-card">
-                <div class="tour-img">
-                    <img src="{{ asset('goride/assets/banner/banner_03.jpg') }}" alt="Sylhet">
-                    <div class="tour-img-overlay"></div>
-                    <span class="tour-badge">Best Value</span>
-                    <div class="tour-price">৳ 8,500</div>
-                </div>
-                <div class="tour-info">
-                    <div class="tour-meta">
-                        <span><i class="fas fa-clock"></i> 2 Days 1 Night</span>
-                        <span><i class="fas fa-users"></i> Up to 4 People</span>
-                        <span><i class="fas fa-star" style="color:#f59e0b;"></i> 4.8</span>
+                @endforeach
+            @else
+                <div class="tour-card">
+                    <div class="tour-img">
+                        <img src="{{ asset('goride/assets/banner/banner_02.jpg') }}" alt="Cox's Bazar">
+                        <div class="tour-img-overlay"></div>
+                        <span class="tour-badge">Most Popular</span>
+                        <div class="tour-price">৳ 12,000</div>
                     </div>
-                    <h3>Sylhet Tea Garden Adventure</h3>
-                    <p>Visit lush green tea gardens, Jafflong waterfall, and the crystal-clear Lalakhal lake with our expert local drivers.</p>
-                    <a href="#" class="login-btn" style="display:block;text-align:center;">Book This Tour</a>
-                </div>
-            </div>
-            <div class="tour-card">
-                <div class="tour-img">
-                    <img src="{{ asset('goride/assets/banner/banner_01.jpg') }}" alt="Sajek Valley">
-                    <div class="tour-img-overlay"></div>
-                    <span class="tour-badge">Premium</span>
-                    <div class="tour-price">৳ 15,000</div>
-                </div>
-                <div class="tour-info">
-                    <div class="tour-meta">
-                        <span><i class="fas fa-clock"></i> 3 Days 2 Nights</span>
-                        <span><i class="fas fa-users"></i> Up to 6 People</span>
-                        <span><i class="fas fa-star" style="color:#f59e0b;"></i> 4.9</span>
+                    <div class="tour-info">
+                        <div class="tour-meta">
+                            <span><i class="fas fa-clock"></i> 3 Days 2 Nights</span>
+                            <span><i class="fas fa-users"></i> Up to 7 People</span>
+                            <span><i class="fas fa-star" style="color:#f59e0b;"></i> 4.9</span>
+                        </div>
+                        <h3>Cox's Bazar Beach Getaway</h3>
+                        <p>Relax at the world's longest natural sea beach with our premium transport and experienced guide. Hotel pickup included.</p>
+                        <a href="#" class="login-btn" style="display:block;text-align:center;">Book This Tour</a>
                     </div>
-                    <h3>Sajek Valley Cloud Journey</h3>
-                    <p>Experience the queen of hills. 4×4 vehicle support for hilly terrains, scenic stops, and spectacular sunrise views.</p>
-                    <a href="#" class="login-btn" style="display:block;text-align:center;">Book This Tour</a>
                 </div>
-            </div>
+                <div class="tour-card">
+                    <div class="tour-img">
+                        <img src="{{ asset('goride/assets/banner/banner_03.jpg') }}" alt="Sylhet">
+                        <div class="tour-img-overlay"></div>
+                        <span class="tour-badge">Best Value</span>
+                        <div class="tour-price">৳ 8,500</div>
+                    </div>
+                    <div class="tour-info">
+                        <div class="tour-meta">
+                            <span><i class="fas fa-clock"></i> 2 Days 1 Night</span>
+                            <span><i class="fas fa-users"></i> Up to 4 People</span>
+                            <span><i class="fas fa-star" style="color:#f59e0b;"></i> 4.8</span>
+                        </div>
+                        <h3>Sylhet Tea Garden Adventure</h3>
+                        <p>Visit lush green tea gardens, Jafflong waterfall, and the crystal-clear Lalakhal lake with our expert local drivers.</p>
+                        <a href="#" class="login-btn" style="display:block;text-align:center;">Book This Tour</a>
+                    </div>
+                </div>
+                <div class="tour-card">
+                    <div class="tour-img">
+                        <img src="{{ asset('goride/assets/banner/banner_01.jpg') }}" alt="Sajek Valley">
+                        <div class="tour-img-overlay"></div>
+                        <span class="tour-badge">Premium</span>
+                        <div class="tour-price">৳ 15,000</div>
+                    </div>
+                    <div class="tour-info">
+                        <div class="tour-meta">
+                            <span><i class="fas fa-clock"></i> 3 Days 2 Nights</span>
+                            <span><i class="fas fa-users"></i> Up to 6 People</span>
+                            <span><i class="fas fa-star" style="color:#f59e0b;"></i> 4.9</span>
+                        </div>
+                        <h3>Sajek Valley Cloud Journey</h3>
+                        <p>Experience the queen of hills. 4×4 vehicle support for hilly terrains, scenic stops, and spectacular sunrise views.</p>
+                        <a href="#" class="login-btn" style="display:block;text-align:center;">Book This Tour</a>
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 </section>

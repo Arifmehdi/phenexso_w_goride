@@ -104,36 +104,49 @@
             <p>{{ $pageContents['home']->meta['why_subtitle'] ?? __('goride.why.subtitle') }}</p>
         </div>
         <div class="why-grid">
-            <div class="why-card">
-                <div class="wc-icon"><i class="fas fa-shield-halved"></i></div>
-                <h4>{{ __('goride.why.verified') }}</h4>
-                <p>{{ __('goride.why.verified_desc') }}</p>
-            </div>
-            <div class="why-card">
-                <div class="wc-icon"><i class="fas fa-mobile-screen-button"></i></div>
-                <h4>{{ __('goride.why.mobile') }}</h4>
-                <p>{{ __('goride.why.mobile_desc') }}</p>
-            </div>
-            <div class="why-card">
-                <div class="wc-icon"><i class="fas fa-bangladeshi-taka-sign"></i></div>
-                <h4>{{ __('goride.why.pricing') }}</h4>
-                <p>{{ __('goride.why.pricing_desc') }}</p>
-            </div>
-            <div class="why-card">
-                <div class="wc-icon"><i class="fas fa-clock"></i></div>
-                <h4>24/7 Availability</h4>
-                <p>Early morning flights, late night events — our drivers are available round the clock, every single day of the year.</p>
-            </div>
-            <div class="why-card">
-                <div class="wc-icon"><i class="fas fa-route"></i></div>
-                <h4>All 64 Districts</h4>
-                <p>From Dhaka to Teknaf, Cox's Bazar to Sylhet — our network spans every district of Bangladesh without exception.</p>
-            </div>
-            <div class="why-card">
-                <div class="wc-icon"><i class="fas fa-headset"></i></div>
-                <h4>{{ __('goride.why.support') }}</h4>
-                <p>{{ __('goride.why.support_desc') }}</p>
-            </div>
+            @php
+                $whyItems = $pageContents['home']->meta['why_items'] ?? [];
+            @endphp
+            @if(!empty($whyItems))
+                @foreach($whyItems as $item)
+                    <div class="why-card">
+                        <div class="wc-icon"><i class="{{ $item['icon'] ?? 'fas fa-star' }}"></i></div>
+                        <h4>{{ $item['title'] ?? '' }}</h4>
+                        <p>{{ $item['desc'] ?? '' }}</p>
+                    </div>
+                @endforeach
+            @else
+                <div class="why-card">
+                    <div class="wc-icon"><i class="fas fa-shield-halved"></i></div>
+                    <h4>{{ __('goride.why.verified') }}</h4>
+                    <p>{{ __('goride.why.verified_desc') }}</p>
+                </div>
+                <div class="why-card">
+                    <div class="wc-icon"><i class="fas fa-mobile-screen-button"></i></div>
+                    <h4>{{ __('goride.why.mobile') }}</h4>
+                    <p>{{ __('goride.why.mobile_desc') }}</p>
+                </div>
+                <div class="why-card">
+                    <div class="wc-icon"><i class="fas fa-bangladeshi-taka-sign"></i></div>
+                    <h4>{{ __('goride.why.pricing') }}</h4>
+                    <p>{{ __('goride.why.pricing_desc') }}</p>
+                </div>
+                <div class="why-card">
+                    <div class="wc-icon"><i class="fas fa-clock"></i></div>
+                    <h4>24/7 Availability</h4>
+                    <p>Early morning flights, late night events — our drivers are available round the clock, every single day of the year.</p>
+                </div>
+                <div class="why-card">
+                    <div class="wc-icon"><i class="fas fa-route"></i></div>
+                    <h4>All 64 Districts</h4>
+                    <p>From Dhaka to Teknaf, Cox's Bazar to Sylhet — our network spans every district of Bangladesh without exception.</p>
+                </div>
+                <div class="why-card">
+                    <div class="wc-icon"><i class="fas fa-headset"></i></div>
+                    <h4>{{ __('goride.why.support') }}</h4>
+                    <p>{{ __('goride.why.support_desc') }}</p>
+                </div>
+            @endif
         </div>
     </div>
 </section>

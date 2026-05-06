@@ -24,9 +24,12 @@
         <div class="row">
             <div class="col-md-8">
                 <div class="card card-outline card-info">
-                    <div class="card-header">
-                        <h3 class="card-title">Main Content</h3>
-                        <div class="card-tools">
+                    <div class="card-header p-2">
+                        <ul class="nav nav-pills">
+                            <li class="nav-item"><a class="nav-link active" href="#english" data-toggle="tab">English Content</a></li>
+                            <li class="nav-item"><a class="nav-link" href="#bangla" data-toggle="tab">Bangla Content</a></li>
+                        </ul>
+                        <div class="card-tools" style="margin-top: -35px;">
                             <a href="{{ route('admin.page_contents.edit', $pageContent->id) }}" class="btn btn-sm btn-warning">
                                 <i class="fas fa-edit mr-1"></i>Edit
                             </a>
@@ -37,25 +40,54 @@
                             <div class="col-sm-3 text-muted"><strong>Page Slug:</strong></div>
                             <div class="col-sm-9"><span class="badge badge-info">{{ $pageContent->page_slug }}</span></div>
                         </div>
-                        <div class="row mb-4">
-                            <div class="col-sm-3 text-muted"><strong>Title:</strong></div>
-                            <div class="col-sm-9"><h5>{{ $pageContent->title ?? 'N/A' }}</h5></div>
-                        </div>
-                        <div class="row mb-4">
-                            <div class="col-sm-3 text-muted"><strong>Subtitle:</strong></div>
-                            <div class="col-sm-9 text-secondary">{{ $pageContent->subtitle ?? 'N/A' }}</div>
-                        </div>
-                        <hr>
-                        <div class="mt-4">
-                            <h6 class="text-muted"><strong>Description:</strong></h6>
-                            <div class="p-3 bg-light rounded">
-                                {!! nl2br(e($pageContent->description)) !!}
+
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="english">
+                                <div class="row mb-4">
+                                    <div class="col-sm-3 text-muted"><strong>Title (EN):</strong></div>
+                                    <div class="col-sm-9"><h5>{{ $pageContent->getRawOriginal('title') ?? 'N/A' }}</h5></div>
+                                </div>
+                                <div class="row mb-4">
+                                    <div class="col-sm-3 text-muted"><strong>Subtitle (EN):</strong></div>
+                                    <div class="col-sm-9 text-secondary">{{ $pageContent->getRawOriginal('subtitle') ?? 'N/A' }}</div>
+                                </div>
+                                <hr>
+                                <div class="mt-4">
+                                    <h6 class="text-muted"><strong>Description (EN):</strong></h6>
+                                    <div class="p-3 bg-light rounded">
+                                        {!! nl2br(e($pageContent->getRawOriginal('description'))) !!}
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <h6 class="text-muted"><strong>Full Content (EN):</strong></h6>
+                                    <div class="p-3 border rounded">
+                                        {!! $pageContent->getRawOriginal('content') ?? '<em class="text-muted">No content available</em>' !!}
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="mt-4">
-                            <h6 class="text-muted"><strong>Full Content:</strong></h6>
-                            <div class="p-3 border rounded">
-                                {!! $pageContent->content ?? '<em class="text-muted">No content available</em>' !!}
+
+                            <div class="tab-pane" id="bangla">
+                                <div class="row mb-4">
+                                    <div class="col-sm-3 text-muted"><strong>Title (BN):</strong></div>
+                                    <div class="col-sm-9"><h5>{{ $pageContent->title_bn ?? 'N/A' }}</h5></div>
+                                </div>
+                                <div class="row mb-4">
+                                    <div class="col-sm-3 text-muted"><strong>Subtitle (BN):</strong></div>
+                                    <div class="col-sm-9 text-secondary">{{ $pageContent->subtitle_bn ?? 'N/A' }}</div>
+                                </div>
+                                <hr>
+                                <div class="mt-4">
+                                    <h6 class="text-muted"><strong>Description (BN):</strong></h6>
+                                    <div class="p-3 bg-light rounded">
+                                        {!! nl2br(e($pageContent->description_bn)) !!}
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <h6 class="text-muted"><strong>Full Content (BN):</strong></h6>
+                                    <div class="p-3 border rounded">
+                                        {!! $pageContent->content_bn ?? '<em class="text-muted">No content available</em>' !!}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -69,17 +101,29 @@
                     <div class="card-body">
                         <div class="mb-4">
                             <h6 class="text-muted"><strong>Highlights:</strong></h6>
-                            @if($pageContent->highlights)
-                                <pre class="bg-dark text-white p-2 rounded"><code>{{ json_encode($pageContent->highlights, JSON_PRETTY_PRINT) }}</code></pre>
-                            @else
+                            @if($pageContent->getRawOriginal('highlights'))
+                                <strong>EN:</strong>
+                                <pre class="bg-dark text-white p-2 rounded"><code>{{ json_encode($pageContent->getRawOriginal('highlights'), JSON_PRETTY_PRINT) }}</code></pre>
+                            @endif
+                            @if($pageContent->highlights_bn)
+                                <strong>BN:</strong>
+                                <pre class="bg-dark text-white p-2 rounded"><code>{{ json_encode($pageContent->highlights_bn, JSON_PRETTY_PRINT) }}</code></pre>
+                            @endif
+                            @if(!$pageContent->getRawOriginal('highlights') && !$pageContent->highlights_bn)
                                 <p class="text-muted small">No highlights defined.</p>
                             @endif
                         </div>
                         <div class="mb-4">
                             <h6 class="text-muted"><strong>Meta Data:</strong></h6>
-                            @if($pageContent->meta)
-                                <pre class="bg-dark text-white p-2 rounded"><code>{{ json_encode($pageContent->meta, JSON_PRETTY_PRINT) }}</code></pre>
-                            @else
+                            @if($pageContent->getRawOriginal('meta'))
+                                <strong>EN:</strong>
+                                <pre class="bg-dark text-white p-2 rounded"><code>{{ json_encode($pageContent->getRawOriginal('meta'), JSON_PRETTY_PRINT) }}</code></pre>
+                            @endif
+                            @if($pageContent->meta_bn)
+                                <strong>BN:</strong>
+                                <pre class="bg-dark text-white p-2 rounded"><code>{{ json_encode($pageContent->meta_bn, JSON_PRETTY_PRINT) }}</code></pre>
+                            @endif
+                            @if(!$pageContent->getRawOriginal('meta') && !$pageContent->meta_bn)
                                 <p class="text-muted small">No meta data defined.</p>
                             @endif
                         </div>
