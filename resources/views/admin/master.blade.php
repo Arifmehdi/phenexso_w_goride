@@ -195,7 +195,7 @@
                     </li>
 
 
-                    <li class="nav-item {{ session('lsbm') == 'slider'? ' menu-open ' : ''}}">
+                    {{--<li class="nav-item {{ session('lsbm') == 'slider'? ' menu-open ' : ''}}">
                         <a href="#" class="nav-link {{ session('lsbm') == 'slider'? ' active ' : ''}}">
                             <i class="nav-icon fas fa-search-location"></i>
                             <p>
@@ -212,7 +212,7 @@
                             </li>
 
                         </ul>
-                    </li>
+                    </li>--}}
 
                    
 
@@ -318,7 +318,7 @@
                         </ul>
                     </li>--}}
 
-                    <li class="nav-item {{ session('lsbm') == 'departments'? ' menu-open ' : ''}}">
+                    {{--<li class="nav-item {{ session('lsbm') == 'departments'? ' menu-open ' : ''}}">
                         <a href="#" class="nav-link {{ session('lsbm') == 'departments'? ' active ' : ''}}">
                             <i class="nav-icon fas fa-passport"></i>
                             <p>
@@ -341,7 +341,7 @@
                             </li>
 
                         </ul>
-                    </li>
+                    </li>--}}
 
                     {{--<li class="nav-item {{ session('lsbm') == 'chambers'? ' menu-open ' : ''}}">
                         <a href="#" class="nav-link {{ session('lsbm') == 'chambers'? ' active ' : ''}}">
@@ -529,7 +529,7 @@
 
 
                     {{-- Products --}}
-                    <li class="nav-item {{ session('lsbm') == 'product'? ' menu-open ' : ''}}">
+                    {{--<li class="nav-item {{ session('lsbm') == 'product'? ' menu-open ' : ''}}">
                         <a href="#" class="nav-link {{ session('lsbm') == 'product'? ' active ' : ''}}">
                             <i class="nav-icon fas fa-shopping-cart"></i>
                             <p>
@@ -558,13 +558,13 @@
                             </li>
 
                         </ul>
-                    </li>
+                    </li>--}}
 
                                             
-                        {{-- Vehicles --}}
-                    <li class="nav-item {{ session('lsbm') == 'vehicles'? ' menu-open ' : ''}}">
+                    {{-- Vehicles --}}
+                    {{--<li class="nav-item {{ session('lsbm') == 'vehicles'? ' menu-open ' : ''}}">
                         <a href="#" class="nav-link {{ session('lsbm') == 'vehicles'? ' active ' : ''}}">
-                            <i class="nav-icon fas fa-truck"></i> {{-- Using a truck icon for vehicles --}}
+                            <i class="nav-icon fas fa-truck"></i> 
                             <p>
                                 Vehicles
                                 <i class="fas fa-angle-left right"></i>
@@ -584,12 +584,12 @@
                                 </a>
                             </li>
                         </ul>
-                    </li>
+                    </li>--}}
 
                     {{-- Drivers --}}
                     <li class="nav-item {{ session('lsbm') == 'drivers'? ' menu-open ' : ''}}">
                         <a href="#" class="nav-link {{ session('lsbm') == 'drivers'? ' active ' : ''}}">
-                            <i class="nav-icon fas fa-user-friends"></i> {{-- Using a user-friends icon for drivers --}}
+                            <i class="nav-icon fas fa-user-friends"></i>
                             <p>
                                 Drivers
                                 <i class="fas fa-angle-left right"></i>
@@ -637,7 +637,7 @@
                     </li>
 
                     {{-- Product Stock Requests --}}
-                    <li class="nav-item {{ session('lsbm') == 'stock_requests' ? 'menu-open' : '' }}">
+                    {{--<li class="nav-item {{ session('lsbm') == 'stock_requests' ? 'menu-open' : '' }}">
                         <a href="#" class="nav-link {{ session('lsbm') == 'stock_requests' ? 'active' : '' }}">
                             <i class="nav-icon fas fa-boxes"></i>
                             <p>
@@ -653,10 +653,10 @@
                             </a>
                             </li>
                         </ul>
-                    </li>
+                    </li>--}}
 
                     {{-- Orders --}}
-                    <li class="nav-item {{ session('lsbm') == 'order' ? 'menu-open' : '' }}">
+                    {{--<li class="nav-item {{ session('lsbm') == 'order' ? 'menu-open' : '' }}">
                         <a href="#" class="nav-link {{ session('lsbm') == 'order' ? 'active' : '' }}">
                             <i class="nav-icon fas fa-shopping-bag"></i>
                             <p>
@@ -672,7 +672,7 @@
                             </a>
                             </li>
                         </ul>
-                    </li>
+                    </li>--}}
 
                     {{-- Contact Messages --}}
                     <li class="nav-item {{ session('lsbm') == 'contacts' ? 'menu-open' : '' }}">
@@ -693,7 +693,7 @@
                         </ul>
                     </li>
 
-                   <li class="nav-item {{ session('lsbm') == 'shipping' ? 'menu-open' : '' }}">
+                   {{--<li class="nav-item {{ session('lsbm') == 'shipping' ? 'menu-open' : '' }}">
                         <a href="#" class="nav-link {{ session('lsbm') == 'shipping' ? 'active' : '' }}">
                             <i class="nav-icon fas fa-shopping-bag"></i>
                             <p>
@@ -709,7 +709,7 @@
                             </a>
                             </li>
                         </ul>
-                    </li>
+                    </li>--}}
                    
                    
 
