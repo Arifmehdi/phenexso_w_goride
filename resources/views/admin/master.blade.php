@@ -195,7 +195,7 @@
                     </li>
 
 
-                    <li class="nav-item {{ session('lsbm') == 'slider'? ' menu-open ' : ''}}">
+                    {{--<li class="nav-item {{ session('lsbm') == 'slider'? ' menu-open ' : ''}}">
                         <a href="#" class="nav-link {{ session('lsbm') == 'slider'? ' active ' : ''}}">
                             <i class="nav-icon fas fa-search-location"></i>
                             <p>
@@ -212,7 +212,7 @@
                             </li>
 
                         </ul>
-                    </li>
+                    </li>--}}
 
                    
 
@@ -318,7 +318,7 @@
                         </ul>
                     </li>--}}
 
-                    <li class="nav-item {{ session('lsbm') == 'departments'? ' menu-open ' : ''}}">
+                    {{--<li class="nav-item {{ session('lsbm') == 'departments'? ' menu-open ' : ''}}">
                         <a href="#" class="nav-link {{ session('lsbm') == 'departments'? ' active ' : ''}}">
                             <i class="nav-icon fas fa-passport"></i>
                             <p>
@@ -341,7 +341,7 @@
                             </li>
 
                         </ul>
-                    </li>
+                    </li>--}
 
                     {{--<li class="nav-item {{ session('lsbm') == 'chambers'? ' menu-open ' : ''}}">
                         <a href="#" class="nav-link {{ session('lsbm') == 'chambers'? ' active ' : ''}}">
