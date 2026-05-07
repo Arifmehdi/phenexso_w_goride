@@ -6,26 +6,22 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cookie;
 
+use App\Traits\HasLocalization;
+
 class Department extends Model
 {
-    use HasFactory;
+    use HasFactory, HasLocalization;
 
 
     public function getNameAttribute($value)
     {
-        // $locale = Cookie::get('locale') ?: config('app.locale');
-        $locale = session('locale') ?: config('app.locale');
-
-        return $this->attributes['name_'. $locale];
+        return $this->getLocalized('name');
     }
 
 
     public function getExcerptAttribute($value)
     {
-        // $locale = Cookie::get('locale') ?: config('app.locale');
-        $locale = session('locale') ?: config('app.locale');
-
-        return $this->attributes['excerpt_'. $locale];
+        return $this->getLocalized('excerpt');
     }
 
     public function fi()
