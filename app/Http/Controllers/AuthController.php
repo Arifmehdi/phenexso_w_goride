@@ -309,21 +309,26 @@ class AuthController extends Controller
 
     public function mainRegister(Request $request)
     {
+        // dd($request->all());
         $request->validate([
             'name'               => 'required|string|max:255',
             'email'              => 'required|email|unique:users,email',
             'password'           => 'required|string|min:8|confirmed',
             'role'               => 'nullable|string|in:user,driver,owner,corporate,solo',
+            'company_name'       => 'nullable|string|max:255',
+            'vehicle_type'       => 'nullable|string|max:255',
         ]);
-
+// dd($request->all());
         $role = $request->input('role', 'solo'); // Default to solo/user
 
         $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-            'role'     => $role,
-            'status'   => ($role === 'solo' || $role === 'user') ? 'active' : 'pending',
+            'company_name'     => $request->company_name,
+            'vehicle_type'     => $request->vehicle_type,
+            'name'             => $request->name,
+            'email'            => $request->email,
+            'password'         => Hash::make($request->password),
+            'role'             => $role,
+            'status'           => ($role === 'solo' || $role === 'user') ? 'active' : 'pending',
         ]);
 
         // Auto login

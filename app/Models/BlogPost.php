@@ -6,9 +6,26 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+use App\Traits\HasLocalization;
+
 class BlogPost extends Model
 {
-    use HasFactory;
+    use HasFactory, HasLocalization;
+
+    public function getTitleAttribute($value)
+    {
+        return $this->getLocalized('title');
+    }
+
+    public function getDescriptionAttribute($value)
+    {
+        return $this->getLocalized('description');
+    }
+
+    public function getExcerptAttribute($value)
+    {
+        return $this->getLocalized('excerpt');
+    }
 
     public function category(){
         return $this->belongsTo(BlogCategory::class, 'category_id');

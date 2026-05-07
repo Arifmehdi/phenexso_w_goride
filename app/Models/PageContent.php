@@ -5,9 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+use App\Traits\HasLocalization;
+
 class PageContent extends Model
 {
-    use HasFactory;
+    use HasFactory, HasLocalization;
 
     protected $fillable = [
         'page_slug',
@@ -28,6 +30,36 @@ class PageContent extends Model
         'editedby_id',
     ];
 
+    public function getTitleAttribute($value)
+    {
+        return $this->getLocalized('title');
+    }
+
+    // public function getSubtitleAttribute($value)
+    // {
+    //     return $this->getLocalized('subtitle');
+    // }
+
+    // public function getDescriptionAttribute($value)
+    // {
+    //     return $this->getLocalized('description');
+    // }
+
+    // public function getContentAttribute($value)
+    // {
+    //     return $this->getLocalized('content');
+    // }
+
+    // public function getHighlightsAttribute($value)
+    // {
+    //     return $this->getLocalized('highlights');
+    // }
+
+    // public function getMetaAttribute($value)
+    // {
+    //     return $this->getLocalized('meta');
+    // }
+
     protected $casts = [
         'highlights' => 'array',
         'highlights_bn' => 'array',
@@ -36,14 +68,6 @@ class PageContent extends Model
         'active' => 'boolean',
     ];
 
-    public function getTitleAttribute($value)
-    {
-        $locale = app()->getLocale();
-        if ($locale == 'bn') {
-            return $this->title_bn ?: $value;
-        }
-        return $value ?: $this->title_bn;
-    }
 
     public function getSubtitleAttribute($value)
     {
