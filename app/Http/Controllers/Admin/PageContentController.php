@@ -49,7 +49,7 @@ class PageContentController extends Controller
 
         $meta = $request->meta;
         if (is_string($meta)) {
-            $meta = json_decode($meta, true);
+            $meta = json_decode($meta, true) ?: [];
         } else {
             $meta = $meta ?: [];
         }
@@ -129,7 +129,7 @@ class PageContentController extends Controller
 
         $meta = $request->meta;
         if (is_string($meta)) {
-            $meta = json_decode($meta, true);
+            $meta = json_decode($meta, true) ?: [];
         } else {
             $meta = $meta ?: [];
         }

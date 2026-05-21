@@ -3,6 +3,9 @@
 @section('title', 'Our Services | GoRide Bangladesh')
 
 @section('content')
+@php
+    $locale = app()->getLocale();
+@endphp
 <div class="page-hero">
     <div class="page-hero-content">
         <h1>Our Premium Services</h1>
@@ -28,12 +31,11 @@
                 @foreach($servicesList as $service)
                     <div class="service-card">
                         <div class="service-icon"><i class="{{ $service['icon'] ?? 'fas fa-car' }}"></i></div>
-                        <h3>{{ $service['title'] ?? '' }}</h3>
-                        <p>{{ $service['desc'] ?? '' }}</p>
-                        <a href="{{ route('login') }}" class="login-btn" style="display:inline-block;">Book Now</a>
+                        <h3>{{ $locale == 'bn' ? ($service['title_bn'] ?? $service['title'] ?? '') : ($service['title'] ?? '') }}</h3>
+                        <p>{{ $locale == 'bn' ? ($service['desc_bn'] ?? $service['desc'] ?? '') : ($service['desc'] ?? '') }}</p>
+                        <a href="{{ $service['link'] ?? route('login') }}" class="login-btn" style="display:inline-block;">{{ $locale == 'bn' ? ($service['btn_text_bn'] ?? $service['btn_text'] ?? 'এখনই বুক করুন') : ($service['btn_text'] ?? 'Book Now') }}</a>
                     </div>
-                @endforeach
-            @else
+                @endforeach            @else
                 <div class="service-card">
                     <div class="service-icon"><i class="fas fa-plane-arrival"></i></div>
                     <h3>Airport Pickup &amp; Drop</h3>
