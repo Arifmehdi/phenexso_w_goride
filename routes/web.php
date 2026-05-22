@@ -17,6 +17,8 @@ use App\Http\Controllers\Admin\SearchController;
 use App\Http\Controllers\Admin\ShippingMethodController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\UserRoleController;
+use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\CorporateController;
 use App\Http\Controllers\Admin\PageContentController;
 use App\Http\Controllers\Admin\AdminTestimonialController;
 use Illuminate\Support\Facades\Route;
@@ -686,6 +688,10 @@ Route::middleware(['auth:admin,web', 'userRole:admin'])->prefix('admin')->group(
 
     // Vehicle Assignment Admin Routes
     Route::resource('vehicle-assignments', \App\Http\Controllers\Admin\VehicleAssignmentController::class)->names('admin.vehicle_assignments');
+
+    // Admin and Corporate management
+    Route::resource('admins', AdminController::class)->names('admin.admins');
+    Route::resource('corporates', CorporateController::class)->names('admin.corporates');
 
 });
 

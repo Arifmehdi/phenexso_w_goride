@@ -88,11 +88,17 @@
                 </a>
                 <div class="dropdown-menu dropdown-menu-right">
                     <!-- item-->
-                    @foreach($user->roles as $role)
-                        @if($role->role_name == 'admin')
-                            <a class="dropdown-item" href="{{route('admin.dashboard')}}"><i class="bx bx-user font-size-16 align-middle mr-1"></i>Admin DashBoard</a>
-                        @endif
-                    @endforeach
+                    @if(isset($user->roles) && (is_array($user->roles) || is_object($user->roles)))
+                        @foreach($user->roles as $role)
+                            @if($role->role_name == 'admin')
+                                <a class="dropdown-item" href="{{route('admin.dashboard')}}"><i class="bx bx-user font-size-16 align-middle mr-1"></i>Admin DashBoard</a>
+                            @endif
+                        @endforeach
+                    @endif
+                    
+                    @if($user instanceof \App\Models\Admin)
+                        <a class="dropdown-item" href="{{route('admin.dashboard')}}"><i class="bx bx-user font-size-16 align-middle mr-1"></i>Admin DashBoard</a>
+                    @endif
                      
 
                     <a class="dropdown-item text-danger" href="#" onclick="event.preventDefault(); document.getElementById('logoutForm').submit();">
@@ -606,6 +612,56 @@
                                 <a href="{{ route('admin.drivers.create') }}" class="nav-link {{ session('lsbsm') == 'createDriver' ? ' active ' : '' }}">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>Add Driver</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    {{-- Corporates --}}
+                    <li class="nav-item {{ session('lsbm') == 'corporates'? ' menu-open ' : ''}}">
+                        <a href="#" class="nav-link {{ session('lsbm') == 'corporates'? ' active ' : ''}}">
+                            <i class="nav-icon fas fa-building"></i>
+                            <p>
+                                Corporates
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{{ route('admin.corporates.index') }}" class="nav-link {{ session('lsbsm') == 'allCorporates' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>All Corporates</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.corporates.create') }}" class="nav-link {{ session('lsbsm') == 'createCorporate' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Add Corporate</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    {{-- Admins --}}
+                    <li class="nav-item {{ session('lsbm') == 'admins'? ' menu-open ' : ''}}">
+                        <a href="#" class="nav-link {{ session('lsbm') == 'admins'? ' active ' : ''}}">
+                            <i class="nav-icon fas fa-user-shield"></i>
+                            <p>
+                                Admins
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{{ route('admin.admins.index') }}" class="nav-link {{ session('lsbsm') == 'allAdmins' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>All Admins</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.admins.create') }}" class="nav-link {{ session('lsbsm') == 'createAdmin' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Add Admin</p>
                                 </a>
                             </li>
                         </ul>

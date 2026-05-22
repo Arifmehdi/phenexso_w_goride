@@ -54,22 +54,22 @@ class AuthController extends Controller
             'password' => $request->input('password'),
         ];
 
-        // 1. Try the requested guard first
+        // 1. Try the requested guard first (Strictly if multiple accounts exist)
         if (Auth::guard($requestedGuard)->attempt($credentials, $request->boolean('remember'))) {
             if ($requestedGuard === 'web') {
                 $this->cartSessionToUser();
             }
-            return redirect()->route('dashboard.index')->with('success', 'Signed in successfully as ' . $requestedGuard);
+            return $this->redirectAfterLogin($requestedGuard);
         }
 
-        // 2. If it fails, try other guards (smart login)
+        // 2. If it fails, check if account exists in OTHER guards to be helpful
         $otherGuards = array_diff(['web', 'driver', 'corporate', 'admin'], [$requestedGuard]);
         foreach ($otherGuards as $guard) {
             if (Auth::guard($guard)->attempt($credentials, $request->boolean('remember'))) {
                 if ($guard === 'web') {
                     $this->cartSessionToUser();
                 }
-                return redirect()->route('dashboard.index')->with('success', 'Signed in successfully as ' . $guard);
+                return $this->redirectAfterLogin($guard);
             }
         }
 
@@ -84,7 +84,7 @@ class AuthController extends Controller
                 
                 foreach (['web', 'driver', 'corporate', 'admin'] as $guard) {
                     if (Auth::guard($guard)->attempt($formattedCredentials, $request->boolean('remember'))) {
-                        return redirect()->route('dashboard.index')->with('success', 'Signed in successfully');
+                        return $this->redirectAfterLogin($guard);
                     }
                 }
             }
@@ -92,7 +92,15 @@ class AuthController extends Controller
 
         // Failed login
         return back()->withInput($request->only('login'))
-                    ->with('error', 'Login details are not valid for any account type');
+                    ->with('error', 'Invalid login credentials. Please check your account type and try again.');
+    }
+
+    protected function redirectAfterLogin($guard)
+    {
+        if ($guard === 'admin') {
+            return redirect()->route('admin.dashboard')->with('success', 'Welcome to Admin Dashboard');
+        }
+        return redirect()->route('dashboard.index')->with('success', 'Signed in successfully');
     }
 
     public function adminLogin(Request $request)
