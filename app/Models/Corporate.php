@@ -7,20 +7,18 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-class Driver extends Authenticatable
+class Corporate extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
         'name',
+        'company_name',
         'email',
         'mobile',
         'password',
-        'license_no',
-        'nid',
         'address',
         'status',
-        'user_id',
     ];
 
     protected $hidden = [
@@ -30,17 +28,10 @@ class Driver extends Authenticatable
 
     public function getRoleAttribute()
     {
-        return 'driver';
+        return 'corporate';
     }
 
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
-
-    public function orders()
-    {
-        return $this->hasMany(Order::class);
-    }
-
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+    ];
 }

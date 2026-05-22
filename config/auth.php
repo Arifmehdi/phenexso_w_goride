@@ -41,10 +41,25 @@ return [
             'provider' => 'users',
         ],
 
+        'admin' => [
+            'driver' => 'session',
+            'provider' => 'admins',
+        ],
+
+        'driver' => [
+            'driver' => 'session',
+            'provider' => 'drivers',
+        ],
+
+        'corporate' => [
+            'driver' => 'session',
+            'provider' => 'corporates',
+        ],
+
         'api' => [
-        'driver' => 'sanctum',  // Make sure this is set
-        'provider' => 'users',
-    ],
+            'driver' => 'sanctum',
+            'provider' => 'users',
+        ],
     ],
 
     /*
@@ -70,10 +85,20 @@ return [
             'model' => App\Models\User::class,
         ],
 
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+        'admins' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Admin::class,
+        ],
+
+        'drivers' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Driver::class,
+        ],
+
+        'corporates' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Corporate::class,
+        ],
     ],
 
     /*

@@ -44,6 +44,13 @@
                 @enderror
             </div>
             <div class="form-group">
+                <label>Mobile Number</label>
+                <input type="text" name="mobile" class="form-control" placeholder="01XXXXXXXXX" value="{{ old('mobile') }}" required>
+                @error('mobile')
+                    <span style="color:#ef4444; font-size:12px;">{{ $message }}</span>
+                @enderror
+            </div>
+            <div class="form-group">
                 <label>Password</label>
                 <input type="password" name="password" class="form-control" placeholder="••••••••" required>
                 @error('password')

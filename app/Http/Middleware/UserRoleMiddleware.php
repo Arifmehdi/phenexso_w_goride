@@ -17,9 +17,22 @@ class UserRoleMiddleware
      */
     public function handle(Request $request, Closure $next, $role)
     {
-//        dd($request->user()->hasRole($role));
+        $user = $request->user();
 
-        if(! $request->user()->hasRole($role)){
+        if (!$user) {
+            abort(401);
+        }
+
+        // If it's an Admin model instance (from admin guard), we treat it as having 'admin' role
+        if ($user instanceof \App\Models\Admin) {
+            if ($role === 'admin') {
+                return $next($request);
+            }
+            abort(401);
+        }
+
+        // Standard User model role check
+        if (method_exists($user, 'hasRole') && !$user->hasRole($role)) {
             abort(401);
         }
 

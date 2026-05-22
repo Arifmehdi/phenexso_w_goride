@@ -23,12 +23,24 @@ class RedirectIfAuthenticated
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
-                if(Auth::user()->hasRole('admin')){
+                if ($guard === 'admin') {
                     return redirect()->route('admin.dashboard');
+                } elseif ($guard === 'driver') {
+                    return redirect()->route('driver.dashboard');
+                } elseif ($guard === 'corporate') {
+                    return redirect()->route('corporate.dashboard');
                 }
-                elseif(Auth::user()->hasRole('retailer')){
-                    return redirect()->route('admin.retailer.dashboard');
+
+                // Default web guard logic
+                $user = Auth::guard($guard)->user();
+                if ($user instanceof \App\Models\User) {
+                    if ($user->hasRole('admin')) {
+                        return redirect()->route('admin.dashboard');
+                    } elseif ($user->hasRole('retailer')) {
+                        return redirect()->route('retailer.dashboard');
+                    }
                 }
+                
                 return redirect(RouteServiceProvider::HOME);
             }
         }

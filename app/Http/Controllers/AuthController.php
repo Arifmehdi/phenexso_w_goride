@@ -7,71 +7,117 @@ use App\Models\IdCard;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\Product;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use PDF; 
+
 
 use Session;
 class AuthController extends Controller
 {
-    public function index(){
-        if(Auth::check()){
+    public function index(Request $request){
+        $routeName = $request->route()->getName();
+        $guard = 'web';
+        if ($routeName === 'admin.login') $guard = 'admin';
+        elseif ($routeName === 'driver.login') $guard = 'driver';
+        elseif ($routeName === 'corporate.login') $guard = 'corporate';
+
+        if(Auth::guard($guard)->check()){
             return redirect()->route('dashboard.index');
         }
-        return view('goride.auth.login');
+        return view('goride.auth.login', compact('guard'));
     }
 
 
 
    
-     /**
-     * Handle User Login
-     */
     public function login(Request $request)
     {
-        // Redirect if already logged in
-        if (Auth::check()) {
-            return redirect()->route('dashboard.index');
-        }
-        // dd('Login attempted with: ' . $request->input('login'));
-        // Validate request
+        $requestedGuard = $request->input('guard', 'web');
+
         $request->validate([
             'login'    => 'required|string',
             'password' => 'required|string',
+            'guard'    => 'nullable|string|in:web,admin,driver,corporate'
         ], [
             'login.required'    => 'Email or Mobile is required',
             'password.required' => 'Password is required',
         ]);
 
         $login_type = filter_var($request->input('login'), FILTER_VALIDATE_EMAIL) ? 'email' : 'mobile';
-        
         $credentials = [
             $login_type => $request->input('login'),
             'password' => $request->input('password'),
         ];
 
-        // Attempt login
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
-            // Merge session cart to user cart
-            $this->cartSessionToUser();
+        // 1. Try the requested guard first
+        if (Auth::guard($requestedGuard)->attempt($credentials, $request->boolean('remember'))) {
+            if ($requestedGuard === 'web') {
+                $this->cartSessionToUser();
+            }
+            return redirect()->route('dashboard.index')->with('success', 'Signed in successfully as ' . $requestedGuard);
+        }
 
-            return redirect()->route('dashboard.index')->with('success', 'Signed in successfully');
+        // 2. If it fails, try other guards (smart login)
+        $otherGuards = array_diff(['web', 'driver', 'corporate', 'admin'], [$requestedGuard]);
+        foreach ($otherGuards as $guard) {
+            if (Auth::guard($guard)->attempt($credentials, $request->boolean('remember'))) {
+                if ($guard === 'web') {
+                    $this->cartSessionToUser();
+                }
+                return redirect()->route('dashboard.index')->with('success', 'Signed in successfully as ' . $guard);
+            }
+        }
+
+        // 3. Special check for mobile formatting if it's a mobile login
+        if ($login_type === 'mobile') {
+            $formattedMobile = bdMobile($request->input('login'));
+            if ($formattedMobile !== $request->input('login')) {
+                $formattedCredentials = [
+                    'mobile' => $formattedMobile,
+                    'password' => $request->input('password'),
+                ];
+                
+                foreach (['web', 'driver', 'corporate', 'admin'] as $guard) {
+                    if (Auth::guard($guard)->attempt($formattedCredentials, $request->boolean('remember'))) {
+                        return redirect()->route('dashboard.index')->with('success', 'Signed in successfully');
+                    }
+                }
+            }
         }
 
         // Failed login
         return back()->withInput($request->only('login'))
-                    ->with('error', 'Login details are not valid');
+                    ->with('error', 'Login details are not valid for any account type');
+    }
+
+    public function adminLogin(Request $request)
+    {
+        $request->merge(['guard' => 'admin']);
+        return $this->login($request);
+    }
+
+    public function driverLogin(Request $request)
+    {
+        $request->merge(['guard' => 'driver']);
+        return $this->login($request);
+    }
+
+    public function corporateLogin(Request $request)
+    {
+        $request->merge(['guard' => 'corporate']);
+        return $this->login($request);
     }
 
 
 
     public function registerPage(){
-        if(Auth::check()){
-            return redirect()->route('user.dashboard');;
+        if(currentUser()){
+            return redirect()->route('dashboard.index');
         }
         else{
             return view('auth.login');
@@ -81,8 +127,8 @@ class AuthController extends Controller
 
     public function registration(){
 
-        if(Auth::check()){
-            return redirect()->route('user.dashboard');;
+        if(currentUser()){
+            return redirect()->route('dashboard.index');
         }
         else{
             return view('goride.auth.register');
@@ -91,8 +137,8 @@ class AuthController extends Controller
 
     public function registrationDriver(){
 
-        if(Auth::check()){
-            return redirect()->route('user.dashboard');;
+        if(currentUser()){
+            return redirect()->route('dashboard.index');
         }
         else{
             return view('goride.auth.register-driver');
@@ -101,8 +147,8 @@ class AuthController extends Controller
 
     public function registrationCorporate(){
 
-        if(Auth::check()){
-            return redirect()->route('user.dashboard');;
+        if(currentUser()){
+            return redirect()->route('dashboard.index');
         }
         else{
             return view('goride.auth.register-corporate');
@@ -277,7 +323,7 @@ class AuthController extends Controller
 
 
 
-       $pdf = PDF::loadView('idcard', compact('idcardData'))
+       $pdf = Pdf::loadView('idcard', compact('idcardData'))
         // ->setPaper([0, 0, 350, 500], 'portrait') 
         ->setOptions([
             'isHtml5ParserEnabled' => true,
@@ -309,37 +355,55 @@ class AuthController extends Controller
 
     public function mainRegister(Request $request)
     {
-        // dd($request->all());
         $request->validate([
             'name'               => 'required|string|max:255',
-            'email'              => 'required|email|unique:users,email',
+            'email'              => 'required|email',
             'password'           => 'required|string|min:8|confirmed',
             'role'               => 'nullable|string|in:user,driver,owner,corporate,solo',
             'company_name'       => 'nullable|string|max:255',
             'vehicle_type'       => 'nullable|string|max:255',
-        ]);
-// dd($request->all());
-        $role = $request->input('role', 'solo'); // Default to solo/user
-
-        $user = User::create([
-            'company_name'     => $request->company_name,
-            'vehicle_type'     => $request->vehicle_type,
-            'name'             => $request->name,
-            'email'            => $request->email,
-            'password'         => Hash::make($request->password),
-            'role'             => $role,
-            'status'           => ($role === 'solo' || $role === 'user') ? 'active' : 'pending',
+            'mobile'             => 'required|string',
         ]);
 
-        // Auto login
-        Auth::login($user);
+        $role = $request->input('role', 'solo');
+        $password = Hash::make($request->password);
+        $userData = [
+            'name'     => $request->name,
+            'email'    => $request->email,
+            'password' => $password,
+            'mobile'   => $request->mobile,
+            'status'   => ($role === 'solo' || $role === 'user') ? 'active' : 'pending',
+        ];
 
-        // Merge session cart
-        $this->cartSessionToUser();
+        if ($role === 'driver') {
+            // Check if already exists in drivers table
+            if (\App\Models\Driver::where('email', $request->email)->exists()) {
+                return back()->with('error', 'Driver with this email already exists');
+            }
+            $driver = \App\Models\Driver::create($userData);
+            Auth::guard('driver')->login($driver);
+        } elseif ($role === 'corporate') {
+            if (\App\Models\Corporate::where('email', $request->email)->exists()) {
+                return back()->with('error', 'Corporate user with this email already exists');
+            }
+            $userData['company_name'] = $request->company_name;
+            $corporate = \App\Models\Corporate::create($userData);
+            Auth::guard('corporate')->login($corporate);
+        } else {
+            // Default to users table
+            if (\App\Models\User::where('email', $request->email)->exists()) {
+                return back()->with('error', 'User with this email already exists');
+            }
+            $userData['role'] = $role;
+            $userData['company_name'] = $request->company_name;
+            $userData['vehicle_type'] = $request->vehicle_type;
+            $user = \App\Models\User::create($userData);
+            Auth::guard('web')->login($user);
+            $this->cartSessionToUser();
+        }
 
-        // Redirect based on dashboard index
         return redirect()->route('dashboard.index')
-                        ->with('success', 'Registration successful! Welcome, ' . $user->name);
+                        ->with('success', 'Registration successful! Welcome, ' . $request->name);
     }
 
 
@@ -587,10 +651,23 @@ class AuthController extends Controller
 
 
     
-    public function logOut(){
-        Session::flush();
-        Auth::user()->carts()->delete();
-        Auth::logout();
+    public function logOut(Request $request)
+    {
+        $guards = ['web', 'admin', 'driver', 'corporate'];
+        foreach ($guards as $guard) {
+            $authGuard = Auth::guard($guard);
+            if ($authGuard->check()) {
+                $user = $authGuard->user();
+                if ($guard === 'web' && $user && method_exists($user, 'carts')) {
+                    $user->carts()->delete();
+                }
+                $authGuard->logout();
+            }
+        }
+        
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        
         return redirect('/');
     }
 

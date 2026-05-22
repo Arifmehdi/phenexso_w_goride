@@ -29,6 +29,10 @@
                 <input type="email" name="email" class="form-control" placeholder="example@email.com" value="{{ old('email') }}" required>
             </div>
             <div class="form-group">
+                <label>Mobile Number</label>
+                <input type="text" name="mobile" class="form-control" placeholder="01XXXXXXXXX" value="{{ old('mobile') }}" required>
+            </div>
+            <div class="form-group">
                 <label>Vehicle Type</label>
                 <select name="vehicle_type" class="form-control">
                     <option value="sedan">Standard Sedan</option>

@@ -20,14 +20,17 @@
                 </a>
             </div>
             <div class="nav-right">
-                <span style="font-weight: 600; color: var(--text-color);">
-                    @if(Auth::user()->role === 'corporate')
-                        <i class="fas fa-building" style="margin-right: 8px; color: var(--primary-color);"></i>
-                    @else
-                        <i class="fas fa-user-circle" style="margin-right: 8px; color: var(--primary-color);"></i>
-                    @endif
-                    {{ Auth::user()->name }}
-                </span>
+                @php $user = currentUser(); @endphp
+                @if($user)
+                    <span style="font-weight: 600; color: var(--text-color);">
+                        @if($user->role === 'corporate')
+                            <i class="fas fa-building" style="margin-right: 8px; color: var(--primary-color);"></i>
+                        @else
+                            <i class="fas fa-user-circle" style="margin-right: 8px; color: var(--primary-color);"></i>
+                        @endif
+                        {{ $user->name }}
+                    </span>
+                @endif
                 <a href="{{ route('logout') }}" class="lang-toggle">Logout</a>
             </div>
         </div>

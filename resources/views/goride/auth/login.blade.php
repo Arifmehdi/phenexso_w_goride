@@ -8,7 +8,7 @@
         <div class="login-logo">
             <img src="{{ asset('goride/assets/go_ride_logo.jpg') }}" alt="GoRide Bangladesh">
             <h2>Welcome Back</h2>
-            <p>Sign in to your GoRide account</p>
+            <p>Sign in to your <strong>{{ ucfirst($guard ?? 'customer') }}</strong> account</p>
         </div>
 
         @if(session('error'))
@@ -27,15 +27,16 @@
             </div>
         @endif
 
-        {{--<div class="login-tabs">
-            <div class="login-tab active">Customer</div>
-            <div class="login-tab" onclick="location.href='{{ route('registration.driver') }}'">Driver / Owner</div>
-            <div class="login-tab" onclick="location.href='{{ route('registration.corporate') }}'">Corporate</div>
-        </div>--}}
+        <div class="login-tabs" style="display: flex; gap: 5px; margin-bottom: 25px; background: #f1f5f9; padding: 5px; border-radius: 12px;">
+            <a href="{{ route('login') }}" style="flex: 1; text-align: center; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; {{ ($guard ?? 'web') === 'web' ? 'background: white; color: var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.05);' : 'color: #64748b;' }}">Customer</a>
+            <a href="{{ route('driver.login') }}" style="flex: 1; text-align: center; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; {{ ($guard ?? '') === 'driver' ? 'background: white; color: var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.05);' : 'color: #64748b;' }}">Driver</a>
+            <a href="{{ route('corporate.login') }}" style="flex: 1; text-align: center; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; {{ ($guard ?? '') === 'corporate' ? 'background: white; color: var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.05);' : 'color: #64748b;' }}">Corporate</a>
+        </div>
 
         {{-- ADDED ID HERE --}}
         <form action="{{ route('login.user') }}" method="POST" id="loginForm">
             @csrf
+            <input type="hidden" name="guard" value="{{ $guard ?? 'web' }}">
             <div class="form-group">
                 <label>Email or Mobile Number</label>
                 <input type="text" name="login" class="form-control" placeholder="017XXXXXXXX or example@email.com" value="{{ old('login') }}" required autofocus>
@@ -48,7 +49,7 @@
                 <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:400;color:var(--text-mid);">
                     <input type="checkbox" name="remember" style="width:16px;height:16px;" {{ old('remember') ? 'checked' : '' }}> Remember me
                 </label>
-                <a href="#" style="color:var(--primary);font-weight:700;">Forgot Password?</a>
+                <a href="{{ route('password.request', ['guard' => $guard ?? 'web']) }}" style="color:var(--primary);font-weight:700;">Forgot Password?</a>
             </div>
             <input type="submit" class="btn-primary" value="Login Now">
         </form>
