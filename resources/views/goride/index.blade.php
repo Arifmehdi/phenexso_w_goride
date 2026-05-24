@@ -8,12 +8,10 @@
         position: absolute;
         inset: 0;
         z-index: 0;
-        @if(isset($pageContents['home']->meta['hero_bg_image']) && $pageContents['home']->meta['hero_bg_image'])
-            background: url("{{ asset('storage/page_contents/' . $pageContents['home']->meta['hero_bg_image']) }}") center/cover no-repeat;
-        @else
-                          background: linear-gradient(160deg, rgba(10,40,22,0.90) 0%, rgba(20,94,46,0.78) 60%, rgba(26,122,60,0.65) 100%),
-                        url("{{ asset('goride/css/assets/banner_01.jpg') }}") center/cover no-repeat;
-        @endif
+        background: linear-gradient(160deg, rgba(10,40,22,0.90) 0%, rgba(20,94,46,0.78) 60%, rgba(26,122,60,0.65) 100%),
+                    url("{{ asset('goride/css/assets/banner_01.jpg') }}") center/cover no-repeat;
+        /* background: linear-gradient(160deg, rgba(10,40,22,0.90) 0%, rgba(20,94,46,0.78) 60%, rgba(26,122,60,0.65) 100%),
+                    url("{{ asset('goride/assets/banner_01.jpg') }}") center/cover no-repeat; */
         background-attachment: fixed;
     }
 </style>
@@ -42,48 +40,30 @@
 <!-- ── ENTRY CARDS ── -->
 <div class="entry-section">
     <div class="entry-cards">
-        @php
-            $entry_cards = $pageContents['home']->meta['entry_cards'] ?? null;
-            if (is_string($entry_cards)) {
-                $entry_cards = json_decode($entry_cards, true);
-            }
-        @endphp
-
-        @if($entry_cards && count($entry_cards) > 0)
-            @foreach($entry_cards as $card)
-                <a href="{{ $card['link'] ?? '#' }}" class="entry-card">
-                    <div class="icon-wrap"><i class="{{ $card['icon'] ?? 'fas fa-car' }}"></i></div>
-                    <h3>{{ $card['title'] ?? '' }}</h3>
-                    <p>{{ $card['description'] ?? '' }}</p>
-                    <span class="card-link">{{ $card['btn_text'] ?? 'Learn More' }} <i class="fas fa-arrow-right"></i></span>
-                </a>
-            @endforeach
-        @else
-            <a href="{{ route('registration.driver') }}" class="entry-card">
-                <div class="icon-wrap"><i class="fas fa-car-side"></i></div>
-                <h3>{{ __('goride.entry.owners') }}</h3>
-                <p>{{ __('goride.entry.owners_desc') }}</p>
-                <span class="card-link">{{ __('goride.entry.join_now') }} <i class="fas fa-arrow-right"></i></span>
-            </a>
-            <a href="{{ route('registration.corporate') }}" class="entry-card">
-                <div class="icon-wrap"><i class="fas fa-building"></i></div>
-                <h3>{{ __('goride.entry.corporate') }}</h3>
-                <p>{{ __('goride.entry.corporate_desc') }}</p>
-                <span class="card-link">{{ __('goride.entry.learn_more') }} <i class="fas fa-arrow-right"></i></span>
-            </a>
-            <a href="{{ route('registration') }}" class="entry-card">
-                <div class="icon-wrap"><i class="fas fa-user-check"></i></div>
-                <h3>{{ __('goride.entry.solo') }}</h3>
-                <p>{{ __('goride.entry.solo_desc') }}</p>
-                <span class="card-link">{{ __('goride.entry.book_now') }} <i class="fas fa-arrow-right"></i></span>
-            </a>
-            <a href="{{ route('tours') }}" class="entry-card">
-                <div class="icon-wrap"><i class="fas fa-map-marked-alt"></i></div>
-                <h3>{{ __('goride.entry.tours') }}</h3>
-                <p>{{ __('goride.entry.tours_desc') }}</p>
-                <span class="card-link">{{ __('goride.entry.explore') }} <i class="fas fa-arrow-right"></i></span>
-            </a>
-        @endif
+        <a href="{{ route('registration.driver') }}" class="entry-card">
+            <div class="icon-wrap"><i class="fas fa-car-side"></i></div>
+            <h3>{{ __('goride.entry.owners') }}</h3>
+            <p>{{ __('goride.entry.owners_desc') }}</p>
+            <span class="card-link">{{ __('goride.entry.join_now') }} <i class="fas fa-arrow-right"></i></span>
+        </a>
+        <a href="{{ route('registration.corporate') }}" class="entry-card">
+            <div class="icon-wrap"><i class="fas fa-building"></i></div>
+            <h3>{{ __('goride.entry.corporate') }}</h3>
+            <p>{{ __('goride.entry.corporate_desc') }}</p>
+            <span class="card-link">{{ __('goride.entry.learn_more') }} <i class="fas fa-arrow-right"></i></span>
+        </a>
+        <a href="{{ route('registration') }}" class="entry-card">
+            <div class="icon-wrap"><i class="fas fa-user-check"></i></div>
+            <h3>{{ __('goride.entry.solo') }}</h3>
+            <p>{{ __('goride.entry.solo_desc') }}</p>
+            <span class="card-link">{{ __('goride.entry.book_now') }} <i class="fas fa-arrow-right"></i></span>
+        </a>
+        <a href="{{ route('tours') }}" class="entry-card">
+            <div class="icon-wrap"><i class="fas fa-map-marked-alt"></i></div>
+            <h3>{{ __('goride.entry.tours') }}</h3>
+            <p>{{ __('goride.entry.tours_desc') }}</p>
+            <span class="card-link">{{ __('goride.entry.explore') }} <i class="fas fa-arrow-right"></i></span>
+        </a>
     </div>
 </div>
 
@@ -125,18 +105,14 @@
         </div>
         <div class="why-grid">
             @php
-                $why_cards = $pageContents['home']->meta['why_cards'] ?? null;
-                if (is_string($why_cards)) {
-                    $why_cards = json_decode($why_cards, true);
-                }
+                $whyItems = $pageContents['home']->meta['why_items'] ?? [];
             @endphp
-
-            @if($why_cards && count($why_cards) > 0)
-                @foreach($why_cards as $card)
+            @if(!empty($whyItems))
+                @foreach($whyItems as $item)
                     <div class="why-card">
-                        <div class="wc-icon"><i class="{{ $card['icon'] ?? 'fas fa-star' }}"></i></div>
-                        <h4>{{ $card['title'] ?? '' }}</h4>
-                        <p>{{ $card['description'] ?? '' }}</p>
+                        <div class="wc-icon"><i class="{{ $item['icon'] ?? 'fas fa-star' }}"></i></div>
+                        <h4>{{ $item['title'] ?? '' }}</h4>
+                        <p>{{ $item['desc'] ?? '' }}</p>
                     </div>
                 @endforeach
             @else
@@ -180,55 +156,40 @@
     <div class="container">
         <div class="app-inner">
             <div class="app-text">
-                <span class="app-label"><i class="fas fa-mobile-screen-button"></i> {{ $pageContents['home']->meta['app_label'] ?? __('goride.app.label') }}</span>
-                <h2>{{ $pageContents['home']->meta['app_title'] ?? __('goride.app.title') }}<br><span>{{ $pageContents['home']->meta['app_span'] ?? __('goride.app.span') }}</span></h2>
-                <p>{{ $pageContents['home']->meta['app_description'] ?? __('goride.app.desc') }}</p>
+                <span class="app-label"><i class="fas fa-mobile-screen-button"></i> {{ __('goride.app.label') }}</span>
+                <h2>{{ __('goride.app.title') }}<br><span>{{ __('goride.app.span') }}</span></h2>
+                <p>{{ __('goride.app.desc') }}</p>
                 <div class="app-features">
-                    @php
-                        $app_features = $pageContents['home']->meta['app_features'] ?? null;
-                        if (is_string($app_features)) {
-                            $app_features = json_decode($app_features, true);
-                        }
-                    @endphp
-                    @if($app_features && count($app_features) > 0)
-                        @foreach($app_features as $feature)
-                            <div class="app-feat-item">
-                                <i class="fas fa-circle-check"></i>
-                                <span>{{ $feature }}</span>
-                            </div>
-                        @endforeach
-                    @else
-                        <div class="app-feat-item">
-                            <i class="fas fa-location-dot"></i>
-                            <span>{{ __('goride.app.feature1') }}</span>
-                        </div>
-                        <div class="app-feat-item">
-                            <i class="fas fa-bell"></i>
-                            <span>{{ __('goride.app.feature2') }}</span>
-                        </div>
-                        <div class="app-feat-item">
-                            <i class="fas fa-wallet"></i>
-                            <span>{{ __('goride.app.feature3') }}</span>
-                        </div>
-                        <div class="app-feat-item">
-                            <i class="fas fa-star"></i>
-                            <span>{{ __('goride.app.feature4') }}</span>
-                        </div>
-                        <div class="app-feat-item">
-                            <i class="fas fa-language"></i>
-                            <span>{{ __('goride.app.feature5') }}</span>
-                        </div>
-                    @endif
+                    <div class="app-feat-item">
+                        <i class="fas fa-location-dot"></i>
+                        <span>{{ __('goride.app.feature1') }}</span>
+                    </div>
+                    <div class="app-feat-item">
+                        <i class="fas fa-bell"></i>
+                        <span>{{ __('goride.app.feature2') }}</span>
+                    </div>
+                    <div class="app-feat-item">
+                        <i class="fas fa-wallet"></i>
+                        <span>{{ __('goride.app.feature3') }}</span>
+                    </div>
+                    <div class="app-feat-item">
+                        <i class="fas fa-star"></i>
+                        <span>{{ __('goride.app.feature4') }}</span>
+                    </div>
+                    <div class="app-feat-item">
+                        <i class="fas fa-language"></i>
+                        <span>{{ __('goride.app.feature5') }}</span>
+                    </div>
                 </div>
                 <div class="app-download-btns">
-                    <a href="{{ $pageContents['home']->meta['app_store_apple'] ?? '#' }}" class="app-store-btn">
+                    <a href="#" class="app-store-btn">
                         <i class="fab fa-apple"></i>
                         <div class="store-text">
                             <small>{{ __('goride.app.download_apple') }}</small>
                             <strong>App Store</strong>
                         </div>
                     </a>
-                    <a href="{{ $pageContents['home']->meta['app_store_google'] ?? '#' }}" class="app-store-btn">
+                    <a href="#" class="app-store-btn">
                         <i class="fab fa-google-play"></i>
                         <div class="store-text">
                             <small>{{ __('goride.app.download_google') }}</small>
@@ -246,37 +207,33 @@
                     </div>
                 </div>
                 <div class="phone-mockup-wrap">
-                    @if(isset($pageContents['home']->meta['app_mockup_image']) && $pageContents['home']->meta['app_mockup_image'])
-                        <img src="{{ asset('storage/page_contents/' . $pageContents['home']->meta['app_mockup_image']) }}" alt="Mobile App" class="img-fluid floating-mockup" style="max-height: 550px; filter: drop-shadow(0 20px 50px rgba(0,0,0,0.3));">
-                    @else
-                        <div class="phone-mockup">
-                            <div class="phone-screen">
-                                <div class="phone-notch"></div>
-                                <div class="phone-ui-top">
-                                    <span class="app-name">GoRide</span>
-                                    <span class="app-tagline">Bangladesh's #1 Ride App</span>
+                    <div class="phone-mockup">
+                        <div class="phone-screen">
+                            <div class="phone-notch"></div>
+                            <div class="phone-ui-top">
+                                <span class="app-name">GoRide</span>
+                                <span class="app-tagline">Bangladesh's #1 Ride App</span>
+                            </div>
+                            <div class="phone-ride-card">
+                                <div class="ride-row">
+                                    <div class="ride-dot green"></div>
+                                    <span>Gulshan 1, Dhaka</span>
                                 </div>
-                                <div class="phone-ride-card">
-                                    <div class="ride-row">
-                                        <div class="ride-dot green"></div>
-                                        <span>Gulshan 1, Dhaka</span>
-                                    </div>
-                                    <div class="ride-line"></div>
-                                    <div class="ride-row">
-                                        <div class="ride-dot red"></div>
-                                        <span>Hazrat Shahjalal Airport</span>
-                                    </div>
-                                </div>
-                                <div class="phone-book-btn">Book Now — ৳ 650</div>
-                                <div class="phone-bottom-nav">
-                                    <i class="fas fa-house active"></i>
-                                    <i class="fas fa-magnifying-glass"></i>
-                                    <i class="fas fa-calendar"></i>
-                                    <i class="fas fa-user"></i>
+                                <div class="ride-line"></div>
+                                <div class="ride-row">
+                                    <div class="ride-dot red"></div>
+                                    <span>Hazrat Shahjalal Airport</span>
                                 </div>
                             </div>
+                            <div class="phone-book-btn">Book Now — ৳ 650</div>
+                            <div class="phone-bottom-nav">
+                                <i class="fas fa-house active"></i>
+                                <i class="fas fa-magnifying-glass"></i>
+                                <i class="fas fa-calendar"></i>
+                                <i class="fas fa-user"></i>
+                            </div>
                         </div>
-                    @endif
+                    </div>
                 </div>
                 <div class="app-float-badge right">
                     <div class="badge-icon yellow"><i class="fas fa-bolt"></i></div>
@@ -299,73 +256,39 @@
             <p>{{ __('goride.testimonials.desc') }}</p>
         </div>
         <div class="testimonials-grid">
-            @if(isset($testimonials) && $testimonials->count() > 0)
-                @foreach($testimonials as $testimonial)
-                    <div class="testimonial-card">
-                        <div class="testimonial-stars">
-                            @for($i=0; $i < ($testimonial->rating ?? 5); $i++)
-                                ★
-                            @endfor
-                        </div>
-                        <p>"{{ strip_tags($testimonial->text_en) }}"</p>
-                        <div class="testimonial-author">
-                            <div class="author-avatar">
-                                @if($testimonial->image)
-                                    <img src="{{ asset('storage/testimonials/' . $testimonial->image) }}" alt="{{ $testimonial->name }}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">
-                                @else
-                                    @php
-                                        $initials = '';
-                                        $names = explode(' ', $testimonial->name);
-                                        foreach($names as $n) {
-                                            $initials .= substr($n, 0, 1);
-                                        }
-                                        $initials = substr($initials, 0, 2);
-                                    @endphp
-                                    {{ strtoupper($initials) }}
-                                @endif
-                            </div>
-                            <div class="author-info">
-                                <strong>{{ $testimonial->name }}</strong>
-                                <span>{{ $testimonial->designation }}{{ $testimonial->company ? ', ' . $testimonial->company : '' }}</span>
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
-            @else
-                <div class="testimonial-card">
-                    <div class="testimonial-stars">★★★★★</div>
-                    <p>"Booked a ride to the airport at 4 AM and the driver was there 5 minutes early. The app made it so easy — I'll never go back to calling random numbers."</p>
-                    <div class="testimonial-author">
-                        <div class="author-avatar">RS</div>
-                        <div class="author-info">
-                            <strong>Rahim Sarkar</strong>
-                            <span>Dhaka</span>
-                        </div>
+            <div class="testimonial-card">
+                <div class="testimonial-stars">★★★★★</div>
+                <p>"Booked a ride to the airport at 4 AM and the driver was there 5 minutes early. The app made it so easy — I'll never go back to calling random numbers."</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">RS</div>
+                    <div class="author-info">
+                        <strong>Rahim Sarkar</strong>
+                        <span>Dhaka</span>
                     </div>
                 </div>
-                <div class="testimonial-card">
-                    <div class="testimonial-stars">★★★★★</div>
-                    <p>"Our company has been using GoRide for all executive transport needs. The corporate dashboard and monthly invoicing have saved us so much admin time."</p>
-                    <div class="testimonial-author">
-                        <div class="author-avatar">FH</div>
-                        <div class="author-info">
-                            <strong>Farida Hossain</strong>
-                            <span>HR Manager, Chittagong</span>
-                        </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-stars">★★★★★</div>
+                <p>"Our company has been using GoRide for all executive transport needs. The corporate dashboard and monthly invoicing have saved us so much admin time."</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">FH</div>
+                    <div class="author-info">
+                        <strong>Farida Hossain</strong>
+                        <span>HR Manager, Chittagong</span>
                     </div>
                 </div>
-                <div class="testimonial-card">
-                    <div class="testimonial-stars">★★★★★</div>
-                    <p>"The Cox's Bazar tour package was incredible. Comfortable car, experienced driver who knew all the best spots. Will definitely book again for our family trip."</p>
-                    <div class="testimonial-author">
-                        <div class="author-avatar">KA</div>
-                        <div class="author-info">
-                            <strong>Karim Ahmed</strong>
-                            <span>Sylhet</span>
-                        </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-stars">★★★★★</div>
+                <p>"The Cox's Bazar tour package was incredible. Comfortable car, experienced driver who knew all the best spots. Will definitely book again for our family trip."</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">KA</div>
+                    <div class="author-info">
+                        <strong>Karim Ahmed</strong>
+                        <span>Sylhet</span>
                     </div>
                 </div>
-            @endif
+            </div>
         </div>
     </div>
 </section>

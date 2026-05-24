@@ -5,8 +5,8 @@
 @section('content')
 <div class="page-hero">
     <div class="page-hero-content">
-        <h1>{{ $pageContents['services']->title ?? 'Our Premium Services' }}</h1>
-        <p>{{ $pageContents['services']->subtitle ?? 'A full range of transport solutions built for every need across Bangladesh.' }}</p>
+        <h1>Our Premium Services</h1>
+        <p>A full range of transport solutions built for every need across Bangladesh.</p>
         <div class="breadcrumb">
             <a href="{{ route('home') }}">Home</a><i class="fas fa-chevron-right"></i><span>Services</span>
         </div>
@@ -16,25 +16,21 @@
 <section style="background: white;">
     <div class="container">
         <div class="section-title">
-            <div class="section-label"><i class="fas fa-car"></i> {{ $pageContents['services']->description ?? 'What We Offer' }}</div>
-            <h2>{{ $pageContents['services']->content ?? 'Transport Solutions for<br>Every Occasion' }}</h2>
-            <p>{{ $pageContents['services']->meta['intro_text'] ?? 'From airport pickups to corporate fleets and curated tours — GoRide has a service that fits your journey.' }}</p>
+            <div class="section-label"><i class="fas fa-car"></i> {{ $pageContents['services']->title ?? 'What We Offer' }}</div>
+            <h2>{{ $pageContents['services']->title ?? 'Transport Solutions for<br>Every Occasion' }}</h2>
+            <p>{{ $pageContents['services']->description ?? 'From airport pickups to corporate fleets and curated tours — GoRide has a service that fits your journey.' }}</p>
         </div>
         <div class="services-grid">
             @php
-                $service_items = $pageContents['services']->meta['service_items'] ?? null;
-                if (is_string($service_items)) {
-                    $service_items = json_decode($service_items, true);
-                }
+                $servicesList = $pageContents['services']->meta['services_list'] ?? [];
             @endphp
-
-            @if($service_items && count($service_items) > 0)
-                @foreach($service_items as $item)
+            @if(!empty($servicesList))
+                @foreach($servicesList as $service)
                     <div class="service-card">
-                        <div class="service-icon"><i class="{{ $item['icon'] ?? 'fas fa-car' }}"></i></div>
-                        <h3>{{ $item['title'] ?? '' }}</h3>
-                        <p>{{ $item['description'] ?? '' }}</p>
-                        <a href="{{ $item['link'] ?? '#' }}" class="login-btn" style="display:inline-block;">{{ $item['btn_text'] ?? 'Book Now' }}</a>
+                        <div class="service-icon"><i class="{{ $service['icon'] ?? 'fas fa-car' }}"></i></div>
+                        <h3>{{ $service['title'] ?? '' }}</h3>
+                        <p>{{ $service['desc'] ?? '' }}</p>
+                        <a href="{{ route('login') }}" class="login-btn" style="display:inline-block;">Book Now</a>
                     </div>
                 @endforeach
             @else

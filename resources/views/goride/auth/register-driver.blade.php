@@ -50,8 +50,8 @@
         </form>
 
         <div style="text-align:center;margin-top:28px;padding-top:24px;border-top:1px solid var(--border);">
-            <p style="font-size:14px;color:var(--text-light);margin-bottom:14px;">Already have an account?</p>
-            <a href="{{ route('login') }}" class="login-btn" style="display:inline-block; width:100%; text-align:center; background:var(--accent); color:var(--text); border:1.5px solid var(--border);">Back to Login</a>
+            <p style="font-size:14px;color:var(--text-light);margin-bottom:14px;">Already have an account? <a href="{{ route('login') }}"><b>Login</b></a></p>
+            {{--<a href="{{ route('login') }}" class="login-btn" style="display:inline-block; width:100%; text-align:center; background:var(--accent); color:var(--text); border:1.5px solid var(--border);">Back to Login</a>--}}
         </div>
     </div>
 </div>

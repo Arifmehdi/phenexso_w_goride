@@ -27,11 +27,11 @@
             </div>
         @endif
 
-        <div class="login-tabs">
+        {{--<div class="login-tabs">
             <div class="login-tab active">Customer</div>
             <div class="login-tab" onclick="location.href='{{ route('registration.driver') }}'">Driver / Owner</div>
             <div class="login-tab" onclick="location.href='{{ route('registration.corporate') }}'">Corporate</div>
-        </div>
+        </div>--}}
 
         {{-- ADDED ID HERE --}}
         <form action="{{ route('login.user') }}" method="POST" id="loginForm">

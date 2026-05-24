@@ -20,7 +20,7 @@ class DriverController extends Controller
     {
         menuSubmenu('drivers', 'allDrivers');
         // $drivers = Driver::latest()->paginate(10);
-        $drivers = User::where('role', 'rider')->latest()->paginate(10);
+        $drivers = User::where('role', 'driver')->latest()->paginate(10);
         return view('admin.drivers.index', compact('drivers'));
     }
 
@@ -59,7 +59,7 @@ class DriverController extends Controller
 
         // Set default password
         $data['password'] = Hash::make('Hubli@2025');
-        $data['role'] = 'rider';
+        $data['role'] = 'driver';
 
         User::create($data);
 

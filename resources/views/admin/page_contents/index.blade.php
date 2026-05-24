@@ -53,7 +53,8 @@
                                                 <span class="badge badge-info"><i class="fas fa-bookmark mr-1"></i>{{ ucfirst($content->page_slug) }}</span>
                                             </td>
                                             <td>
-                                                <strong>{{ $content->title }}</strong>
+                                                <strong>EN:</strong> {{ $content->getRawOriginal('title') }}<br>
+                                                <strong>BN:</strong> {{ $content->title_bn ?: 'Not Set' }}
                                             </td>
                                             <td>
                                                 <small class="text-muted">{{ Str::limit($content->description, 50, '...') }}</small>

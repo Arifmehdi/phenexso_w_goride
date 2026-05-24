@@ -1,226 +1,322 @@
 @extends('admin.master')
-@section('title', 'Edit Page Content | Admin Dashboard')
+@section('title', 'Edit Content: ' . $pageContent->page_slug)
+
+@push('css')
+<style>
+    /* Premium UI Overrides */
+    .editor-card { border-radius: 24px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.04); overflow: hidden; background: #fff; }
+    .card-header-tabs { background: #fdfdfd; border-bottom: 1px solid #f1f5f9; padding: 20px 30px; }
+    
+    .nav-tabs-custom { border: none; display: flex; gap: 10px; }
+    .nav-tabs-custom .nav-link { 
+        border: none !important; color: #94a3b8; font-weight: 700; font-size: 14px; 
+        padding: 12px 24px; border-radius: 14px; transition: all 0.3s;
+        display: flex; align-items: center; gap: 10px; background: #f8fafc;
+    }
+    .nav-tabs-custom .nav-link:hover { color: #64748b; background: #f1f5f9; }
+    .nav-tabs-custom .nav-link.active { background: #1A7A3C !important; color: white !important; box-shadow: 0 10px 20px rgba(26,122,60,0.2); }
+    
+    .form-section { padding: 40px; }
+    .section-label { font-size: 11px; font-weight: 900; color: #1A7A3C; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 25px; display: block; }
+    
+    .label-elegant { font-weight: 700; font-size: 13px; color: #334155; margin-bottom: 10px; display: block; padding-left: 4px; }
+    
+    .input-elegant { 
+        background: #f8fafc !important; 
+        border: 1.5px solid #e2e8f0 !important; 
+        border-radius: 14px !important; 
+        padding: 16px 20px !important;
+        height: auto !important; 
+        font-size: 15px !important;
+        font-weight: 500 !important;
+        color: #1e293b !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    .input-elegant:focus { 
+        background: white !important; 
+        border-color: #1A7A3C !important; 
+        box-shadow: 0 0 0 4px rgba(26, 122, 60, 0.08) !important;
+        outline: none !important;
+    }
+
+    /* Dynamic Item Styling */
+    .dynamic-container { background: #f8fafc; border-radius: 20px; padding: 30px; margin-top: 30px; border: 1px solid #f1f5f9; }
+    .dynamic-item { background: white; border-radius: 16px; padding: 25px; margin-bottom: 20px; border: 1px solid #e2e8f0; position: relative; transition: transform 0.2s; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+    .dynamic-item:hover { transform: scale(1.005); border-color: #1A7A3C; }
+    .remove-item { position: absolute; top: 15px; right: 15px; color: #ef4444; cursor: pointer; font-size: 18px; transition: 0.2s; }
+    .remove-item:hover { color: #dc2626; transform: scale(1.1); }
+
+    .note-editor.note-frame { border-radius: 14px; border: 1.5px solid #e2e8f0 !important; overflow: hidden; }
+    .sticky-actions { position: sticky; bottom: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(15px); padding: 20px 40px; border-top: 1px solid #f1f5f9; z-index: 1000; }
+    .btn-save { background: #1A7A3C; color: white; padding: 14px 40px; border-radius: 14px; font-weight: 800; border: none; box-shadow: 0 10px 20px rgba(26,122,60,0.15); transition: 0.3s; }
+</style>
+@endpush
+
 @section('body')
 
 <div class="content-header">
     <div class="container-fluid">
-        <div class="row mb-2">
-            <div class="col-sm-6">
-                <h1 class="m-0"><i class="fas fa-edit mr-2"></i>Edit Page Content</h1>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="m-0 font-weight-bold" style="letter-spacing: -1px;"><i class="fas fa-magic mr-3 text-success"></i>Edit Page: {{ ucfirst($pageContent->page_slug) }}</h1>
             </div>
-            <div class="col-sm-6">
-                <ol class="breadcrumb float-sm-right">
-                    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
-                    <li class="breadcrumb-item"><a href="{{ route('admin.page_contents.index') }}">Page Contents</a></li>
-                    <li class="breadcrumb-item active">Edit</li>
-                </ol>
-            </div>
+            <a href="{{ route('admin.page_contents.index') }}" class="btn btn-light px-4" style="border-radius: 12px; font-weight: 700; border: 1px solid #e2e8f0;">
+                <i class="fas fa-chevron-left mr-2"></i> Back
+            </a>
         </div>
     </div>
 </div>
 
-<div class="content">
+<div class="content pb-5">
     <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-12">
-                @if ($errors->any())
-                    <div class="alert alert-danger alert-dismissible fade show">
-                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                        <h5><i class="icon fas fa-ban"></i> Error!</h5>
-                        <ul>
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
+        <form action="{{ route('admin.page_contents.update', $pageContent->id) }}" method="POST" enctype="multipart/form-data">
+            @csrf @method('PUT')
+            <input type="hidden" name="page_slug" value="{{ $pageContent->page_slug }}">
 
-                <div class="card card-primary">
-                    <div class="card-header">
-                        <h3 class="card-title">Update Content for: {{ $pageContent->page_slug }}</h3>
-                    </div>
-                    <form action="{{ route('admin.page_contents.update', $pageContent->id) }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        @method('PUT')
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="page_slug">Page Slug <span class="text-danger">*</span></label>
-                                        <input type="text" name="page_slug" id="page_slug" class="form-control" value="{{ old('page_slug', $pageContent->page_slug) }}" required>
-                                    </div>
+            <div class="card editor-card">
+                <div class="card-header-tabs">
+                    <ul class="nav nav-tabs nav-tabs-custom" id="langTabs" role="tablist">
+                        <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#english-content">English Version</a></li>
+                        <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#bangla-content">Bangla Version</a></li>
+                    </ul>
+                </div>
+
+                <div class="card-body p-0">
+                    <div class="tab-content">
+                        
+                        {{-- ENGLISH CONTENT --}}
+                        <div class="tab-pane fade show active" id="english-content">
+                            <div class="form-section">
+                                <span class="section-label">Primary Headings (EN)</span>
+                                <div class="row">
+                                    <div class="col-md-6 mb-4"><label class="label-elegant">Page Title</label><input type="text" name="title" class="form-control input-elegant" value="{{ $pageContent->getRawOriginal('title') }}"></div>
+                                    <div class="col-md-6 mb-4"><label class="label-elegant">Subtitle</label><input type="text" name="subtitle" class="form-control input-elegant" value="{{ $pageContent->getRawOriginal('subtitle') }}"></div>
+                                    <div class="col-12 mb-4"><label class="label-elegant">Short Description</label><textarea name="description" class="form-control input-elegant" rows="2">{{ $pageContent->description }}</textarea></div>
+                                    <div class="col-12 mb-4"><label class="label-elegant">Detailed Content</label><textarea name="content" id="summernote_en" class="form-control">{{ $pageContent->content }}</textarea></div>
                                 </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="title">Page Title (EN)</label>
-                                        <input type="text" name="title" id="title" class="form-control" value="{{ old('title', $pageContent->title) }}">
+
+                                {{-- HOME PAGE STATS --}}
+                                @if($pageContent->page_slug == 'home')
+                                    <hr class="my-5">
+                                    <span class="section-label">Homepage Stats (EN)</span>
+                                    <div class="row">
+                                        <div class="col-md-3 mb-3"><label class="label-elegant">Customers</label><input type="text" name="meta[stats_customers]" class="form-control input-elegant" value="{{ $pageContent->meta['stats_customers'] ?? '' }}"></div>
+                                        <div class="col-md-3 mb-3"><label class="label-elegant">Fleet</label><input type="text" name="meta[stats_fleet]" class="form-control input-elegant" value="{{ $pageContent->meta['stats_fleet'] ?? '' }}"></div>
+                                        <div class="col-md-3 mb-3"><label class="label-elegant">Districts</label><input type="text" name="meta[stats_districts]" class="form-control input-elegant" value="{{ $pageContent->meta['stats_districts'] ?? '' }}"></div>
+                                        <div class="col-md-3 mb-3"><label class="label-elegant">Corporate</label><input type="text" name="meta[stats_corporate]" class="form-control input-elegant" value="{{ $pageContent->meta['stats_corporate'] ?? '' }}"></div>
                                     </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="title_bn">Page Title (BN)</label>
-                                        <input type="text" name="title_bn" id="title_bn" class="form-control" value="{{ old('title_bn', $pageContent->title_bn) }}">
+
+                                    <div class="dynamic-container mt-5">
+                                        <div class="d-flex justify-content-between align-items-center mb-4">
+                                            <h5 class="m-0 font-weight-bold"><i class="fas fa-star mr-2 text-warning"></i>Why Choose Us / Features</h5>
+                                            <button type="button" class="btn btn-primary btn-sm add-dynamic-item" data-type="feature-item"><i class="fas fa-plus mr-1"></i> Add Feature</button>
+                                        </div>
+                                        <div id="features-container">
+                                            @php $why_items = $pageContent->meta['why_items'] ?? []; @endphp
+                                            @foreach($why_items as $index => $item)
+                                                <div class="dynamic-item">
+                                                    <span class="remove-item"><i class="fas fa-times-circle"></i></span>
+                                                    <div class="row">
+                                                        <div class="col-md-2"><label class="label-elegant">Icon</label><input type="text" name="meta[why_items][{{$index}}][icon]" class="form-control input-elegant" value="{{ $item['icon'] ?? '' }}"></div>
+                                                        <div class="col-md-5">
+                                                            <label class="label-elegant">EN Title</label><input type="text" name="meta[why_items][{{$index}}][title]" class="form-control input-elegant mb-3" value="{{ $item['title'] ?? '' }}">
+                                                            <label class="label-elegant">EN Desc</label><textarea name="meta[why_items][{{$index}}][desc]" class="form-control input-elegant" rows="2">{{ $item['desc'] ?? '' }}</textarea>
+                                                        </div>
+                                                        <div class="col-md-5">
+                                                            <label class="label-elegant text-success">BN Title</label><input type="text" name="meta[why_items][{{$index}}][title_bn]" class="form-control input-elegant mb-3" value="{{ $item['title_bn'] ?? '' }}">
+                                                            <label class="label-elegant text-success">BN Desc</label><textarea name="meta[why_items][{{$index}}][desc_bn]" class="form-control input-elegant" rows="2">{{ $item['desc_bn'] ?? '' }}</textarea>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
                                     </div>
-                                </div>
+                                @endif
                             </div>
+                        </div>
 
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <div class="form-group">
-                                        <label for="image">Featured Image</label>
-                                        <div class="input-group">
-                                            <div class="custom-file">
-                                                <input type="file" name="image" class="custom-file-input" id="image">
-                                                <label class="custom-file-label" for="image">Choose file</label>
+                        {{-- BANGLA CONTENT --}}
+                        <div class="tab-pane fade" id="bangla-content">
+                            <div class="form-section">
+                                <span class="section-label">Primary Headings (BN)</span>
+                                <div class="row">
+                                    <div class="col-md-6 mb-4"><label class="label-elegant">টাইটেল (Title BN)</label><input type="text" name="title_bn" class="form-control input-elegant" value="{{ $pageContent->title_bn }}"></div>
+                                    <div class="col-md-6 mb-4"><label class="label-elegant">সাবটাইটেল (Subtitle BN)</label><input type="text" name="subtitle_bn" class="form-control input-elegant" value="{{ $pageContent->subtitle_bn }}"></div>
+                                    <div class="col-12 mb-4"><label class="label-elegant">সংক্ষিপ্ত বিবরণ (Description BN)</label><textarea name="description_bn" class="form-control input-elegant" rows="2">{{ $pageContent->description_bn }}</textarea></div>
+                                    <div class="col-12 mb-4"><label class="label-elegant">বিস্তারিত কন্টেন্ট (Content BN)</label><textarea name="content_bn" id="summernote_bn" class="form-control">{{ $pageContent->content_bn }}</textarea></div>
+                                </div>
+
+                                {{-- HOME PAGE STATS BN --}}
+                                @if($pageContent->page_slug == 'home')
+                                    <hr class="my-5">
+                                    <span class="section-label">Homepage Stats (BN)</span>
+                                    <div class="row">
+                                        <div class="col-md-3 mb-3"><label class="label-elegant">গ্রাহক সংখ্যা</label><input type="text" name="meta_bn[stats_customers]" class="form-control input-elegant" value="{{ $pageContent->meta_bn['stats_customers'] ?? '' }}"></div>
+                                        <div class="col-md-3 mb-3"><label class="label-elegant">যানবাহন</label><input type="text" name="meta_bn[stats_fleet]" class="form-control input-elegant" value="{{ $pageContent->meta_bn['stats_fleet'] ?? '' }}"></div>
+                                        <div class="col-md-3 mb-3"><label class="label-elegant">জেলা</label><input type="text" name="meta_bn[stats_districts]" class="form-control input-elegant" value="{{ $pageContent->meta_bn['stats_districts'] ?? '' }}"></div>
+                                        <div class="col-md-3 mb-3"><label class="label-elegant">কর্পোরেট</label><input type="text" name="meta_bn[stats_corporate]" class="form-control input-elegant" value="{{ $pageContent->meta_bn['stats_corporate'] ?? '' }}"></div>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                {{-- DYNAMIC CARD SECTIONS --}}
+                <div class="form-section pt-0">
+                    
+                    {{-- ABOUT PAGE: VISION & MISSION CARDS --}}
+                    @if($pageContent->page_slug == 'about')
+                        <div class="dynamic-container">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h5 class="m-0 font-weight-bold"><i class="fas fa-eye mr-2 text-primary"></i>Vision & Mission Cards</h5>
+                                <button type="button" class="btn btn-primary btn-sm px-3 add-dynamic-item" data-type="vm-card" style="border-radius: 8px;"><i class="fas fa-plus mr-1"></i> Add Card</button>
+                            </div>
+                            <div id="vm-cards-container">
+                                @php $vm_cards = $pageContent->meta['vm_cards'] ?? []; @endphp
+                                @foreach($vm_cards as $index => $vm)
+                                    <div class="dynamic-item">
+                                        <span class="remove-item"><i class="fas fa-times-circle"></i></span>
+                                        <div class="row">
+                                            <div class="col-md-2"><label class="label-elegant">Icon</label><input type="text" name="meta[vm_cards][{{$index}}][icon]" class="form-control input-elegant" value="{{ $vm['icon'] ?? '' }}" placeholder="fas fa-eye"></div>
+                                            <div class="col-md-5">
+                                                <label class="label-elegant">EN Title</label><input type="text" name="meta[vm_cards][{{$index}}][title]" class="form-control input-elegant mb-3" value="{{ $vm['title'] ?? '' }}">
+                                                <label class="label-elegant">EN Desc</label><textarea name="meta[vm_cards][{{$index}}][description]" class="form-control input-elegant" rows="2">{{ $vm['description'] ?? '' }}</textarea>
+                                            </div>
+                                            <div class="col-md-5">
+                                                <label class="label-elegant text-success">BN Title</label><input type="text" name="meta[vm_cards][{{$index}}][title_bn]" class="form-control input-elegant mb-3" value="{{ $vm['title_bn'] ?? '' }}">
+                                                <label class="label-elegant text-success">BN Desc</label><textarea name="meta[vm_cards][{{$index}}][description_bn]" class="form-control input-elegant" rows="2">{{ $vm['description_bn'] ?? '' }}</textarea>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="col-md-4 text-center">
-                                    @php
-                                        $imagePath = isset($pageContent->meta['image']) ? asset('storage/page_contents/' . $pageContent->meta['image']) : null;
-                                    @endphp
-                                    @if($imagePath)
-                                        <img src="{{ $imagePath }}" class="img-thumbnail" style="max-height: 80px;">
-                                    @endif
-                                </div>
+                                @endforeach
                             </div>
+                        </div>
+                    @endif
 
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="subtitle">Subtitle (EN)</label>
-                                        <textarea name="subtitle" id="subtitle" class="form-control" rows="2">{{ old('subtitle', $pageContent->subtitle) }}</textarea>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="subtitle_bn">Subtitle (BN)</label>
-                                        <textarea name="subtitle_bn" id="subtitle_bn" class="form-control" rows="2">{{ old('subtitle_bn', $pageContent->subtitle_bn) }}</textarea>
-                                    </div>
-                                </div>
+                    {{-- SERVICES PAGE: LIST --}}
+                    @if($pageContent->page_slug == 'services')
+                        <div class="dynamic-container">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h5 class="m-0 font-weight-bold"><i class="fas fa-concierge-bell mr-2 text-primary"></i>Service Offerings</h5>
+                                <button type="button" class="btn btn-primary btn-sm px-3 add-dynamic-item" data-type="service-item" style="border-radius: 8px;"><i class="fas fa-plus mr-1"></i> Add Service</button>
                             </div>
-
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="description">Description (EN)</label>
-                                        <textarea name="description" id="description" class="form-control" rows="3">{{ old('description', $pageContent->description) }}</textarea>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="description_bn">Description (BN)</label>
-                                        <textarea name="description_bn" id="description_bn" class="form-control" rows="3">{{ old('description_bn', $pageContent->description_bn) }}</textarea>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="content">Full Content (EN)</label>
-                                        <textarea name="content" id="summernote" class="form-control">{{ old('content', $pageContent->content) }}</textarea>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="content_bn">Full Content (BN)</label>
-                                        <textarea name="content_bn" id="summernote_bn" class="form-control">{{ old('content_bn', $pageContent->content_bn) }}</textarea>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label>Highlights (EN JSON)</label>
-                                        <textarea name="highlights" id="highlights" class="form-control" rows="4">{{ old('highlights', is_array($pageContent->highlights) ? json_encode($pageContent->highlights, JSON_PRETTY_PRINT) : $pageContent->highlights) }}</textarea>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label>Highlights (BN JSON)</label>
-                                        <textarea name="highlights_bn" id="highlights_bn" class="form-control" rows="4">{{ old('highlights_bn', is_array($pageContent->highlights_bn) ? json_encode($pageContent->highlights_bn, JSON_PRETTY_PRINT) : $pageContent->highlights_bn) }}</textarea>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label>Meta (EN JSON)</label>
-                                        <textarea name="meta" id="meta_json" class="form-control" rows="4">{{ old('meta', is_array($pageContent->meta) ? json_encode($pageContent->meta, JSON_PRETTY_PRINT) : $pageContent->meta) }}</textarea>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label>Meta (BN JSON)</label>
-                                        <textarea name="meta_bn" id="meta_bn_json" class="form-control" rows="4">{{ old('meta_bn', is_array($pageContent->meta_bn) ? json_encode($pageContent->meta_bn, JSON_PRETTY_PRINT) : $pageContent->meta_bn) }}</textarea>
-                                    </div>
-                                </div>
-                            </div>
-
-                            @if($pageContent->page_slug == 'home')
-                            <div class="card card-outline card-primary mt-4">
-                                <div class="card-header"><h3 class="card-title"><i class="fas fa-home mr-1"></i> Home Hero (Bilingual)</h3></div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-4"><label>Hero Badge (EN)</label><input type="text" id="hero_badge" class="form-control" value="{{ $pageContent->meta['hero_badge'] ?? '' }}"></div>
-                                        <div class="col-md-4"><label>Hero Badge (BN)</label><input type="text" id="hero_badge_bn" class="form-control" value="{{ $pageContent->meta_bn['hero_badge'] ?? '' }}"></div>
-                                        <div class="col-md-2"><label>CTA Text (EN)</label><input type="text" id="hero_cta_text" class="form-control" value="{{ $pageContent->meta['hero_cta_text'] ?? '' }}"></div>
-                                        <div class="col-md-2"><label>CTA Text (BN)</label><input type="text" id="hero_cta_text_bn" class="form-control" value="{{ $pageContent->meta_bn['hero_cta_text'] ?? '' }}"></div>
-                                        
-                                        <div class="col-md-6 mt-2"><label>Hero Title (EN)</label><input type="text" id="hero_title" class="form-control" value="{{ $pageContent->meta['hero_title'] ?? '' }}"></div>
-                                        <div class="col-md-6 mt-2"><label>Hero Title (BN)</label><input type="text" id="hero_title_bn" class="form-control" value="{{ $pageContent->meta_bn['hero_title'] ?? '' }}"></div>
-                                        
-                                        <div class="col-md-6 mt-2"><label>Hero Subtitle (EN)</label><textarea id="hero_subtitle" class="form-control" rows="2">{{ $pageContent->meta['hero_subtitle'] ?? '' }}</textarea></div>
-                                        <div class="col-md-6 mt-2"><label>Hero Subtitle (BN)</label><textarea id="hero_subtitle_bn" class="form-control" rows="2">{{ $pageContent->meta_bn['hero_subtitle'] ?? '' }}</textarea></div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="card card-outline card-info mt-4">
-                                <div class="card-header"><h3 class="card-title"><i class="fas fa-th-large mr-1"></i> Entry Cards</h3></div>
-                                <div class="card-body">
-                                    <div id="entry-cards-container">
-                                        @php $entry_cards = $pageContent->meta['entry_cards'] ?? []; if(is_string($entry_cards)) $entry_cards = json_decode($entry_cards, true) ?: []; @endphp
-                                        @foreach($entry_cards as $index => $card)
-                                        <div class="entry-card-item border p-3 mb-3 position-relative bg-light">
-                                            <button type="button" class="btn btn-danger btn-sm position-absolute remove-entry-card" style="top: 10px; right: 10px;"><i class="fas fa-times"></i></button>
-                                            <div class="row">
-                                                <div class="col-md-4"><label>Title (EN)</label><input type="text" class="form-control entry-card-title" value="{{ $card['title'] ?? '' }}"></div>
-                                                <div class="col-md-4"><label>Icon</label><input type="text" class="form-control entry-card-icon" value="{{ $card['icon'] ?? '' }}"></div>
-                                                <div class="col-md-4"><label>Btn Text (EN)</label><input type="text" class="form-control entry-card-btn-text" value="{{ $card['btn_text'] ?? '' }}"></div>
-                                                <div class="col-md-12 mt-2"><label>Description (EN)</label><textarea class="form-control entry-card-description" rows="2">{{ $card['description'] ?? '' }}</textarea></div>
+                            <div id="services-container">
+                                @php $services = $pageContent->meta['services_list'] ?? []; @endphp
+                                @foreach($services as $index => $s)
+                                    <div class="dynamic-item">
+                                        <span class="remove-item"><i class="fas fa-times-circle"></i></span>
+                                        <div class="row">
+                                            <div class="col-md-2">
+                                                <label class="label-elegant">Icon</label><input type="text" name="meta[services_list][{{$index}}][icon]" class="form-control input-elegant mb-3" value="{{ $s['icon'] ?? '' }}">
+                                                <label class="label-elegant">Link</label><input type="text" name="meta[services_list][{{$index}}][link]" class="form-control input-elegant" value="{{ $s['link'] ?? '' }}">
+                                            </div>
+                                            <div class="col-md-5">
+                                                <label class="label-elegant">EN Title</label><input type="text" name="meta[services_list][{{$index}}][title]" class="form-control input-elegant mb-3" value="{{ $s['title'] ?? '' }}">
+                                                <label class="label-elegant">EN Desc</label><textarea name="meta[services_list][{{$index}}][desc]" class="form-control input-elegant mb-3" rows="2">{{ $s['desc'] ?? '' }}</textarea>
+                                                <label class="label-elegant">EN Btn Text</label><input type="text" name="meta[services_list][{{$index}}][btn_text]" class="form-control input-elegant" value="{{ $s['btn_text'] ?? '' }}">
+                                            </div>
+                                            <div class="col-md-5">
+                                                <label class="label-elegant text-success">BN Title</label><input type="text" name="meta[services_list][{{$index}}][title_bn]" class="form-control input-elegant mb-3" value="{{ $s['title_bn'] ?? '' }}">
+                                                <label class="label-elegant text-success">BN Desc</label><textarea name="meta[services_list][{{$index}}][desc_bn]" class="form-control input-elegant mb-3" rows="2">{{ $s['desc_bn'] ?? '' }}</textarea>
+                                                <label class="label-elegant text-success">BN Btn Text</label><input type="text" name="meta[services_list][{{$index}}][btn_text_bn]" class="form-control input-elegant" value="{{ $s['btn_text_bn'] ?? '' }}">
                                             </div>
                                         </div>
-                                        @endforeach
                                     </div>
-                                    <button type="button" id="add-entry-card" class="btn btn-success btn-sm"><i class="fas fa-plus mr-1"></i> Add Entry Card</button>
-                                </div>
+                                @endforeach
                             </div>
+                        </div>
+                    @endif
 
-                            <div class="card card-outline card-success mt-4">
-                                <div class="card-header"><h3 class="card-title"><i class="fas fa-chart-line mr-1"></i> Stats</h3></div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-3"><label>Customers</label><input type="text" id="stats_customers" class="form-control" value="{{ $pageContent->meta['stats_customers'] ?? '' }}"></div>
-                                        <div class="col-md-3"><label>Fleet</label><input type="text" id="stats_fleet" class="form-control" value="{{ $pageContent->meta['stats_fleet'] ?? '' }}"></div>
-                                        <div class="col-md-3"><label>Districts</label><input type="text" id="stats_districts" class="form-control" value="{{ $pageContent->meta['stats_districts'] ?? '' }}"></div>
-                                        <div class="col-md-3"><label>Corporate</label><input type="text" id="stats_corporate" class="form-control" value="{{ $pageContent->meta['stats_corporate'] ?? '' }}"></div>
+                    {{-- FLEET PAGE: VEHICLES --}}
+                    @if($pageContent->page_slug == 'fleet')
+                        <div class="dynamic-container">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h5 class="m-0 font-weight-bold"><i class="fas fa-car mr-2 text-primary"></i>Fleet Inventory</h5>
+                                <button type="button" class="btn btn-primary btn-sm px-3 add-dynamic-item" data-type="fleet-item" style="border-radius: 8px;"><i class="fas fa-plus mr-1"></i> Add Vehicle</button>
+                            </div>
+                            <div id="fleet-container">
+                                @php $fleet = $pageContent->meta['fleet_items'] ?? []; @endphp
+                                @foreach($fleet as $index => $item)
+                                    <div class="dynamic-item">
+                                        <span class="remove-item"><i class="fas fa-times-circle"></i></span>
+                                        <div class="row">
+                                            <div class="col-md-3 text-center">
+                                                <label class="label-elegant">Image</label>
+                                                @if(isset($item['image']))
+                                                    <img src="{{ asset($item['image']) }}" class="img-thumbnail mb-2" style="max-height: 80px; border-radius: 12px;">
+                                                @endif
+                                                <input type="file" name="fleet_item_images[{{$index}}]" class="form-control input-elegant" style="padding: 10px !important;">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="label-elegant">EN Title</label><input type="text" name="meta[fleet_items][{{$index}}][title]" class="form-control input-elegant mb-3" value="{{ $item['title'] ?? '' }}">
+                                                <label class="label-elegant">EN Specs (comma separated)</label><input type="text" name="meta[fleet_items][{{$index}}][specs_raw]" class="form-control input-elegant" value="{{ is_array($item['specs'] ?? '') ? implode(', ', $item['specs']) : ($item['specs_raw'] ?? '') }}">
+                                            </div>
+                                            <div class="col-md-5">
+                                                <label class="label-elegant text-success">BN Title</label><input type="text" name="meta[fleet_items][{{$index}}][title_bn]" class="form-control input-elegant mb-3" value="{{ $item['title_bn'] ?? '' }}">
+                                                <label class="label-elegant text-success">BN Specs</label><input type="text" name="meta[fleet_items][{{$index}}][specs_bn_raw]" class="form-control input-elegant" value="{{ is_array($item['specs_bn'] ?? '') ? implode(', ', $item['specs_bn']) : ($item['specs_bn_raw'] ?? '') }}">
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
+                                @endforeach
                             </div>
-                            @endif
-
                         </div>
+                    @endif
 
-                        <div class="card-footer">
-                            <button type="submit" class="btn btn-primary" id="submit-btn"><i class="fas fa-save mr-1"></i> Update Page Content</button>
-                            <a href="{{ route('admin.page_contents.index') }}" class="btn btn-default float-right">Cancel</a>
+                    {{-- TOURS PAGE: PACKAGES --}}
+                    @if($pageContent->page_slug == 'tours')
+                        <div class="dynamic-container">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h5 class="m-0 font-weight-bold"><i class="fas fa-map-marked-alt mr-2 text-primary"></i>Tour Packages</h5>
+                                <button type="button" class="btn btn-primary btn-sm px-3 add-dynamic-item" data-type="tour-item" style="border-radius: 8px;"><i class="fas fa-plus mr-1"></i> Add Package</button>
+                            </div>
+                            <div id="tours-container">
+                                @php $tours = $pageContent->meta['tour_items'] ?? []; @endphp
+                                @foreach($tours as $index => $item)
+                                    <div class="dynamic-item">
+                                        <span class="remove-item"><i class="fas fa-times-circle"></i></span>
+                                        <div class="row">
+                                            <div class="col-md-3 text-center">
+                                                <label class="label-elegant">Tour Image</label>
+                                                @if(isset($item['image']))
+                                                    <img src="{{ asset($item['image']) }}" class="img-thumbnail mb-2" style="max-height: 80px; border-radius: 12px;">
+                                                @endif
+                                                <input type="file" name="tour_item_images[{{$index}}]" class="form-control input-elegant" style="padding: 10px !important;">
+                                                <label class="label-elegant mt-3">Price (৳)</label><input type="text" name="meta[tour_items][{{$index}}][price]" class="form-control input-elegant" value="{{ $item['price'] ?? '' }}">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="label-elegant">EN Title</label><input type="text" name="meta[tour_items][{{$index}}][title]" class="form-control input-elegant mb-3" value="{{ $item['title'] ?? '' }}">
+                                                <label class="label-elegant">EN Badge</label><input type="text" name="meta[tour_items][{{$index}}][badge]" class="form-control input-elegant mb-3" value="{{ $item['badge'] ?? '' }}">
+                                                <label class="label-elegant">EN Duration</label><input type="text" name="meta[tour_items][{{$index}}][meta]" class="form-control input-elegant mb-3" value="{{ $item['meta'] ?? '' }}">
+                                                <label class="label-elegant">EN Desc</label><textarea name="meta[tour_items][{{$index}}][desc]" class="form-control input-elegant" rows="2">{{ $item['desc'] ?? '' }}</textarea>
+                                            </div>
+                                            <div class="col-md-5">
+                                                <label class="label-elegant text-success">BN Title</label><input type="text" name="meta[tour_items][{{$index}}][title_bn]" class="form-control input-elegant mb-3" value="{{ $item['title_bn'] ?? '' }}">
+                                                <label class="label-elegant text-success">BN Badge</label><input type="text" name="meta[tour_items][{{$index}}][badge_bn]" class="form-control input-elegant mb-3" value="{{ $item['badge_bn'] ?? '' }}">
+                                                <label class="label-elegant text-success">BN Duration</label><input type="text" name="meta[tour_items][{{$index}}][meta_bn]" class="form-control input-elegant mb-3" value="{{ $item['meta_bn'] ?? '' }}">
+                                                <label class="label-elegant text-success">BN Desc</label><textarea name="meta[tour_items][{{$index}}][desc_bn]" class="form-control input-elegant" rows="2">{{ $item['desc_bn'] ?? '' }}</textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
                         </div>
-                    </form>
+                    @endif
+
+                </div>
+
+                <div class="sticky-actions d-flex justify-content-between align-items-center">
+                    <div class="custom-control custom-switch">
+                        <input type="checkbox" class="custom-control-input" id="activeStatus" name="active" value="1" {{ $pageContent->active ? 'checked' : '' }}>
+                        <label class="custom-control-label font-weight-bold text-dark" for="activeStatus" style="cursor:pointer;">Publish Live</label>
+                    </div>
+                    <button type="submit" class="btn btn-save">
+                        <i class="fas fa-check-circle mr-2"></i> Save Bilingual Content
+                    </button>
                 </div>
             </div>
-        </div>
+        </form>
     </div>
 </div>
 
@@ -229,52 +325,125 @@
 @push('js')
 <script>
     $(document).ready(function() {
-        if (typeof $('#summernote').summernote !== 'undefined') {
-            $('#summernote, #summernote_bn').summernote({ height: 200 });
-        }
+        // Initialize Summernote
+        $('#summernote_en, #summernote_bn').summernote({ height: 350 });
 
-        function updateMetaJson() {
-            let meta = {}; try { meta = JSON.parse($('#meta_json').val() || '{}'); } catch (e) {}
-            let meta_bn = {}; try { meta_bn = JSON.parse($('#meta_bn_json').val() || '{}'); } catch (e) {}
+        // Add Dynamic Item
+        $('.add-dynamic-item').click(function() {
+            const type = $(this).data('type');
+            const container = $(this).closest('.dynamic-container').find('> div:last-child');
+            const index = container.children().length;
+            let html = '';
 
-            if ($('#hero_title').length > 0) {
-                meta.hero_badge = $('#hero_badge').val();
-                meta.hero_title = $('#hero_title').val();
-                meta.hero_subtitle = $('#hero_subtitle').val();
-                meta.hero_cta_text = $('#hero_cta_text').val();
-                
-                meta_bn.hero_badge = $('#hero_badge_bn').val();
-                meta_bn.hero_title = $('#hero_title_bn').val();
-                meta_bn.hero_subtitle = $('#hero_subtitle_bn').val();
-                meta_bn.hero_cta_text = $('#hero_cta_text_bn').val();
-
-                meta.stats_customers = $('#stats_customers').val();
-                meta.stats_fleet = $('#stats_fleet').val();
-                meta.stats_districts = $('#stats_districts').val();
-                meta.stats_corporate = $('#stats_corporate').val();
-
-                let entry = []; $('.entry-card-item').each(function() {
-                    entry.push({
-                        title: $(this).find('.entry-card-title').val(),
-                        icon: $(this).find('.entry-card-icon').val(),
-                        btn_text: $(this).find('.entry-card-btn-text').val(),
-                        description: $(this).find('.entry-card-description').val()
-                    });
-                });
-                meta.entry_cards = entry;
+            if(type === 'vm-card') {
+                html = `
+                    <div class="dynamic-item">
+                        <span class="remove-item"><i class="fas fa-times-circle"></i></span>
+                        <div class="row">
+                            <div class="col-md-2"><label class="label-elegant">Icon</label><input type="text" name="meta[vm_cards][${index}][icon]" class="form-control input-elegant" placeholder="fas fa-eye"></div>
+                            <div class="col-md-5">
+                                <label class="label-elegant">EN Title</label><input type="text" name="meta[vm_cards][${index}][title]" class="form-control input-elegant mb-3">
+                                <label class="label-elegant">EN Desc</label><textarea name="meta[vm_cards][${index}][description]" class="form-control input-elegant" rows="2"></textarea>
+                            </div>
+                            <div class="col-md-5">
+                                <label class="label-elegant text-success">BN Title</label><input type="text" name="meta[vm_cards][${index}][title_bn]" class="form-control input-elegant mb-3">
+                                <label class="label-elegant text-success">BN Desc</label><textarea name="meta[vm_cards][${index}][description_bn]" class="form-control input-elegant" rows="2"></textarea>
+                            </div>
+                        </div>
+                    </div>`;
+            } else if(type === 'service-item') {
+                html = `
+                    <div class="dynamic-item">
+                        <span class="remove-item"><i class="fas fa-times-circle"></i></span>
+                        <div class="row">
+                            <div class="col-md-2">
+                                <label class="label-elegant">Icon</label><input type="text" name="meta[services_list][${index}][icon]" class="form-control input-elegant mb-3">
+                                <label class="label-elegant">Link</label><input type="text" name="meta[services_list][${index}][link]" class="form-control input-elegant">
+                            </div>
+                            <div class="col-md-5">
+                                <label class="label-elegant">EN Title</label><input type="text" name="meta[services_list][${index}][title]" class="form-control input-elegant mb-3">
+                                <label class="label-elegant">EN Desc</label><textarea name="meta[services_list][${index}][desc]" class="form-control input-elegant mb-3" rows="2"></textarea>
+                                <label class="label-elegant">EN Btn Text</label><input type="text" name="meta[services_list][${index}][btn_text]" class="form-control input-elegant">
+                            </div>
+                            <div class="col-md-5">
+                                <label class="label-elegant text-success">BN Title</label><input type="text" name="meta[services_list][${index}][title_bn]" class="form-control input-elegant mb-3">
+                                <label class="label-elegant text-success">BN Desc</label><textarea name="meta[services_list][${index}][desc_bn]" class="form-control input-elegant mb-3" rows="2"></textarea>
+                                <label class="label-elegant text-success">BN Btn Text</label><input type="text" name="meta[services_list][${index}][btn_text_bn]" class="form-control input-elegant">
+                            </div>
+                        </div>
+                    </div>`;
+            } else if(type === 'fleet-item') {
+                html = `
+                    <div class="dynamic-item">
+                        <span class="remove-item"><i class="fas fa-times-circle"></i></span>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label class="label-elegant">Image</label>
+                                <input type="file" name="fleet_item_images[${index}]" class="form-control input-elegant" style="padding: 10px !important;">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="label-elegant">EN Title</label><input type="text" name="meta[fleet_items][${index}][title]" class="form-control input-elegant mb-3">
+                                <label class="label-elegant">EN Specs</label><input type="text" name="meta[fleet_items][${index}][specs_raw]" class="form-control input-elegant" placeholder="4 Seats, AC, WiFi">
+                            </div>
+                            <div class="col-md-5">
+                                <label class="label-elegant text-success">BN Title</label><input type="text" name="meta[fleet_items][${index}][title_bn]" class="form-control input-elegant mb-3">
+                                <label class="label-elegant text-success">BN Specs</label><input type="text" name="meta[fleet_items][${index}][specs_bn_raw]" class="form-control input-elegant" placeholder="৪ সিট, এসি, ওয়াইফাই">
+                            </div>
+                        </div>
+                    </div>`;
+            } else if(type === 'tour-item') {
+                html = `
+                    <div class="dynamic-item">
+                        <span class="remove-item"><i class="fas fa-times-circle"></i></span>
+                        <div class="row">
+                            <div class="col-md-3 text-center">
+                                <label class="label-elegant">Tour Image</label>
+                                <input type="file" name="tour_item_images[${index}]" class="form-control input-elegant" style="padding: 10px !important;">
+                                <label class="label-elegant mt-3">Price (৳)</label><input type="text" name="meta[tour_items][${index}][price]" class="form-control input-elegant">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="label-elegant">EN Title</label><input type="text" name="meta[tour_items][${index}][title]" class="form-control input-elegant mb-3">
+                                <label class="label-elegant">EN Badge</label><input type="text" name="meta[tour_items][${index}][badge]" class="form-control input-elegant mb-3">
+                                <label class="label-elegant">EN Duration</label><input type="text" name="meta[tour_items][${index}][meta]" class="form-control input-elegant mb-3">
+                                <label class="label-elegant">EN Desc</label><textarea name="meta[tour_items][${index}][desc]" class="form-control input-elegant" rows="2"></textarea>
+                            </div>
+                            <div class="col-md-5">
+                                <label class="label-elegant text-success">BN Title</label><input type="text" name="meta[tour_items][${index}][title_bn]" class="form-control input-elegant mb-3">
+                                <label class="label-elegant text-success">BN Badge</label><input type="text" name="meta[tour_items][${index}][badge_bn]" class="form-control input-elegant mb-3">
+                                <label class="label-elegant text-success">BN Duration</label><input type="text" name="meta[tour_items][${index}][meta_bn]" class="form-control input-elegant mb-3">
+                                <label class="label-elegant text-success">BN Desc</label><textarea name="meta[tour_items][${index}][desc_bn]" class="form-control input-elegant" rows="2"></textarea>
+                            </div>
+                        </div>
+                    </div>`;
+            } else if(type === 'feature-item') {
+                html = `
+                    <div class="dynamic-item">
+                        <span class="remove-item"><i class="fas fa-times-circle"></i></span>
+                        <div class="row">
+                            <div class="col-md-2"><label class="label-elegant">Icon</label><input type="text" name="meta[why_items][${index}][icon]" class="form-control input-elegant" placeholder="fas fa-star"></div>
+                            <div class="col-md-5">
+                                <label class="label-elegant">EN Title</label><input type="text" name="meta[why_items][${index}][title]" class="form-control input-elegant mb-3">
+                                <label class="label-elegant">EN Desc</label><textarea name="meta[why_items][${index}][desc]" class="form-control input-elegant" rows="2"></textarea>
+                            </div>
+                            <div class="col-md-5">
+                                <label class="label-elegant text-success">BN Title</label><input type="text" name="meta[why_items][${index}][title_bn]" class="form-control input-elegant mb-3">
+                                <label class="label-elegant text-success">BN Desc</label><textarea name="meta[why_items][${index}][desc_bn]" class="form-control input-elegant" rows="2"></textarea>
+                            </div>
+                        </div>
+                    </div>`;
             }
 
-            $('#meta_json').val(JSON.stringify(meta, null, 4));
-            $('#meta_bn_json').val(JSON.stringify(meta_bn, null, 4));
-        }
-
-        $('#add-entry-card').click(function() {
-            $('#entry-cards-container').append('<div class="entry-card-item border p-3 mb-3 position-relative bg-light"><button type="button" class="btn btn-danger btn-sm position-absolute remove-entry-card" style="top: 10px; right: 10px;"><i class="fas fa-times"></i></button><div class="row"><div class="col-md-4"><label>Title (EN)</label><input type="text" class="form-control entry-card-title"></div><div class="col-md-4"><label>Icon</label><input type="text" class="form-control entry-card-icon"></div><div class="col-md-4"><label>Btn Text (EN)</label><input type="text" class="form-control entry-card-btn-text"></div><div class="col-md-12 mt-2"><label>Description (EN)</label><textarea class="form-control entry-card-description" rows="2"></textarea></div></div></div>');
+            container.append(html);
         });
 
-        $(document).on('click', '.remove-entry-card', function() { $(this).closest('.entry-card-item').remove(); updateMetaJson(); });
-        $('#submit-btn').click(function() { updateMetaJson(); });
-        $(document).on('change', 'input, textarea', function() { updateMetaJson(); });
+        // Remove Item
+        $(document).on('click', '.remove-item', function() {
+            if(confirm('Are you sure you want to remove this item?')) {
+                $(this).closest('.dynamic-item').fadeOut(300, function() {
+                    $(this).remove();
+                });
+            }
+        });
     });
 </script>
 @endpush

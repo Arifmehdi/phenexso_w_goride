@@ -88,11 +88,17 @@
                 </a>
                 <div class="dropdown-menu dropdown-menu-right">
                     <!-- item-->
-                    @foreach($user->roles as $role)
-                        @if($role->role_name == 'admin')
-                            <a class="dropdown-item" href="{{route('admin.dashboard')}}"><i class="bx bx-user font-size-16 align-middle mr-1"></i>Admin DashBoard</a>
-                        @endif
-                    @endforeach
+                    @if(isset($user->roles) && (is_array($user->roles) || is_object($user->roles)))
+                        @foreach($user->roles as $role)
+                            @if($role->role_name == 'admin')
+                                <a class="dropdown-item" href="{{route('admin.dashboard')}}"><i class="bx bx-user font-size-16 align-middle mr-1"></i>Admin DashBoard</a>
+                            @endif
+                        @endforeach
+                    @endif
+                    
+                    @if($user instanceof \App\Models\Admin)
+                        <a class="dropdown-item" href="{{route('admin.dashboard')}}"><i class="bx bx-user font-size-16 align-middle mr-1"></i>Admin DashBoard</a>
+                    @endif
                      
 
                     <a class="dropdown-item text-danger" href="#" onclick="event.preventDefault(); document.getElementById('logoutForm').submit();">
@@ -341,7 +347,7 @@
                             </li>
 
                         </ul>
-                    </li>--}
+                    </li>--}}
 
                     {{--<li class="nav-item {{ session('lsbm') == 'chambers'? ' menu-open ' : ''}}">
                         <a href="#" class="nav-link {{ session('lsbm') == 'chambers'? ' active ' : ''}}">
@@ -529,7 +535,7 @@
 
 
                     {{-- Products --}}
-                    <li class="nav-item {{ session('lsbm') == 'product'? ' menu-open ' : ''}}">
+                    {{--<li class="nav-item {{ session('lsbm') == 'product'? ' menu-open ' : ''}}">
                         <a href="#" class="nav-link {{ session('lsbm') == 'product'? ' active ' : ''}}">
                             <i class="nav-icon fas fa-shopping-cart"></i>
                             <p>
@@ -558,13 +564,13 @@
                             </li>
 
                         </ul>
-                    </li>
+                    </li>--}}
 
                                             
-                        {{-- Vehicles --}}
-                    <li class="nav-item {{ session('lsbm') == 'vehicles'? ' menu-open ' : ''}}">
+                    {{-- Vehicles --}}
+                    {{--<li class="nav-item {{ session('lsbm') == 'vehicles'? ' menu-open ' : ''}}">
                         <a href="#" class="nav-link {{ session('lsbm') == 'vehicles'? ' active ' : ''}}">
-                            <i class="nav-icon fas fa-truck"></i> {{-- Using a truck icon for vehicles --}}
+                            <i class="nav-icon fas fa-truck"></i> 
                             <p>
                                 Vehicles
                                 <i class="fas fa-angle-left right"></i>
@@ -584,12 +590,12 @@
                                 </a>
                             </li>
                         </ul>
-                    </li>
+                    </li>--}}
 
                     {{-- Drivers --}}
                     <li class="nav-item {{ session('lsbm') == 'drivers'? ' menu-open ' : ''}}">
                         <a href="#" class="nav-link {{ session('lsbm') == 'drivers'? ' active ' : ''}}">
-                            <i class="nav-icon fas fa-user-friends"></i> {{-- Using a user-friends icon for drivers --}}
+                            <i class="nav-icon fas fa-user-friends"></i>
                             <p>
                                 Drivers
                                 <i class="fas fa-angle-left right"></i>
@@ -606,6 +612,56 @@
                                 <a href="{{ route('admin.drivers.create') }}" class="nav-link {{ session('lsbsm') == 'createDriver' ? ' active ' : '' }}">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>Add Driver</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    {{-- Corporates --}}
+                    <li class="nav-item {{ session('lsbm') == 'corporates'? ' menu-open ' : ''}}">
+                        <a href="#" class="nav-link {{ session('lsbm') == 'corporates'? ' active ' : ''}}">
+                            <i class="nav-icon fas fa-building"></i>
+                            <p>
+                                Corporates
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{{ route('admin.corporates.index') }}" class="nav-link {{ session('lsbsm') == 'allCorporates' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>All Corporates</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.corporates.create') }}" class="nav-link {{ session('lsbsm') == 'createCorporate' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Add Corporate</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    {{-- Admins --}}
+                    <li class="nav-item {{ session('lsbm') == 'admins'? ' menu-open ' : ''}}">
+                        <a href="#" class="nav-link {{ session('lsbm') == 'admins'? ' active ' : ''}}">
+                            <i class="nav-icon fas fa-user-shield"></i>
+                            <p>
+                                Admins
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{{ route('admin.admins.index') }}" class="nav-link {{ session('lsbsm') == 'allAdmins' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>All Admins</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.admins.create') }}" class="nav-link {{ session('lsbsm') == 'createAdmin' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Add Admin</p>
                                 </a>
                             </li>
                         </ul>
@@ -637,7 +693,7 @@
                     </li>
 
                     {{-- Product Stock Requests --}}
-                    <li class="nav-item {{ session('lsbm') == 'stock_requests' ? 'menu-open' : '' }}">
+                    {{--<li class="nav-item {{ session('lsbm') == 'stock_requests' ? 'menu-open' : '' }}">
                         <a href="#" class="nav-link {{ session('lsbm') == 'stock_requests' ? 'active' : '' }}">
                             <i class="nav-icon fas fa-boxes"></i>
                             <p>
@@ -653,10 +709,10 @@
                             </a>
                             </li>
                         </ul>
-                    </li>
+                    </li>--}}
 
                     {{-- Orders --}}
-                    <li class="nav-item {{ session('lsbm') == 'order' ? 'menu-open' : '' }}">
+                    {{--<li class="nav-item {{ session('lsbm') == 'order' ? 'menu-open' : '' }}">
                         <a href="#" class="nav-link {{ session('lsbm') == 'order' ? 'active' : '' }}">
                             <i class="nav-icon fas fa-shopping-bag"></i>
                             <p>
@@ -672,7 +728,7 @@
                             </a>
                             </li>
                         </ul>
-                    </li>
+                    </li>--}}
 
                     {{-- Contact Messages --}}
                     <li class="nav-item {{ session('lsbm') == 'contacts' ? 'menu-open' : '' }}">
@@ -693,7 +749,7 @@
                         </ul>
                     </li>
 
-                   <li class="nav-item {{ session('lsbm') == 'shipping' ? 'menu-open' : '' }}">
+                   {{--<li class="nav-item {{ session('lsbm') == 'shipping' ? 'menu-open' : '' }}">
                         <a href="#" class="nav-link {{ session('lsbm') == 'shipping' ? 'active' : '' }}">
                             <i class="nav-icon fas fa-shopping-bag"></i>
                             <p>
@@ -709,7 +765,7 @@
                             </a>
                             </li>
                         </ul>
-                    </li>
+                    </li>--}}
                    
                    
 
