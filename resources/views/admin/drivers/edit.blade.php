@@ -86,13 +86,27 @@
                             @enderror
                         </div>
 
+                        <div class="row">
+                            <div class="col-md-6 form-group">
+                                <label for="password">Password (Leave blank to keep current)</label>
+                                <input type="password" class="form-control @error('password') is-invalid @enderror" placeholder="Password" name="password">
+                                @error('password')
+                                <p class="text-danger">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label for="password_confirmation">Confirm Password</label>
+                                <input type="password" class="form-control" placeholder="Confirm Password" name="password_confirmation">
+                            </div>
+                        </div>
+
                         <div class="form-group">
-                            <label for="is_approve">Status</label>
-                            <select name="is_approve" id="is_approve" class="form-control @error('is_approve') is-invalid @enderror">
-                                <option value="1" {{ old('is_approve', $driver->is_approve) == '1' ? 'selected' : '' }}>Active</option>
-                                <option value="0" {{ old('is_approve', $driver->is_approve) == '0' ? 'selected' : '' }}>Inactive</option>
+                            <label for="status">Status</label>
+                            <select name="status" id="status" class="form-control @error('status') is-invalid @enderror">
+                                <option value="1" {{ old('status', $driver->status) == '1' ? 'selected' : '' }}>Active</option>
+                                <option value="0" {{ old('status', $driver->status) == '0' ? 'selected' : '' }}>Inactive</option>
                             </select>
-                            @error('is_approve')
+                            @error('status')
                             <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>

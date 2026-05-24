@@ -76,6 +76,8 @@ class PageContentSeeder extends Seeder
                 'title_bn' => 'গো-রাইড বাংলাদেশ সম্পর্কে',
                 'subtitle' => 'Our story, mission, and the values that drive us forward every day.',
                 'subtitle_bn' => 'আমাদের গল্প, লক্ষ্য এবং সেই মূল্যবোধ যা আমাদের প্রতিদিন এগিয়ে নিয়ে যায়।',
+                'description' => 'GoRide Bangladesh was founded with a single, clear mission: to make transportation reliable, accessible, and efficient for every person in Bangladesh.',
+                'description_bn' => 'গো-রাইড বাংলাদেশ একটি স্পষ্ট লক্ষ্য নিয়ে প্রতিষ্ঠিত হয়েছিল: বাংলাদেশের প্রতিটি মানুষের জন্য যাতায়াতকে নির্ভরযোগ্য, সহজলভ্য এবং দক্ষ করে তোলা।',
                 'content' => 'GoRide Bangladesh was founded with a single, clear mission: to make transportation reliable, accessible, and efficient for every person in Bangladesh — from corporate executives to everyday commuters.',
                 'content_bn' => 'গো-রাইড বাংলাদেশ একটি স্পষ্ট লক্ষ্য নিয়ে প্রতিষ্ঠিত হয়েছিল: বাংলাদেশের প্রতিটি মানুষের জন্য — কর্পোরেট এক্সিকিউটিভ থেকে শুরু করে সাধারণ যাত্রী পর্যন্ত — যাতায়াতকে নির্ভরযোগ্য, সহজলভ্য এবং দক্ষ করে তোলা।',
                 'highlights' => ['Founded 2026', 'All 64 Districts', 'Bilingual Platform', 'Mobile-First', 'Verified Drivers'],
@@ -83,26 +85,15 @@ class PageContentSeeder extends Seeder
                 'meta' => [
                     'paragraph_2' => 'As a bilingual marketplace serving both English and Bangla speakers, we have eliminated communication barriers.',
                     'paragraph_3' => 'Our mobile-first approach means GoRide is always right in your pocket — ready when you need it.',
-                    'vision_title' => 'Our Vision',
-                    'vision_desc' => 'To become the backbone of Bangladesh\'s transport industry through technology and trust.',
-                    'mission_title' => 'Our Mission',
-                    'mission_desc' => 'To empower vehicle owners while giving safe, professional car rental services nationwide.',
-                    'values_title' => 'Our Values',
-                    'values_desc' => 'Safety first. Transparency always. Customer satisfaction guaranteed.',
-                    'tech_title' => 'Technology Focus',
-                    'tech_desc' => 'From GPS tracking to OTP-verified bookings — our tech stack makes journeys smoother.',
+                    'vm_cards' => [
+                        ['icon' => 'fas fa-eye', 'title' => 'Our Vision', 'description' => 'To become the backbone of Bangladesh\'s transport industry through technology and trust.', 'title_bn' => 'আমাদের ভিশন', 'description_bn' => 'প্রযুক্তি এবং বিশ্বাসের মাধ্যমে বাংলাদেশের পরিবহন শিল্পের মেরুদণ্ড হয়ে ওঠা।'],
+                        ['icon' => 'fas fa-bullseye', 'title' => 'Our Mission', 'description' => 'To empower vehicle owners while giving safe, professional car rental services nationwide.', 'title_bn' => 'আমাদের মিশন', 'description_bn' => 'দেশব্যাপী নিরাপদ, পেশাদার গাড়ি ভাড়া সেবা প্রদানের মাধ্যমে যানবাহন মালিকদের ক্ষমতায়ন করা।'],
+                        ['icon' => 'fas fa-heart', 'title' => 'Our Values', 'description' => 'Safety first. Transparency always. Customer satisfaction guaranteed.', 'title_bn' => 'আমাদের মূল্যবোধ', 'description_bn' => 'নিরাপত্তা প্রথম। স্বচ্ছতা সর্বদা। গ্রাহক সন্তুষ্টি গ্যারান্টিযুক্ত।'],
+                    ]
                 ],
                 'meta_bn' => [
                     'paragraph_2' => 'ইংরেজি এবং বাংলা উভয় ভাষীদের জন্য একটি দ্বিভাষিক মার্কেটপ্লেস হিসাবে, আমরা যোগাযোগের বাধা দূর করেছি।',
                     'paragraph_3' => 'আমাদের মোবাইল-ফার্স্ট পদ্ধতির অর্থ হলো গো-রাইড সর্বদা আপনার পকেটেই রয়েছে — যখনই আপনার প্রয়োজন তখনই প্রস্তুত।',
-                    'vision_title' => 'আমাদের লক্ষ্য',
-                    'vision_desc' => 'প্রযুক্তি এবং বিশ্বাসের মাধ্যমে বাংলাদেশের পরিবহন শিল্পের মেরুদণ্ড হয়ে ওঠা।',
-                    'mission_title' => 'আমাদের মিশন',
-                    'mission_desc' => 'দেশব্যাপী নিরাপদ, পেশাদার গাড়ি ভাড়া সেবা প্রদানের মাধ্যমে যানবাহন মালিকদের ক্ষমতায়ন করা।',
-                    'values_title' => 'আমাদের মূল্যবোধ',
-                    'values_desc' => 'নিরাপত্তা প্রথম। স্বচ্ছতা সর্বদা। গ্রাহক সন্তুষ্টি গ্যারান্টিযুক্ত।',
-                    'tech_title' => 'প্রযুক্তি ফোকাস',
-                    'tech_desc' => 'জিপিএস ট্র্যাকিং থেকে ওটিপি-ভেরিফাইড বুকিং — আমাদের প্রযুক্তি যাত্রাকে আরও সহজ করে তোলে।',
                 ],
                 'active' => true,
             ],
@@ -116,22 +107,12 @@ class PageContentSeeder extends Seeder
                 'description_bn' => 'এয়ারপোর্ট পিকআপ থেকে শুরু করে কর্পোরেট ফ্লিট এবং কিউরেটেড ট্যুর — গো-রাইড-এ এমন সার্ভিস রয়েছে যা আপনার ভ্রমণের সাথে মানানসই।',
                 'meta' => [
                     'services_list' => [
-                        ['icon' => 'fas fa-plane-arrival', 'title' => 'Airport Pickup & Drop', 'desc' => 'Hassle-free transfers to and from Hazrat Shahjalal International Airport.'],
-                        ['icon' => 'fas fa-briefcase', 'title' => 'Corporate Fleet', 'desc' => 'Customised transport for businesses — monthly rentals and executive vehicles.'],
-                        ['icon' => 'fas fa-heart', 'title' => 'Event & Wedding', 'desc' => 'Make your special occasions unforgettable with our luxury fleet.'],
-                        ['icon' => 'fas fa-route', 'title' => 'Inter-City Travel', 'desc' => 'Safe, comfortable long-distance travel across all 64 districts.'],
-                        ['icon' => 'fas fa-clock', 'title' => 'Hourly Rentals', 'desc' => 'Flexible hourly booking for city running and multiple meetings.'],
-                        ['icon' => 'fas fa-umbrella-beach', 'title' => 'Tours & Travels', 'desc' => 'Explore Bangladesh\'s most beautiful destinations with curated packages.'],
-                    ]
-                ],
-                'meta_bn' => [
-                    'services_list' => [
-                        ['icon' => 'fas fa-plane-arrival', 'title' => 'এয়ারপোর্ট পিকআপ ও ড্রপ', 'desc' => 'হযরত শাহজালাল আন্তর্জাতিক বিমানবন্দর থেকে ঝামেলামুক্ত যাতায়াত।'],
-                        ['icon' => 'fas fa-briefcase', 'title' => 'কর্পোরেট ফ্লিট', 'desc' => 'ব্যবসার জন্য কাস্টমাইজড ট্রান্সপোর্ট — মাসিক ভাড়া এবং এক্সিকিউটিভ গাড়ি।'],
-                        ['icon' => 'fas fa-heart', 'title' => 'ইভেন্ট ও ওয়েডিং', 'desc' => 'আমাদের লাক্সারি ফ্লিট দিয়ে আপনার বিশেষ অনুষ্ঠানগুলোকে স্মরণীয় করে তুলুন।'],
-                        ['icon' => 'fas fa-route', 'title' => 'আন্তঃজেলা ভ্রমণ', 'desc' => '৬৪টি জেলা জুড়ে নিরাপদ এবং আরামদায়ক দূরপাল্লার ভ্রমণ।'],
-                        ['icon' => 'fas fa-clock', 'title' => 'ঘণ্টা ভিত্তিক ভাড়া', 'desc' => 'শহরের ভেতর মিটিং বা ব্যক্তিগত কাজের জন্য নমনীয় ঘণ্টা ভিত্তিক বুকিং।'],
-                        ['icon' => 'fas fa-umbrella-beach', 'title' => 'ট্যুর ও ট্রাভেলস', 'desc' => 'কিউরেটেড প্যাকেজের মাধ্যমে বাংলাদেশের সবচেয়ে সুন্দর স্থানগুলো ঘুরে দেখুন।'],
+                        ['icon' => 'fas fa-plane-arrival', 'title' => 'Airport Pickup & Drop', 'desc' => 'Hassle-free transfers to and from Hazrat Shahjalal International Airport.', 'title_bn' => 'এয়ারপোর্ট পিকআপ ও ড্রপ', 'desc_bn' => 'হযরত শাহজালাল আন্তর্জাতিক বিমানবন্দর থেকে ঝামেলামুক্ত যাতায়াত।', 'btn_text' => 'Book Now', 'btn_text_bn' => 'বুক করুন', 'link' => '/login'],
+                        ['icon' => 'fas fa-briefcase', 'title' => 'Corporate Fleet', 'desc' => 'Customised transport for businesses — monthly rentals and executive vehicles.', 'title_bn' => 'কর্পোরেট ফ্লিট', 'desc_bn' => 'ব্যবসার জন্য কাস্টমাইজড ট্রান্সপোর্ট — মাসিক ভাড়া এবং এক্সিকিউটিভ গাড়ি।', 'btn_text' => 'Join Now', 'btn_text_bn' => 'যোগ দিন', 'link' => '/registration/corporate'],
+                        ['icon' => 'fas fa-heart', 'title' => 'Event & Wedding', 'desc' => 'Make your special occasions unforgettable with our luxury fleet.', 'title_bn' => 'ইভেন্ট ও ওয়েডিং', 'desc_bn' => 'আমাদের লাক্সারি ফ্লিট দিয়ে আপনার বিশেষ অনুষ্ঠানগুলোকে স্মরণীয় করে তুলুন।', 'btn_text' => 'View Fleet', 'btn_text_bn' => 'ফ্লিট দেখুন', 'link' => '/fleet'],
+                        ['icon' => 'fas fa-route', 'title' => 'Inter-City Travel', 'desc' => 'Safe, comfortable long-distance travel across all 64 districts.', 'title_bn' => 'আন্তঃজেলা ভ্রমণ', 'desc_bn' => '৬৪টি জেলা জুড়ে নিরাপদ এবং আরামদায়ক দূরপাল্লার ভ্রমণ।', 'btn_text' => 'Book Trip', 'btn_text_bn' => 'ট্রিপ বুক করুন', 'link' => '/login'],
+                        ['icon' => 'fas fa-clock', 'title' => 'Hourly Rentals', 'desc' => 'Flexible hourly booking for city running and multiple meetings.', 'title_bn' => 'ঘণ্টা ভিত্তিক ভাড়া', 'desc_bn' => 'শহরের ভেতর মিটিং বা ব্যক্তিগত কাজের জন্য নমনীয় ঘণ্টা ভিত্তিক বুকিং।', 'btn_text' => 'Rent Now', 'btn_text_bn' => 'ভাড়া করুন', 'link' => '/login'],
+                        ['icon' => 'fas fa-umbrella-beach', 'title' => 'Tours & Travels', 'desc' => 'Explore Bangladesh\'s most beautiful destinations with curated packages.', 'title_bn' => 'ট্যুর ও ট্রাভেলস', 'desc_bn' => 'কিউরেটেড প্যাকেজের মাধ্যমে বাংলাদেশের সবচেয়ে সুন্দর স্থানগুলো ঘুরে দেখুন।', 'btn_text' => 'View Tours', 'btn_text_bn' => 'ট্যুর দেখুন', 'link' => '/tours'],
                     ]
                 ],
                 'active' => true,
@@ -145,19 +126,10 @@ class PageContentSeeder extends Seeder
                 'description' => 'All vehicles are regularly serviced, verified, and driven by licensed professionals.',
                 'description_bn' => 'প্রতিটি যানবাহন নিয়মিত সার্ভিসিং করা হয়, ভেরিফাইড এবং লাইসেন্সপ্রাপ্ত পেশাদারদের দ্বারা চালিত হয়।',
                 'meta' => [
-                    'fleet_list' => [
-                        ['image' => 'goride/assets/car.png', 'title' => 'Standard Sedan', 'desc' => 'Toyota Allion, Premier, or Axio. Perfect for 4 passengers.', 'specs' => ['4 Seats', '2 Bags', 'AC', 'WiFi']],
-                        ['image' => 'goride/assets/rent_car.png', 'title' => 'Family MPV (Noah)', 'desc' => 'Toyota Noah or Voxy. Ideal for families and groups.', 'specs' => ['7 Seats', '4 Bags', 'AC']],
-                        ['image' => 'goride/assets/motor.png', 'title' => 'Microbus (Hiace)', 'desc' => 'Toyota Hiace Grand Cabin. Best for large groups.', 'specs' => ['12 Seats', '6 Bags', 'Dual AC']],
-                        ['image' => 'goride/assets/car.png', 'title' => 'Premium SUV', 'desc' => 'Toyota Prado or Harrier. Experience luxury comfort.', 'specs' => ['5 Seats', '4 Bags', 'Luxury']],
-                    ]
-                ],
-                'meta_bn' => [
-                    'fleet_list' => [
-                        ['image' => 'goride/assets/car.png', 'title' => 'স্ট্যান্ডার্ড সেডান', 'desc' => 'টয়োটা অ্যালিয়ন, প্রিমিয়ার বা এক্সিও। ৪ জন যাত্রীর জন্য উপযুক্ত।', 'specs' => ['৪ সিট', '২ ব্যাগ', 'এসি', 'ওয়াইফাই']],
-                        ['image' => 'goride/assets/rent_car.png', 'title' => 'ফ্যামিলি এমপিভি (নোহ)', 'desc' => 'টয়োটা নোহ বা ভক্সি। পরিবার এবং গ্রুপের জন্য আদর্শ।', 'specs' => ['৭ সিট', '৪ ব্যাগ', 'এসি']],
-                        ['image' => 'goride/assets/motor.png', 'title' => 'মাইক্রোবাস (হাইয়েস)', 'desc' => 'টয়োটা হাইয়েস গ্র্যান্ড ক্যাবিন। বড় গ্রুপের জন্য সেরা।', 'specs' => ['১২ সিট', '৬ ব্যাগ', 'ডুয়াল এসি']],
-                        ['image' => 'goride/assets/car.png', 'title' => 'প্রিমিয়াম এসইউভি', 'desc' => 'টয়োটা প্রাডো বা হ্যারিয়ার। লাক্সারি আরাম অনুভব করুন।', 'specs' => ['৫ সিট', '৪ ব্যাগ', 'লাক্সারি']],
+                    'fleet_items' => [
+                        ['image' => 'goride/assets/car.png', 'title' => 'Standard Sedan', 'title_bn' => 'স্ট্যান্ডার্ড সেডান', 'desc' => 'Toyota Allion, Premier, or Axio. Perfect for 4 passengers.', 'desc_bn' => 'টয়োটা অ্যালিয়ন, প্রিমিয়ার বা এক্সিও। ৪ জন যাত্রীর জন্য উপযুক্ত।', 'specs' => ['4 Seats', '2 Bags', 'AC', 'WiFi'], 'specs_bn' => ['৪ সিট', '২ ব্যাগ', 'এসি', 'ওয়াইফাই']],
+                        ['image' => 'goride/assets/rent_car.png', 'title' => 'Family MPV (Noah)', 'title_bn' => 'ফ্যামিলি এমপিভি (নোহ)', 'desc' => 'Toyota Noah or Voxy. Ideal for families and groups.', 'desc_bn' => 'টয়োটা নোহ বা ভক্সি। পরিবার এবং গ্রুপের জন্য আদর্শ।', 'specs' => ['7 Seats', '4 Bags', 'AC'], 'specs_bn' => ['৭ সিট', '৪ ব্যাগ', 'এসি']],
+                        ['image' => 'goride/assets/motor.png', 'title' => 'Microbus (Hiace)', 'title_bn' => 'মাইক্রোবাস (হাইয়েস)', 'desc' => 'Toyota Hiace Grand Cabin. Best for large groups.', 'desc_bn' => 'টয়োটা হাইয়েস গ্র্যান্ড ক্যাবিন। বড় গ্রুপের জন্য সেরা।', 'specs' => ['12 Seats', '6 Bags', 'Dual AC'], 'specs_bn' => ['১২ সিট', '৬ ব্যাগ', 'ডুয়াল এসি']],
                     ]
                 ],
                 'active' => true,
@@ -171,17 +143,10 @@ class PageContentSeeder extends Seeder
                 'description' => 'Every package includes premium transport, experienced local drivers, and a stress-free journey.',
                 'description_bn' => 'প্রতিটি প্যাকেজে প্রিমিয়াম ট্রান্সপোর্ট, অভিজ্ঞ স্থানীয় চালক এবং চাপমুক্ত ভ্রমণের ব্যবস্থা রয়েছে।',
                 'meta' => [
-                    'tours_list' => [
-                        ['image' => 'goride/assets/banner/banner_02.jpg', 'title' => 'Cox\'s Bazar Beach Getaway', 'price' => '12,000', 'meta' => '3 Days 2 Nights', 'badge' => 'Most Popular', 'desc' => 'Relax at the world\'s longest natural sea beach.'],
-                        ['image' => 'goride/assets/banner/banner_03.jpg', 'title' => 'Sylhet Tea Garden Adventure', 'price' => '8,500', 'meta' => '2 Days 1 Night', 'badge' => 'Best Value', 'desc' => 'Visit lush green tea gardens and crystal-clear lakes.'],
-                        ['image' => 'goride/assets/banner/banner_01.jpg', 'title' => 'Sajek Valley Cloud Journey', 'price' => '15,000', 'meta' => '3 Days 2 Nights', 'badge' => 'Premium', 'desc' => 'Experience the queen of hills and spectacular sunrises.'],
-                    ]
-                ],
-                'meta_bn' => [
-                    'tours_list' => [
-                        ['image' => 'goride/assets/banner/banner_02.jpg', 'title' => 'কক্সবাজার সমুদ্র সৈকত ভ্রমণ', 'price' => '১২,০০০', 'meta' => '৩ দিন ২ রাত', 'badge' => 'জনপ্রিয়', 'desc' => 'বিশ্বের দীর্ঘতম প্রাকৃতিক সমুদ্র সৈকতে আরাম করুন।'],
-                        ['image' => 'goride/assets/banner/banner_03.jpg', 'title' => 'সিলেট চা বাগান অ্যাডভেঞ্চার', 'price' => '৮,৫০০', 'meta' => '২ দিন ১ রাত', 'badge' => 'সেরা মূল্য', 'desc' => 'সবুজ চা বাগান এবং স্বচ্ছ লেকগুলো ঘুরে দেখুন।'],
-                        ['image' => 'goride/assets/banner/banner_01.jpg', 'title' => 'সাজেক ভ্যালি মেঘের যাত্রা', 'price' => '১৫,০০০', 'meta' => '৩ দিন ২ রাত', 'badge' => 'প্রিমিয়াম', 'desc' => 'পাহাড়ের রানী এবং চমৎকার সূর্যোদয়ের অভিজ্ঞতা নিন।'],
+                    'tour_items' => [
+                        ['image' => 'goride/assets/banner/banner_02.jpg', 'title' => 'Cox\'s Bazar Beach Getaway', 'title_bn' => 'কক্সবাজার সমুদ্র সৈকত ভ্রমণ', 'price' => '12,000', 'meta' => '3 Days 2 Nights', 'meta_bn' => '৩ দিন ২ রাত', 'badge' => 'Most Popular', 'badge_bn' => 'জনপ্রিয়', 'desc' => 'Relax at the world\'s longest natural sea beach.', 'desc_bn' => 'বিশ্বের দীর্ঘতম প্রাকৃতিক সমুদ্র সৈকতে আরাম করুন।'],
+                        ['image' => 'goride/assets/banner/banner_03.jpg', 'title' => 'Sylhet Tea Garden Adventure', 'title_bn' => 'সিলেট চা বাগান অ্যাডভেঞ্চার', 'price' => '8,500', 'meta' => '2 Days 1 Night', 'meta_bn' => '২ দিন ১ রাত', 'badge' => 'Best Value', 'badge_bn' => 'সেরা মূল্য', 'desc' => 'Visit lush green tea gardens and crystal-clear lakes.', 'desc_bn' => 'সবুজ চা বাগান এবং স্বচ্ছ লেকগুলো ঘুরে দেখুন।'],
+                        ['image' => 'goride/assets/banner/banner_01.jpg', 'title' => 'Sajek Valley Cloud Journey', 'title_bn' => 'সাজেক ভ্যালি মেঘের যাত্রা', 'price' => '15,000', 'meta' => '3 Days 2 Nights', 'meta_bn' => '৩ দিন ২ রাত', 'badge' => 'Premium', 'badge_bn' => 'প্রিমিয়াম', 'desc' => 'Experience the queen of hills and spectacular sunrises.', 'desc_bn' => 'পাহাড়ের রানী এবং চমৎকার সূর্যোদয়ের অভিজ্ঞতা নিন।'],
                     ]
                 ],
                 'active' => true,

@@ -49,7 +49,7 @@ class PageContentController extends Controller
 
         $meta = $request->meta;
         if (is_string($meta)) {
-            $meta = json_decode($meta, true);
+            $meta = json_decode($meta, true) ?: [];
         } else {
             $meta = $meta ?: [];
         }
@@ -129,7 +129,7 @@ class PageContentController extends Controller
 
         $meta = $request->meta;
         if (is_string($meta)) {
-            $meta = json_decode($meta, true);
+            $meta = json_decode($meta, true) ?: [];
         } else {
             $meta = $meta ?: [];
         }
@@ -172,6 +172,16 @@ class PageContentController extends Controller
         if ($request->page_slug == 'fleet' && isset($meta['fleet_items'])) {
             $fleet_images = $request->file('fleet_item_images');
             foreach ($meta['fleet_items'] as $index => &$item) {
+                // Convert raw comma-separated specs to arrays
+                if (isset($item['specs_raw'])) {
+                    $item['specs'] = array_map('trim', explode(',', $item['specs_raw']));
+                    unset($item['specs_raw']);
+                }
+                if (isset($item['specs_bn_raw'])) {
+                    $item['specs_bn'] = array_map('trim', explode(',', $item['specs_bn_raw']));
+                    unset($item['specs_bn_raw']);
+                }
+
                 if (isset($fleet_images[$index])) {
                     // Delete old item image if it's not a static asset
                     if (isset($item['image']) && $item['image'] && strpos($item['image'], 'goride/') === false) {
@@ -181,7 +191,7 @@ class PageContentController extends Controller
                     $file = $fleet_images[$index];
                     $imageName = time() . '_fleet_' . $index . '.' . $file->getClientOriginalExtension();
                     $file->storeAs('page_contents', $imageName, 'public');
-                    $item['image'] = $imageName;
+                    $item['image'] = 'page_contents/' . $imageName;
                 }
             }
         }

@@ -17,6 +17,8 @@ use App\Http\Controllers\Admin\SearchController;
 use App\Http\Controllers\Admin\ShippingMethodController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\UserRoleController;
+use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\CorporateController;
 use App\Http\Controllers\Admin\PageContentController;
 use App\Http\Controllers\Admin\AdminTestimonialController;
 use Illuminate\Support\Facades\Route;
@@ -27,6 +29,8 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use App\Http\Controllers\SslCommerzPaymentController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\Admin\WebsiteParameterController;
+use Illuminate\Support\Facades\Mail;
 
 // Route::get('/',[AuthController::class,'index'])->name('login');
 
@@ -201,6 +205,19 @@ Route::get('galleries/video',[FrontendController::class,'videoGalleries'])->name
 // Authentication and Dashboard
 Route::get('/login',[AuthController::class,'index'])->name('login');
 Route::post('/login',[AuthController::class,'login'])->name('login.user');
+
+// Admin Login Routes
+Route::get('/admin/login', [AuthController::class, 'index'])->name('admin.login');
+Route::post('/admin/login', [AuthController::class, 'adminLogin'])->name('admin.login.post');
+
+// Driver Login Routes
+Route::get('/driver/login', [AuthController::class, 'index'])->name('driver.login');
+Route::post('/driver/login', [AuthController::class, 'driverLogin'])->name('driver.login.post');
+
+// Corporate Login Routes
+Route::get('/corporate/login', [AuthController::class, 'index'])->name('corporate.login');
+Route::post('/corporate/login', [AuthController::class, 'corporateLogin'])->name('corporate.login.post');
+
 Route::get('/registration',[AuthController::class,'registration'])->name('registration');
 Route::get('/registration/driver',[AuthController::class,'registrationDriver'])->name('registration.driver');
 Route::get('/registration/corporate',[AuthController::class,'registrationCorporate'])->name('registration.corporate');
@@ -208,11 +225,11 @@ Route::get('/health-card',[AuthController::class,'healthCard'])->name('health.re
 Route::post('/register',[AuthController::class,'register'])->name('register');
 Route::post('/main-register',[AuthController::class,'mainRegister'])->name('main.register');
 
-Route::middleware(['auth'])->group(function() {
+Route::middleware(['auth:web,admin,driver,corporate'])->group(function() {
     Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard.index');
     
     // Corporate Dashboard Routes
-    Route::prefix('dashboard/corporate')->name('corporate.')->group(function() {
+    Route::prefix('dashboard/corporate')->middleware('auth:corporate')->name('corporate.')->group(function() {
         Route::get('/', [App\Http\Controllers\DashboardController::class, 'corporateDashboard'])->name('dashboard');
         Route::get('/fleet', [App\Http\Controllers\DashboardController::class, 'corporateFleet'])->name('fleet');
         Route::get('/billing', [App\Http\Controllers\DashboardController::class, 'corporateBilling'])->name('billing');
@@ -221,8 +238,8 @@ Route::middleware(['auth'])->group(function() {
         Route::get('/settings', [App\Http\Controllers\DashboardController::class, 'corporateSettings'])->name('settings');
     });
 
-    // Owner Dashboard Routes
-    Route::prefix('dashboard/owner')->name('owner.')->group(function() {
+    // Owner Dashboard Routes (Keeping as web for now or specific guard if needed)
+    Route::prefix('dashboard/owner')->middleware('auth:web')->name('owner.')->group(function() {
         Route::get('/', [App\Http\Controllers\DashboardController::class, 'ownerDashboard'])->name('dashboard');
         Route::get('/cars', [App\Http\Controllers\DashboardController::class, 'ownerCars'])->name('cars');
         Route::get('/history', [App\Http\Controllers\DashboardController::class, 'ownerHistory'])->name('history');
@@ -232,13 +249,19 @@ Route::middleware(['auth'])->group(function() {
     });
 
     // User (Solo) Specific Routes
-    Route::prefix('dashboard/user')->name('user.')->group(function() {
+    Route::prefix('dashboard/user')->middleware('auth:web')->name('user.')->group(function() {
         Route::get('/trips', [App\Http\Controllers\DashboardController::class, 'userTrips'])->name('trips');
         Route::get('/saved-places', [App\Http\Controllers\DashboardController::class, 'userSavedPlaces'])->name('saved-places');
     });
 
-    Route::get('/dashboard/driver', [App\Http\Controllers\DashboardController::class, 'driverDashboard'])->name('driver.dashboard');
+    Route::get('/dashboard/driver', [App\Http\Controllers\DashboardController::class, 'driverDashboard'])->middleware('auth:driver')->name('driver.dashboard');
 });
+
+// Password Reset Routes
+Route::get('password/reset', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post('password/email', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::get('password/reset/{token}', [App\Http\Controllers\Auth\ResetPasswordController::class, 'showResetForm'])->name('password.reset');
+Route::post('password/reset', [App\Http\Controllers\Auth\ResetPasswordController::class, 'reset'])->name('password.update');
 
 // Password Reset Frontend Bridge
 Route::get('/reset-password', function (Illuminate\Http\Request $request) {
@@ -361,7 +384,7 @@ Route::get('/logout',[AuthController::class,'logOut'])->name('logout');
 
 
 
-Route::middleware(['userRole:admin','auth'])->prefix('admin')->group(function(){
+Route::middleware(['auth:admin,web', 'userRole:admin'])->prefix('admin')->group(function(){
 
     //admin
     Route::get('dashboard',[HomeController::class,'index'])->name('admin.dashboard');
@@ -665,6 +688,10 @@ Route::middleware(['userRole:admin','auth'])->prefix('admin')->group(function(){
 
     // Vehicle Assignment Admin Routes
     Route::resource('vehicle-assignments', \App\Http\Controllers\Admin\VehicleAssignmentController::class)->names('admin.vehicle_assignments');
+
+    // Admin and Corporate management
+    Route::resource('admins', AdminController::class)->names('admin.admins');
+    Route::resource('corporates', CorporateController::class)->names('admin.corporates');
 
 });
 

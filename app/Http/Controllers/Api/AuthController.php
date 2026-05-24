@@ -13,6 +13,9 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
 use App\Http\Controllers\Api\CartController; // Add this import
 use App\Traits\NotificationTrait;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
+
 
 class AuthController extends Controller
 {
@@ -64,45 +67,91 @@ class AuthController extends Controller
         ]);
     }
 
+
+
     public function register(Request $request)
     {
-        $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email',
-            'mobile'   => 'required|string|unique:users,mobile',
-            'password' => 'required|string|min:8',
-            'role'     => 'nullable|string|in:user,driver,owner,corporate,solo',
+        $validator = Validator::make($request->all(), [
+            'name'         => 'required|string|max:255',
+            'email'        => 'required|email|unique:users,email',
+            'password'     => 'required|string|min:8|confirmed',
+            'role'         => 'nullable|string|in:user,driver,owner,corporate,solo',
+            'company_name' => 'nullable|string|max:255',
+            'vehicle_type' => 'nullable|string|max:255',
         ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors'  => $validator->errors()
+            ], 422);
+        }
 
         $role = $request->input('role', 'solo');
 
         $user = User::create([
-            'name'       => $request->name,
-            'email'      => $request->email,
-            'mobile'     => $request->mobile,
-            'password'   => bcrypt($request->password),
-            'role'       => $role,
-            'status'     => ($role === 'solo' || $role === 'user') ? 'active' : 'pending',
-            'ip_address' => $request->ip(),
-            'is_approve' => ($role === 'solo' || $role === 'user') ? 1 : 0
+            'company_name' => $request->company_name,
+            'vehicle_type' => $request->vehicle_type,
+            'name'         => $request->name,
+            'email'        => $request->email,
+            'password'     => Hash::make($request->password),
+            'role'         => $role,
+            'status'       => ($role === 'solo' || $role === 'user') ? 'active' : 'pending',
         ]);
 
-        // Notification for admin
-        $this->createNotification(
-            'New User Registration',
-            $user->name.' registered as '.$role.' from IP '.$request->ip(),
-            null,
-            $request->ip(),
-            'register'
-        );
-
-        $token = $user->createToken('flutter')->plainTextToken;
+        // Create API token (Sanctum)
+        $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'token' => $token,
-            'user' => new UserResource($user)
+            'success' => true,
+            'message' => 'Registration successful',
+            'data' => [
+                'user'  => $user,
+                'token' => $token,
+            ]
         ], 201);
     }
+
+    // public function register(Request $request)
+    // {
+    //     $request->validate([
+    //         'name'     => 'required|string|max:255',
+    //         'email'    => 'required|email|unique:users,email',
+    //         'mobile'   => 'required|string|unique:users,mobile',
+    //         'password' => 'required|string|min:8',
+    //         'role'     => 'nullable|string|in:user,driver,owner,corporate,solo',
+    //     ]);
+
+    //     $role = $request->input('role', 'solo');
+
+    //     $user = User::create([
+    //         'name'       => $request->name,
+    //         'email'      => $request->email,
+    //         'mobile'     => $request->mobile,
+    //         'password'   => bcrypt($request->password),
+    //         'role'       => $role,
+    //         'status'     => ($role === 'solo' || $role === 'user') ? 'active' : 'pending',
+    //         'ip_address' => $request->ip(),
+    //         'is_approve' => ($role === 'solo' || $role === 'user') ? 1 : 0
+    //     ]);
+
+    //     // Notification for admin
+    //     $this->createNotification(
+    //         'New User Registration',
+    //         $user->name.' registered as '.$role.' from IP '.$request->ip(),
+    //         null,
+    //         $request->ip(),
+    //         'register'
+    //     );
+
+    //     $token = $user->createToken('flutter')->plainTextToken;
+
+    //     return response()->json([
+    //         'token' => $token,
+    //         'user' => new UserResource($user)
+    //     ], 201);
+    // }
 
     public function logout(Request $request)
     {

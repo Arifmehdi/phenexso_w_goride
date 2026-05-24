@@ -10,27 +10,31 @@ use App\Models\BookAppointment;
 use App\Models\ContactUs;
 use App\Models\Doctor;
 use App\Models\Hospital;
-use App\Models\Member;
 use App\Models\Order;
-use App\Models\Page;
 use App\Models\Product;
-use App\Models\Tag;
-use App\Models\User;
 use App\Models\ProductCategory;
+use App\Models\User;
+use App\Models\Driver;
+use App\Models\Corporate;
+use App\Models\Admin;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {
     public function index(){
         menuSubmenu('dashboardM','dashboardSM');
-        $users = User::get()->count();
-        $cat = ProductCategory::where('parent_id', null)->get()->count();
-        $productcount = Product::get()->count();
-        $orders = Order::get()->count();
-        $products = Product::latest()->take(10)->get();
-        return view('admin.index',compact('users','cat','products', 'orders', 'productcount'));
-    }
+        $users = User::count();
+        $drivers = Driver::count();
+        $corporates = Corporate::count();
+        $admins = Admin::count();
 
+        $cat = ProductCategory::where('parent_id', null)->count();
+        $productcount = Product::count();
+        $orders = Order::count();
+        $products = Product::latest()->take(10)->get();
+
+        return view('admin.index',compact('users','drivers', 'corporates', 'admins', 'cat','products', 'orders', 'productcount'));
+    }
 
 
     public function selectTagsOrAddNew(Request $request)

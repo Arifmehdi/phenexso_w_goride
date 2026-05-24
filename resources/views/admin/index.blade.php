@@ -43,25 +43,7 @@
             </div>
         </div>
 
-        {{-- Card: Users --}}
-        <div class="col-xl-3 col-md-6">
-            <div class="card w3-teal shadow-sm h-100">
-                <div class="card-body d-flex justify-content-between align-items-end">
-                    <div>
-                        <h4 class="text-white mb-1">{{ $users }}</h4>
-                        <h6 class="text-white mb-0">All Users</h6>
-                    </div>
-                    <div style="width: 45px; height: 50px;">
-                        <canvas id="chart-users" height="50"></canvas>
-                    </div>
-                </div>
-                <div class="card-footer text-center border-top border-light">
-                    <a href="{{ route('admin.all_user') }}" class="text-white">View All</a>
-                </div>
-            </div>
-        </div>
-
-        {{-- Card: Doctors --}}
+        {{-- Card: Categories --}}
         <div class="col-xl-3 col-md-6">
             <div class="card w3-indigo shadow-sm h-100">
                 <div class="card-body d-flex justify-content-between align-items-end">
@@ -75,6 +57,80 @@
                 </div>
                 <div class="card-footer text-center border-top border-light">
                     <a href="{{ route('admin.productCategoriesAll') }}" class="text-white">View All</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mt-2">
+        {{-- Card: Customers --}}
+        <div class="col-xl-3 col-md-6">
+            <div class="card w3-teal shadow-sm h-100">
+                <div class="card-body d-flex justify-content-between align-items-end">
+                    <div>
+                        <h4 class="text-white mb-1">{{ $users }}</h4>
+                        <h6 class="text-white mb-0">Total Customers</h6>
+                    </div>
+                    <div style="width: 45px; height: 50px;">
+                        <canvas id="chart-users" height="50"></canvas>
+                    </div>
+                </div>
+                <div class="card-footer text-center border-top border-light">
+                    <a href="{{ route('admin.all_user') }}" class="text-white">View All</a>
+                </div>
+            </div>
+        </div>
+
+        {{-- Card: Drivers --}}
+        <div class="col-xl-3 col-md-6">
+            <div class="card w3-blue shadow-sm h-100">
+                <div class="card-body d-flex justify-content-between align-items-end">
+                    <div>
+                        <h4 class="text-white mb-1">{{ $drivers }}</h4>
+                        <h6 class="text-white mb-0">Total Drivers</h6>
+                    </div>
+                    <div style="width: 45px; height: 50px;">
+                        <canvas id="chart-drivers" height="50"></canvas>
+                    </div>
+                </div>
+                <div class="card-footer text-center border-top border-light">
+                    <a href="{{ route('admin.drivers.index') }}" class="text-white">View All</a>
+                </div>
+            </div>
+        </div>
+
+        {{-- Card: Corporates --}}
+        <div class="col-xl-3 col-md-6">
+            <div class="card w3-deep-blue shadow-sm h-100" style="background-color: #3f51b5 !important;">
+                <div class="card-body d-flex justify-content-between align-items-end">
+                    <div>
+                        <h4 class="text-white mb-1">{{ $corporates }}</h4>
+                        <h6 class="text-white mb-0">Total Corporates</h6>
+                    </div>
+                    <div style="width: 45px; height: 50px;">
+                        <canvas id="chart-corporates" height="50"></canvas>
+                    </div>
+                </div>
+                <div class="card-footer text-center border-top border-light">
+                    <a href="{{ route('admin.corporates.index') }}" class="text-white">View All</a>
+                </div>
+            </div>
+        </div>
+
+        {{-- Card: Admins --}}
+        <div class="col-xl-3 col-md-6">
+            <div class="card w3-deep-orange shadow-sm h-100">
+                <div class="card-body d-flex justify-content-between align-items-end">
+                    <div>
+                        <h4 class="text-white mb-1">{{ $admins }}</h4>
+                        <h6 class="text-white mb-0">Total Admins</h6>
+                    </div>
+                    <div style="width: 45px; height: 50px;">
+                        <canvas id="chart-admins" height="50"></canvas>
+                    </div>
+                </div>
+                <div class="card-footer text-center border-top border-light">
+                    <a href="{{ route('admin.admins.index') }}" class="text-white">View All</a>
                 </div>
             </div>
         </div>

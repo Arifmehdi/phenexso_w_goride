@@ -3,16 +3,34 @@
 @section('title', 'GoRide Bangladesh | Car Rental & Transport Marketplace')
 
 @section('content')
+@php
+    $homeContent = $pageContents['home'] ?? null;
+    $heroBg = $homeContent->meta['hero_bg_image'] ?? null;
+    $heroBgUrl = $heroBg ? asset('storage/page_contents/' . $heroBg) : asset('goride/assets/banner_01.jpg');
+    $appMockup = $homeContent->meta['app_mockup_image'] ?? null;
+    $locale = app()->getLocale();
+@endphp
 <style>
     .hero-bg {
         position: absolute;
-        inset: 0;
-        z-index: 0;
-        background: linear-gradient(160deg, rgba(10,40,22,0.90) 0%, rgba(20,94,46,0.78) 60%, rgba(26,122,60,0.65) 100%),
-                    url("{{ asset('goride/css/assets/banner_01.jpg') }}") center/cover no-repeat;
-        /* background: linear-gradient(160deg, rgba(10,40,22,0.90) 0%, rgba(20,94,46,0.78) 60%, rgba(26,122,60,0.65) 100%),
-                    url("{{ asset('goride/assets/banner_01.jpg') }}") center/cover no-repeat; */
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1;
+        background-image: linear-gradient(160deg, rgba(10,40,22,0.92) 0%, rgba(20,94,46,0.85) 60%, rgba(26,122,60,0.75) 100%),
+                          url("{{ $heroBgUrl }}");
+        background-position: center;
+        background-size: cover;
+        background-repeat: no-repeat;
         background-attachment: fixed;
+    }
+    .hero-content { position: relative; z-index: 5 !important; }
+    .hero-stats-bar { position: relative; z-index: 5 !important; }
+    .hero-scroll-hint { z-index: 5 !important; }
+    
+    @media (max-width: 768px) {
+        .hero-bg { background-attachment: scroll; }
     }
 </style>
 <!-- ── HERO ── -->
@@ -20,19 +38,19 @@
     <div class="hero-bg"></div>
     <div class="hero-dots"></div>
     <div class="hero-content">
-            <div class="hero-badge"><i class="fas fa-circle-check"></i> {{ $pageContents['home']->meta['hero_badge'] ?? __('goride.hero.badge') }}</div>
-        <h1>{{ $pageContents['home']->meta['hero_title'] ?? __('goride.hero.title') }}<br><span>{{ $pageContents['home']->meta['hero_span'] ?? __('goride.hero.span') }}</span></h1>
-        <p>{{ $pageContents['home']->meta['hero_subtitle'] ?? __('goride.hero.subtitle') }}</p>
+        <div class="hero-badge"><i class="fas fa-circle-check"></i> {{ $homeContent->meta['hero_badge'] ?? __('goride.hero.badge') }}</div>
+        <h1>{{ $homeContent->meta['hero_title'] ?? __('goride.hero.title') }}</h1>
+        <p>{{ $homeContent->meta['hero_subtitle'] ?? __('goride.hero.subtitle') }}</p>
         <div class="hero-actions">
-            <a href="{{ $pageContents['home']->meta['hero_cta_link'] ?? '#' }}" class="btn-hero-primary"><i class="fas fa-car"></i> {{ $pageContents['home']->meta['hero_cta_text'] ?? __('goride.hero.book_now') }}</a>
+            <a href="{{ $homeContent->meta['hero_cta_link'] ?? '#' }}" class="btn-hero-primary"><i class="fas fa-car"></i> {{ $homeContent->meta['hero_cta_text'] ?? __('goride.hero.book_now') }}</a>
             <a href="{{ route('tours') }}" class="btn-hero-secondary"><i class="fas fa-map-marked-alt"></i> {{ __('goride.hero.explore_tours') }}</a>
         </div>
     </div>
     <div class="hero-stats-bar">
-        <div class="hstat"><strong>5,000+</strong><span>{{ __('goride.stats.happy_customers') }}</span></div>
-        <div class="hstat"><strong>1,200+</strong><span>{{ __('goride.stats.fleet_vehicles') }}</span></div>
-        <div class="hstat"><strong>64</strong><span>{{ __('goride.stats.districts_simple') }}</span></div>
-        <div class="hstat"><strong>150+</strong><span>{{ __('goride.stats.corporate') }}</span></div>
+        <div class="hstat"><strong>{{ $locale == 'bn' ? ($homeContent->meta_bn['stats_customers'] ?? $homeContent->meta['stats_customers'] ?? '5,000+') : ($homeContent->meta['stats_customers'] ?? '5,000+') }}</strong><span>{{ __('goride.stats.happy_customers') }}</span></div>
+        <div class="hstat"><strong>{{ $locale == 'bn' ? ($homeContent->meta_bn['stats_fleet'] ?? $homeContent->meta['stats_fleet'] ?? '1,200+') : ($homeContent->meta['stats_fleet'] ?? '1,200+') }}</strong><span>{{ __('goride.stats.fleet_vehicles') }}</span></div>
+        <div class="hstat"><strong>{{ $locale == 'bn' ? ($homeContent->meta_bn['stats_districts'] ?? $homeContent->meta['stats_districts'] ?? '64') : ($homeContent->meta['stats_districts'] ?? '64') }}</strong><span>{{ __('goride.stats.districts_simple') }}</span></div>
+        <div class="hstat"><strong>{{ $locale == 'bn' ? ($homeContent->meta_bn['stats_corporate'] ?? $homeContent->meta['stats_corporate'] ?? '150+') : ($homeContent->meta['stats_corporate'] ?? '150+') }}</strong><span>{{ __('goride.stats.corporate') }}</span></div>
     </div>
     <div class="hero-scroll-hint"><span>Scroll</span><i class="fas fa-chevron-down"></i></div>
 </section>
@@ -40,30 +58,47 @@
 <!-- ── ENTRY CARDS ── -->
 <div class="entry-section">
     <div class="entry-cards">
-        <a href="{{ route('registration.driver') }}" class="entry-card">
-            <div class="icon-wrap"><i class="fas fa-car-side"></i></div>
-            <h3>{{ __('goride.entry.owners') }}</h3>
-            <p>{{ __('goride.entry.owners_desc') }}</p>
-            <span class="card-link">{{ __('goride.entry.join_now') }} <i class="fas fa-arrow-right"></i></span>
-        </a>
-        <a href="{{ route('registration.corporate') }}" class="entry-card">
-            <div class="icon-wrap"><i class="fas fa-building"></i></div>
-            <h3>{{ __('goride.entry.corporate') }}</h3>
-            <p>{{ __('goride.entry.corporate_desc') }}</p>
-            <span class="card-link">{{ __('goride.entry.learn_more') }} <i class="fas fa-arrow-right"></i></span>
-        </a>
-        <a href="{{ route('registration') }}" class="entry-card">
-            <div class="icon-wrap"><i class="fas fa-user-check"></i></div>
-            <h3>{{ __('goride.entry.solo') }}</h3>
-            <p>{{ __('goride.entry.solo_desc') }}</p>
-            <span class="card-link">{{ __('goride.entry.book_now') }} <i class="fas fa-arrow-right"></i></span>
-        </a>
-        <a href="{{ route('tours') }}" class="entry-card">
-            <div class="icon-wrap"><i class="fas fa-map-marked-alt"></i></div>
-            <h3>{{ __('goride.entry.tours') }}</h3>
-            <p>{{ __('goride.entry.tours_desc') }}</p>
-            <span class="card-link">{{ __('goride.entry.explore') }} <i class="fas fa-arrow-right"></i></span>
-        </a>
+        @php
+            $entryCards = $homeContent->meta['entry_cards'] ?? [];
+            if(is_string($entryCards)) $entryCards = json_decode($entryCards, true) ?: [];
+        @endphp
+
+        @if(!empty($entryCards))
+            @foreach($entryCards as $card)
+                <a href="{{ $card['link'] ?? '#' }}" class="entry-card">
+                    <div class="icon-wrap"><i class="{{ $card['icon'] ?? 'fas fa-car-side' }}"></i></div>
+                    <h3>{{ $locale == 'bn' ? ($card['title_bn'] ?? $card['title']) : ($card['title'] ?? '') }}</h3>
+                    <p>{{ $locale == 'bn' ? ($card['description_bn'] ?? $card['description']) : ($card['description'] ?? '') }}</p>
+                    <span class="card-link">{{ $locale == 'bn' ? ($card['btn_text_bn'] ?? $card['btn_text']) : ($card['btn_text'] ?? __('goride.entry.learn_more')) }} <i class="fas fa-arrow-right"></i></span>
+                </a>
+            @endforeach
+        @else
+            {{-- Fallback to hardcoded cards if none defined --}}
+            <a href="{{ route('registration.driver') }}" class="entry-card">
+                <div class="icon-wrap"><i class="fas fa-car-side"></i></div>
+                <h3>{{ __('goride.entry.owners') }}</h3>
+                <p>{{ __('goride.entry.owners_desc') }}</p>
+                <span class="card-link">{{ __('goride.entry.join_now') }} <i class="fas fa-arrow-right"></i></span>
+            </a>
+            <a href="{{ route('registration.corporate') }}" class="entry-card">
+                <div class="icon-wrap"><i class="fas fa-building"></i></div>
+                <h3>{{ __('goride.entry.corporate') }}</h3>
+                <p>{{ __('goride.entry.corporate_desc') }}</p>
+                <span class="card-link">{{ __('goride.entry.learn_more') }} <i class="fas fa-arrow-right"></i></span>
+            </a>
+            <a href="{{ route('registration') }}" class="entry-card">
+                <div class="icon-wrap"><i class="fas fa-user-check"></i></div>
+                <h3>{{ __('goride.entry.solo') }}</h3>
+                <p>{{ __('goride.entry.solo_desc') }}</p>
+                <span class="card-link">{{ __('goride.entry.book_now') }} <i class="fas fa-arrow-right"></i></span>
+            </a>
+            <a href="{{ route('tours') }}" class="entry-card">
+                <div class="icon-wrap"><i class="fas fa-map-marked-alt"></i></div>
+                <h3>{{ __('goride.entry.tours') }}</h3>
+                <p>{{ __('goride.entry.tours_desc') }}</p>
+                <span class="card-link">{{ __('goride.entry.explore') }} <i class="fas fa-arrow-right"></i></span>
+            </a>
+        @endif
     </div>
 </div>
 
@@ -73,22 +108,30 @@
         <div class="stats-grid">
             <div class="stat-item">
                 <i class="fas fa-users stat-icon"></i>
-                <h3 id="count-customers">{{ $pageContents['home']->meta['stats_customers'] ?? '5000+' }}</h3>
+                <h3 id="count-customers">
+                    {{ $locale == 'bn' ? ($homeContent->meta_bn['stats_customers'] ?? $homeContent->meta['stats_customers'] ?? '5000+') : ($homeContent->meta['stats_customers'] ?? '5000+') }}
+                </h3>
                 <p>{{ __('goride.stats.customers') }}</p>
             </div>
             <div class="stat-item">
                 <i class="fas fa-car stat-icon"></i>
-                <h3 id="count-fleet">{{ $pageContents['home']->meta['stats_fleet'] ?? '1200+' }}</h3>
+                <h3 id="count-fleet">
+                    {{ $locale == 'bn' ? ($homeContent->meta_bn['stats_fleet'] ?? $homeContent->meta['stats_fleet'] ?? '1200+') : ($homeContent->meta['stats_fleet'] ?? '1200+') }}
+                </h3>
                 <p>{{ __('goride.stats.fleet_vehicles') }}</p>
             </div>
             <div class="stat-item">
                 <i class="fas fa-map-pin stat-icon"></i>
-                <h3 id="count-dest">{{ $pageContents['home']->meta['stats_districts'] ?? '64' }}</h3>
+                <h3 id="count-dest">
+                    {{ $locale == 'bn' ? ($homeContent->meta_bn['stats_districts'] ?? $homeContent->meta['stats_districts'] ?? '64') : ($homeContent->meta['stats_districts'] ?? '64') }}
+                </h3>
                 <p>{{ __('goride.stats.districts_simple') }}</p>
             </div>
             <div class="stat-item">
                 <i class="fas fa-briefcase stat-icon"></i>
-                <h3 id="count-corp">{{ $pageContents['home']->meta['stats_corporate'] ?? '150+' }}</h3>
+                <h3 id="count-corp">
+                    {{ $locale == 'bn' ? ($homeContent->meta_bn['stats_corporate'] ?? $homeContent->meta['stats_corporate'] ?? '150+') : ($homeContent->meta['stats_corporate'] ?? '150+') }}
+                </h3>
                 <p>{{ __('goride.stats.corporate') }}</p>
             </div>
         </div>
@@ -99,20 +142,20 @@
 <section style="background: white; padding: 100px 0;">
     <div class="container">
         <div class="section-title">
-            <div class="section-label"><i class="fas fa-star"></i> {{ $pageContents['home']->meta['why_title'] ?? __('goride.why.label') }}</div>
-            <h2>{{ $pageContents['home']->meta['why_title'] ?? __('goride.why.title') }}</h2>
-            <p>{{ $pageContents['home']->meta['why_subtitle'] ?? __('goride.why.subtitle') }}</p>
+            <div class="section-label"><i class="fas fa-star"></i> {{ $locale == 'bn' ? ($homeContent->meta_bn['why_title'] ?? $homeContent->meta['why_title'] ?? __('goride.why.label')) : ($homeContent->meta['why_title'] ?? __('goride.why.label')) }}</div>
+            <h2>{{ $locale == 'bn' ? ($homeContent->meta_bn['why_title'] ?? $homeContent->meta['why_title'] ?? __('goride.why.title')) : ($homeContent->meta['why_title'] ?? __('goride.why.title')) }}</h2>
+            <p>{{ $locale == 'bn' ? ($homeContent->meta_bn['why_subtitle'] ?? $homeContent->meta['why_subtitle'] ?? __('goride.why.subtitle')) : ($homeContent->meta['why_subtitle'] ?? __('goride.why.subtitle')) }}</p>
         </div>
         <div class="why-grid">
             @php
-                $whyItems = $pageContents['home']->meta['why_items'] ?? [];
+                $whyItems = $homeContent->meta['why_items'] ?? [];
             @endphp
             @if(!empty($whyItems))
                 @foreach($whyItems as $item)
                     <div class="why-card">
                         <div class="wc-icon"><i class="{{ $item['icon'] ?? 'fas fa-star' }}"></i></div>
-                        <h4>{{ $item['title'] ?? '' }}</h4>
-                        <p>{{ $item['desc'] ?? '' }}</p>
+                        <h4>{{ $locale == 'bn' ? ($item['title_bn'] ?? $item['title']) : ($item['title'] ?? '') }}</h4>
+                        <p>{{ $locale == 'bn' ? ($item['desc_bn'] ?? $item['desc']) : ($item['desc'] ?? '') }}</p>
                     </div>
                 @endforeach
             @else
@@ -199,49 +242,53 @@
                 </div>
             </div>
             <div class="app-visual">
-                <div class="app-float-badge left">
-                    <div class="badge-icon green"><i class="fas fa-star"></i></div>
-                    <div class="badge-text">
-                        <strong>{{ __('goride.app.rating') }}</strong>
-                        <span>{{ __('goride.app.reviews') }}</span>
+                @if($appMockup)
+                    <img src="{{ asset('storage/page_contents/' . $appMockup) }}" alt="App Mockup" class="img-fluid app-mockup-img">
+                @else
+                    <div class="app-float-badge left">
+                        <div class="badge-icon green"><i class="fas fa-star"></i></div>
+                        <div class="badge-text">
+                            <strong>{{ __('goride.app.rating') }}</strong>
+                            <span>{{ __('goride.app.reviews') }}</span>
+                        </div>
                     </div>
-                </div>
-                <div class="phone-mockup-wrap">
-                    <div class="phone-mockup">
-                        <div class="phone-screen">
-                            <div class="phone-notch"></div>
-                            <div class="phone-ui-top">
-                                <span class="app-name">GoRide</span>
-                                <span class="app-tagline">Bangladesh's #1 Ride App</span>
-                            </div>
-                            <div class="phone-ride-card">
-                                <div class="ride-row">
-                                    <div class="ride-dot green"></div>
-                                    <span>Gulshan 1, Dhaka</span>
+                    <div class="phone-mockup-wrap">
+                        <div class="phone-mockup">
+                            <div class="phone-screen">
+                                <div class="phone-notch"></div>
+                                <div class="phone-ui-top">
+                                    <span class="app-name">GoRide</span>
+                                    <span class="app-tagline">Bangladesh's #1 Ride App</span>
                                 </div>
-                                <div class="ride-line"></div>
-                                <div class="ride-row">
-                                    <div class="ride-dot red"></div>
-                                    <span>Hazrat Shahjalal Airport</span>
+                                <div class="phone-ride-card">
+                                    <div class="ride-row">
+                                        <div class="ride-dot green"></div>
+                                        <span>Gulshan 1, Dhaka</span>
+                                    </div>
+                                    <div class="ride-line"></div>
+                                    <div class="ride-row">
+                                        <div class="ride-dot red"></div>
+                                        <span>Hazrat Shahjalal Airport</span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="phone-book-btn">Book Now — ৳ 650</div>
-                            <div class="phone-bottom-nav">
-                                <i class="fas fa-house active"></i>
-                                <i class="fas fa-magnifying-glass"></i>
-                                <i class="fas fa-calendar"></i>
-                                <i class="fas fa-user"></i>
+                                <div class="phone-book-btn">Book Now — ৳ 650</div>
+                                <div class="phone-bottom-nav">
+                                    <i class="fas fa-house active"></i>
+                                    <i class="fas fa-magnifying-glass"></i>
+                                    <i class="fas fa-calendar"></i>
+                                    <i class="fas fa-user"></i>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="app-float-badge right">
-                    <div class="badge-icon yellow"><i class="fas fa-bolt"></i></div>
-                    <div class="badge-text">
-                        <strong>{{ __('goride.app.pickup') }}</strong>
-                        <span>{{ __('goride.app.wait_time') }}</span>
+                    <div class="app-float-badge right">
+                        <div class="badge-icon yellow"><i class="fas fa-bolt"></i></div>
+                        <div class="badge-text">
+                            <strong>{{ __('goride.app.pickup') }}</strong>
+                            <span>{{ __('goride.app.wait_time') }}</span>
+                        </div>
                     </div>
-                </div>
+                @endif
             </div>
         </div>
     </div>

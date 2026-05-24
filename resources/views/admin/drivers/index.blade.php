@@ -2,65 +2,59 @@
 @section('title',"Admin Dashboard | Drivers")
 
 @section('body')
-    <div class="container py-3">
-    <a href="{{ route('admin.drivers.create') }}" class="btn btn-success mb-2">Add New Driver</a>
+    <section class="content py-5">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-12">
 
-    @if(session('success'))
-        <div class="alert alert-success">
-            {{ session('success') }}
-        </div>
-    @endif
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">All Drivers</h3>
+                            <div class="card-tools">
+                                <a href="{{ route('admin.drivers.create') }}" class="btn btn-success btn-sm mr-2">Add New Driver</a>
+                                <div class="input-group input-group-sm" style="display: inline-flex; width: 250px;">
+                                    <input type="search" name="q" class="global-search form-control float-right" data-url="{{ route('admin.global-search-ajax',['type'=>'driver']) }}" placeholder="Search name, email, mobile...">
+                                    <div class="input-group-append">
+                                        <button type="submit" class="btn btn-default">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-    <div class="card">
-        <div class="card-header bg-info">
-            <h5 class="mb-0 text-white">All Drivers</h5>
-        </div>
-        <div class="card-body">
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Name</th>
-                        <th>Mobile</th>
-                        <th>Name</th>
-                        <th>License No</th>
-                        <th>NID</th>
-                        <th>Address</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($drivers as $driver)
-                        <tr>
-                            <td>{{ $loop->iteration }}</td>
-                            <td>{{ $driver->name }}</td>
-                            <td>{{ $driver->mobile }}</td>
-                            <td>{{ $driver->email }}</td>
-                            <td>{{ $driver->license_no }}</td>
-                            <td>{{ $driver->nid }}</td>
-                            <td>{{ $driver->address }}</td>
-                            <td><span class="badge badge-{{ $driver->is_approve == '1' ? 'success' : 'warning' }}">{{ $driver->is_approve == '1' ? 'Approved' : 'Pending' }}</span></td>
-                            <td>
-                                <a href="{{ route('admin.drivers.edit', $driver->id) }}" class="btn btn-sm btn-primary">Edit</a>
-                                <form action="{{ route('admin.drivers.destroy', $driver->id) }}" method="POST" style="display:inline;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</button>
-                                </form>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="8" class="text-center">No drivers found.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-            <div class="d-flex justify-content-center">
-                {{ $drivers->links() }}
+                        <div class="card-body p-0 mb-0">
+                            <div class="table-responsive data-container">
+                                @include('admin.drivers.search_data')
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</div>
+    </section>
 @endsection
+
+@push('js')
+    <script>
+        $(document).ready(function() {
+            $(document).on('keyup', ".global-search", function(e){
+                e.preventDefault();
+                var that = $(this);
+                var url = that.attr('data-url');
+                var q = that.val();
+
+                $.ajax({
+                    url: url,
+                    data: {q: q},
+                    method: "get",
+                    success: function(res) {
+                        if(res.success) {
+                            $(".data-container").empty().append(res.html);
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+@endpush

@@ -3,21 +3,35 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
-class Driver extends Model
+class Driver extends Authenticatable
 {
-    use HasFactory;
+    use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
         'name',
+        'email',
         'mobile',
+        'password',
         'license_no',
         'nid',
         'address',
         'status',
-        'user_id', // Assuming a user_id column links to the User model
+        'user_id',
     ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    public function getRoleAttribute()
+    {
+        return 'driver';
+    }
 
     public function user()
     {

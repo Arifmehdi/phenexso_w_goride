@@ -5,9 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+use App\Traits\HasLocalization;
+
 class BlogCategory extends Model
 {
-    use HasFactory;
+    use HasFactory, HasLocalization;
+
+    public function getNameAttribute($value)
+    {
+        return $this->getLocalized('name');
+    }
 
     public function blogSubcategories(){
         return $this->hasMany(BlogSubCategory::class);

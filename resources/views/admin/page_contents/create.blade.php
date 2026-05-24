@@ -1,146 +1,121 @@
 @extends('admin.master')
-@section('title', 'Create Page Content | Admin Dashboard')
+@section('title', 'Create Page Content')
+
+@push('css')
+<style>
+    /* Premium UI Overrides */
+    .editor-card { border-radius: 24px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.04); overflow: hidden; background: #fff; }
+    .form-section { padding: 40px; }
+    .section-label { font-size: 11px; font-weight: 900; color: #1A7A3C; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 25px; display: block; }
+    
+    .label-elegant { font-weight: 700; font-size: 13px; color: #334155; margin-bottom: 10px; display: block; padding-left: 4px; }
+    
+    .input-elegant { 
+        background: #f8fafc !important; 
+        border: 1.5px solid #e2e8f0 !important; 
+        border-radius: 14px !important; 
+        padding: 16px 20px !important; 
+        height: auto !important; 
+        font-size: 15px !important;
+        font-weight: 500 !important;
+        color: #1e293b !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        box-shadow: none !important;
+    }
+    .input-elegant:focus { 
+        background: white !important; 
+        border-color: #1A7A3C !important; 
+        box-shadow: 0 0 0 4px rgba(26, 122, 60, 0.08) !important;
+        outline: none !important;
+    }
+
+    .nav-tabs-custom { border: none; display: flex; gap: 10px; padding: 20px 30px; background: #fdfdfd; border-bottom: 1px solid #f1f5f9; }
+    .nav-tabs-custom .nav-link { 
+        border: none !important; color: #94a3b8; font-weight: 700; font-size: 14px; 
+        padding: 12px 24px; border-radius: 14px; transition: all 0.3s;
+        display: flex; align-items: center; gap: 10px; background: #f8fafc;
+    }
+    .nav-tabs-custom .nav-link.active { background: #1A7A3C !important; color: white !important; box-shadow: 0 10px 20px rgba(26,122,60,0.2); }
+
+    .sticky-actions { position: sticky; bottom: 0; background: rgba(255,255,255,0.9); backdrop-filter: blur(15px); padding: 20px 40px; border-top: 1px solid #f1f5f9; z-index: 1000; }
+    .btn-save { background: #1A7A3C; color: white; padding: 14px 40px; border-radius: 14px; font-weight: 800; border: none; box-shadow: 0 10px 20px rgba(26,122,60,0.15); transition: all 0.3s; }
+</style>
+@endpush
+
 @section('body')
 
 <div class="content-header">
     <div class="container-fluid">
-        <div class="row mb-2">
-            <div class="col-sm-6">
-                <h1 class="m-0"><i class="fas fa-plus-circle mr-2"></i>Create Page Content</h1>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="m-0 font-weight-bold" style="letter-spacing: -1px;"><i class="fas fa-plus-circle mr-3 text-success"></i>New Page Content</h1>
             </div>
-            <div class="col-sm-6">
-                <ol class="breadcrumb float-sm-right">
-                    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
-                    <li class="breadcrumb-item"><a href="{{ route('admin.page_contents.index') }}">Page Contents</a></li>
-                    <li class="breadcrumb-item active">Create</li>
-                </ol>
-            </div>
+            <a href="{{ route('admin.page_contents.index') }}" class="btn btn-light px-4" style="border-radius: 12px; font-weight: 700; border: 1px solid #e2e8f0;">
+                <i class="fas fa-chevron-left mr-2"></i> Back
+            </a>
         </div>
     </div>
 </div>
 
-<div class="content">
+<div class="content pb-5">
     <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-12">
-                @if ($errors->any())
-                    <div class="alert alert-danger alert-dismissible fade show">
-                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                        <h5><i class="icon fas fa-ban"></i> Error!</h5>
-                        <ul>
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
-
-                    <div class="card-header p-2">
-                        <ul class="nav nav-pills">
-                            <li class="nav-item"><a class="nav-link active" href="#english" data-toggle="tab">English Content</a></li>
-                            <li class="nav-item"><a class="nav-link" href="#bangla" data-toggle="tab">Bangla Content</a></li>
-                        </ul>
-                    </div>
-                    <form action="{{ route('admin.page_contents.store') }}" method="POST">
-                        @csrf
-                        <div class="card-body">
-                            <div class="form-group">
-                                <label for="page_slug">Page Slug <span class="text-danger">*</span></label>
-                                <input type="text" name="page_slug" id="page_slug" class="form-control" value="{{ old('page_slug') }}" required placeholder="e.g. home, about, services">
-                                <small class="text-muted">Unique identifier for the page.</small>
-                            </div>
-
-                            <div class="tab-content">
-                                <div class="tab-pane active" id="english">
-                                    <div class="form-group">
-                                        <label for="title">Title (EN)</label>
-                                        <input type="text" name="title" id="title" class="form-control" value="{{ old('title') }}" placeholder="Main heading of the page">
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label for="subtitle">Subtitle (EN)</label>
-                                        <textarea name="subtitle" id="subtitle" class="form-control" rows="2" placeholder="Brief sub-heading">{{ old('subtitle') }}</textarea>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label for="description">Description (EN)</label>
-                                        <textarea name="description" id="description" class="form-control" rows="3" placeholder="Page summary or meta description">{{ old('description') }}</textarea>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label for="content">Full Content (EN)</label>
-                                        <textarea name="content" id="summernote" class="form-control">{{ old('content') }}</textarea>
-                                    </div>
-
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="highlights">Highlights (EN) (JSON Array)</label>
-                                                <textarea name="highlights" id="highlights" class="form-control" rows="4" placeholder='["Fast Delivery", "Secure Payment"]'>{{ old('highlights') }}</textarea>
-                                                <small class="text-muted">Format: ["Item 1", "Item 2"]</small>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="meta">Meta Data (EN) (JSON Object)</label>
-                                                <textarea name="meta" id="meta" class="form-control" rows="4" placeholder='{"meta_title": "Home", "meta_desc": "..."}'>{{ old('meta') }}</textarea>
-                                                <small class="text-muted">Format: {"key": "value"}</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="tab-pane" id="bangla">
-                                    <div class="form-group">
-                                        <label for="title_bn">Title (BN)</label>
-                                        <input type="text" name="title_bn" id="title_bn" class="form-control" value="{{ old('title_bn') }}" placeholder="পেজের মূল শিরোনাম">
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label for="subtitle_bn">Subtitle (BN)</label>
-                                        <textarea name="subtitle_bn" id="subtitle_bn" class="form-control" rows="2" placeholder="সংক্ষিপ্ত উপ-শিরোনাম">{{ old('subtitle_bn') }}</textarea>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label for="description_bn">Description (BN)</label>
-                                        <textarea name="description_bn" id="description_bn" class="form-control" rows="3" placeholder="পেজের বিবরণ">{{ old('description_bn') }}</textarea>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label for="content_bn">Full Content (BN)</label>
-                                        <textarea name="content_bn" id="summernote_bn" class="form-control">{{ old('content_bn') }}</textarea>
-                                    </div>
-
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="highlights_bn">Highlights (BN) (JSON Array)</label>
-                                                <textarea name="highlights_bn" id="highlights_bn" class="form-control" rows="4" placeholder='["দ্রুত ডেলিভারি", "নিরাপদ পেমেন্ট"]'>{{ old('highlights_bn') }}</textarea>
-                                                <small class="text-muted">Format: ["Item 1", "Item 2"]</small>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="meta_bn">Meta Data (BN) (JSON Object)</label>
-                                                <textarea name="meta_bn" id="meta_bn" class="form-control" rows="4" placeholder='{"meta_title": "হোম", "meta_desc": "..."}'>{{ old('meta_bn') }}</textarea>
-                                                <small class="text-muted">Format: {"key": "value"}</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+        <form action="{{ route('admin.page_contents.store') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            
+            <div class="card editor-card mb-4">
+                <div class="form-section" style="padding-bottom: 20px;">
+                    <span class="section-label">General Configuration</span>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="label-elegant">Page Slug (URL Identifier)</label>
+                            <input type="text" name="page_slug" class="form-control input-elegant" placeholder="e.g. pricing-page" required>
                         </div>
-
-                        <div class="card-footer">
-                            <button type="submit" class="btn btn-success">
-                                <i class="fas fa-plus mr-1"></i> Create Page Content
-                            </button>
-                            <a href="{{ route('admin.page_contents.index') }}" class="btn btn-default float-right">Cancel</a>
+                        <div class="col-md-6 mb-3">
+                            <label class="label-elegant">Featured Image</label>
+                            <input type="file" name="image" class="form-control input-elegant" style="padding: 10px 20px !important;">
                         </div>
-                    </form>
+                    </div>
                 </div>
             </div>
-        </div>
+
+            <div class="card editor-card">
+                <ul class="nav nav-tabs nav-tabs-custom" role="tablist">
+                    <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#en-content">English Version</a></li>
+                    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#bn-content">Bangla Version</a></li>
+                </ul>
+
+                <div class="card-body p-0">
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="en-content">
+                            <div class="form-section">
+                                <div class="row">
+                                    <div class="col-md-6 mb-4"><label class="label-elegant">Title</label><input type="text" name="title" class="form-control input-elegant" placeholder="Enter title..."></div>
+                                    <div class="col-md-6 mb-4"><label class="label-elegant">Subtitle</label><input type="text" name="subtitle" class="form-control input-elegant" placeholder="Enter subtitle..."></div>
+                                    <div class="col-12 mb-4"><label class="label-elegant">Description</label><textarea name="description" class="form-control input-elegant" rows="2" placeholder="Brief summary..."></textarea></div>
+                                    <div class="col-12"><label class="label-elegant">Full Body Content</label><textarea name="content" id="summernote_en" class="form-control"></textarea></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="bn-content">
+                            <div class="form-section">
+                                <div class="row">
+                                    <div class="col-md-6 mb-4"><label class="label-elegant">টাইটেল (Title BN)</label><input type="text" name="title_bn" class="form-control input-elegant" placeholder="শিরোনাম..."></div>
+                                    <div class="col-md-6 mb-4"><label class="label-elegant">সাবটাইটেল (Subtitle BN)</label><input type="text" name="subtitle_bn" class="form-control input-elegant" placeholder="উপ-শিরোনাম..."></div>
+                                    <div class="col-12 mb-4"><label class="label-elegant">বিবরণ (Description BN)</label><textarea name="description_bn" class="form-control input-elegant" rows="2" placeholder="সারসংক্ষেপ..."></textarea></div>
+                                    <div class="col-12"><label class="label-elegant">বিস্তারিত কন্টেন্ট (Content BN)</label><textarea name="content_bn" id="summernote_bn" class="form-control"></textarea></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sticky-actions text-right">
+                    <button type="submit" class="btn btn-save">
+                        <i class="fas fa-check-circle mr-2"></i> Save Page Content
+                    </button>
+                </div>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -148,17 +123,8 @@
 
 @push('js')
 <script>
-    $(function () {
-        $('#summernote_bn').summernote({
-            height: 200,
-            tabsize: 2,
-            codemirror: {
-                mode: 'text/html',
-                htmlMode: true,
-                lineNumbers: true,
-                theme: 'monokai'
-            }
-        });
-    })
+    $(document).ready(function() {
+        $('#summernote_en, #summernote_bn').summernote({ height: 300 });
+    });
 </script>
 @endpush

@@ -33,6 +33,10 @@
                 <input type="email" name="email" class="form-control" placeholder="company@email.com" value="{{ old('email') }}" required>
             </div>
             <div class="form-group">
+                <label>Mobile Number</label>
+                <input type="text" name="mobile" class="form-control" placeholder="01XXXXXXXXX" value="{{ old('mobile') }}" required>
+            </div>
+            <div class="form-group">
                 <label>Password</label>
                 <input type="password" name="password" class="form-control" placeholder="••••••••" required>
             </div>
