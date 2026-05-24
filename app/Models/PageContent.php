@@ -35,30 +35,30 @@ class PageContent extends Model
         return $this->getLocalized('title');
     }
 
-    public function getSubtitleAttribute($value)
-    {
-        return $this->getLocalized('subtitle');
-    }
+    // public function getSubtitleAttribute($value)
+    // {
+    //     return $this->getLocalized('subtitle');
+    // }
 
-    public function getDescriptionAttribute($value)
-    {
-        return $this->getLocalized('description');
-    }
+    // public function getDescriptionAttribute($value)
+    // {
+    //     return $this->getLocalized('description');
+    // }
 
-    public function getContentAttribute($value)
-    {
-        return $this->getLocalized('content');
-    }
+    // public function getContentAttribute($value)
+    // {
+    //     return $this->getLocalized('content');
+    // }
 
-    public function getHighlightsAttribute($value)
-    {
-        return $this->getLocalized('highlights');
-    }
+    // public function getHighlightsAttribute($value)
+    // {
+    //     return $this->getLocalized('highlights');
+    // }
 
-    public function getMetaAttribute($value)
-    {
-        return $this->getLocalized('meta');
-    }
+    // public function getMetaAttribute($value)
+    // {
+    //     return $this->getLocalized('meta');
+    // }
 
     protected $casts = [
         'highlights' => 'array',
@@ -68,14 +68,6 @@ class PageContent extends Model
         'active' => 'boolean',
     ];
 
-    public function getTitleAttribute($value)
-    {
-        $locale = app()->getLocale();
-        if ($locale == 'bn') {
-            return $this->title_bn ?: $value;
-        }
-        return $value ?: $this->title_bn;
-    }
 
     public function getSubtitleAttribute($value)
     {

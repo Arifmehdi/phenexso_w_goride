@@ -1,18 +1,60 @@
 @extends('admin.master')
 @section('title', 'Page Contents | Admin Dashboard')
+
+@push('css')
+<style>
+    .page-card {
+        border-radius: 16px;
+        border: none;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        transition: transform 0.2s;
+    }
+    .page-card:hover {
+        transform: translateY(-5px);
+    }
+    .slug-badge {
+        font-family: 'Monaco', 'Consolas', monospace;
+        font-size: 12px;
+        background: #f1f5f9;
+        color: #475569;
+        padding: 4px 10px;
+        border-radius: 6px;
+    }
+    .status-badge {
+        padding: 5px 12px;
+        border-radius: 50px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+    .lang-indicator {
+        display: flex;
+        gap: 5px;
+        margin-top: 8px;
+    }
+    .lang-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+    .dot-en { background: #3b82f6; }
+    .dot-bn { background: #10b981; }
+</style>
+@endpush
+
 @section('body')
 
 <div class="content-header">
     <div class="container-fluid">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1 class="m-0"><i class="fas fa-file-alt mr-2"></i>Page Contents</h1>
+                <h1 class="m-0 text-dark"><i class="fas fa-file-invoice mr-2 text-primary"></i>Content Management</h1>
             </div>
-            <div class="col-sm-6">
-                <ol class="breadcrumb float-sm-right">
-                    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
-                    <li class="breadcrumb-item active">Page Contents</li>
-                </ol>
+            <div class="col-sm-6 text-right">
+                <a href="{{ route('admin.page_contents.create') }}" class="btn btn-primary px-4 shadow-sm">
+                    <i class="fas fa-plus-circle mr-1"></i> Create Page
+                </a>
             </div>
         </div>
     </div>
@@ -20,121 +62,70 @@
 
 <div class="content">
     <div class="container-fluid">
+        
+        @if(session('success'))
+            <div class="alert alert-success border-0 shadow-sm mb-4">
+                <i class="fas fa-check-circle mr-2"></i> {{ session('success') }}
+            </div>
+        @endif
+
         <div class="row">
-            <div class="col-12">
-                <div class="card card-primary">
-                    <div class="card-header">
-                        <h3 class="card-title"><i class="fas fa-list mr-2"></i>Manage Page Contents</h3>
-                        <div class="card-tools">
-                            <a href="{{ route('admin.page_contents.create') }}" class="btn btn-sm btn-success">
-                                <i class="fas fa-plus mr-1"></i>Add New Page Content
-                            </a>
+            @forelse($pageContents as $content)
+                <div class="col-md-4 col-sm-6 mb-4">
+                    <div class="card page-card h-100">
+                        <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <span class="slug-badge">{{ $content->page_slug }}</span>
+                                <span class="status-badge {{ $content->active ? 'bg-success-light text-success' : 'bg-danger-light text-danger' }}" style="background: {{ $content->active ? '#ecfdf5' : '#fef2f2' }}">
+                                    {{ $content->active ? 'Live' : 'Draft' }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-body px-4">
+                            <h5 class="font-weight-bold mb-1">{{ $content->getRawOriginal('title') ?: 'Untitled' }}</h5>
+                            <p class="text-muted small mb-3">{{ Str::limit($content->description, 80) }}</p>
+                            
+                            <div class="lang-indicator">
+                                <span class="small text-muted mr-2">Languages:</span>
+                                <span class="lang-dot dot-en" title="English Ready"></span>
+                                @if($content->title_bn)
+                                    <span class="lang-dot dot-bn" title="Bangla Ready"></span>
+                                @endif
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white border-0 px-4 pb-4 pt-0">
+                            <hr class="mt-0">
+                            <div class="d-flex justify-content-between">
+                                <div class="btn-group">
+                                    <a href="{{ route('admin.page_contents.edit', $content->id) }}" class="btn btn-outline-primary btn-sm px-3">
+                                        <i class="fas fa-edit mr-1"></i> Edit
+                                    </a>
+                                    <a href="{{ route('admin.page_contents.show', $content->id) }}" class="btn btn-outline-secondary btn-sm px-2">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </div>
+                                
+                                <form action="{{ route('admin.page_contents.destroy', $content->id) }}" method="POST" onsubmit="return confirm('Permanent delete?')">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="btn btn-link text-danger btn-sm p-0">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
-                    <div class="card-body">
-                        @if($pageContents->count() > 0)
-                            <div class="table-responsive">
-                                <table class="table table-hover table-striped">
-                                    <thead class="thead-dark">
-                                        <tr>
-                                            <th style="width: 5%">#</th>
-                                            <th style="width: 20%">Page Slug</th>
-                                            <th style="width: 25%">Title</th>
-                                            <th style="width: 15%">Description</th>
-                                            <th style="width: 10%">Status</th>
-                                            <th style="width: 25%">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($pageContents as $content)
-                                        <tr>
-                                            <td>{{ $content->id }}</td>
-                                            <td>
-                                                <span class="badge badge-info"><i class="fas fa-bookmark mr-1"></i>{{ ucfirst($content->page_slug) }}</span>
-                                            </td>
-                                            <td>
-                                                <strong>EN:</strong> {{ $content->getRawOriginal('title') }}<br>
-                                                <strong>BN:</strong> {{ $content->title_bn ?: 'Not Set' }}
-                                            </td>
-                                            <td>
-                                                <small class="text-muted">{{ Str::limit($content->description, 50, '...') }}</small>
-                                            </td>
-                                            <td>
-                                                @if($content->active)
-                                                    <span class="badge badge-success"><i class="fas fa-check-circle mr-1"></i>Active</span>
-                                                @else
-                                                    <span class="badge badge-danger"><i class="fas fa-times-circle mr-1"></i>Inactive</span>
-                                                @endif
-                                            </td>
-                                            <td>
-                                                <div class="btn-group btn-group-sm" role="group">
-                                                    <a href="{{ route('admin.page_contents.show', $content->id) }}" class="btn btn-primary" title="View Admin Details">
-                                                        <i class="fas fa-eye"></i>
-                                                    </a>
-
-                                                    @if($content->page_slug == 'home')
-                                                        <a href="{{ route('home') }}" target="_blank" class="btn btn-info" title="View Frontend Page">
-                                                            <i class="fas fa-link"></i>
-                                                        </a>
-                                                    @elseif($content->page_slug == 'about')
-                                                        <a href="{{ route('about') }}" target="_blank" class="btn btn-info" title="View Frontend Page">
-                                                            <i class="fas fa-link"></i>
-                                                        </a>
-                                                    @elseif($content->page_slug == 'services')
-                                                        <a href="{{ route('service') }}" target="_blank" class="btn btn-info" title="View Frontend Page">
-                                                            <i class="fas fa-link"></i>
-                                                        </a>
-                                                    @elseif($content->page_slug == 'fleet')
-                                                        <a href="{{ route('fleet') }}" target="_blank" class="btn btn-info" title="View Frontend Page">
-                                                            <i class="fas fa-link"></i>
-                                                        </a>
-                                                    @elseif($content->page_slug == 'tours')
-                                                        <a href="{{ route('tours') }}" target="_blank" class="btn btn-info" title="View Frontend Page">
-                                                            <i class="fas fa-link"></i>
-                                                        </a>
-                                                    @endif
-
-                                                    <a href="{{ route('admin.page_contents.edit', $content->id) }}" class="btn btn-warning" title="Edit">
-                                                        <i class="fas fa-edit"></i>
-                                                    </a>
-
-                                                    <form action="{{ route('admin.page_contents.destroy', $content->id) }}" method="POST" style="display:inline;">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" class="btn btn-danger" title="Delete" onclick="return confirm('Are you sure you want to delete this page content?')">
-                                                            <i class="fas fa-trash"></i>
-                                                        </button>
-                                                    </form>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <div class="row mt-3">
-                                <div class="col-md-6">
-                                    <p class="text-muted"><small>Total Records: {{ $pageContents->total() }}</small></p>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="float-right">
-                                        {{ $pageContents->links() }}
-                                    </div>
-                                </div>
-                            </div>
-                        @else
-                            <div class="alert alert-info alert-dismissible fade show" role="alert">
-                                <i class="fas fa-info-circle mr-2"></i>
-                                <strong>No page contents found!</strong> Create your first page content by clicking the "Add New Page Content" button.
-                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                        @endif
-                    </div>
                 </div>
-            </div>
+            @empty
+                <div class="col-12 text-center py-5">
+                    <img src="https://illustrations.popsy.co/gray/data-analysis.svg" style="height: 200px;" alt="Empty">
+                    <h4 class="mt-4 text-muted">No pages managed yet</h4>
+                    <a href="{{ route('admin.page_contents.create') }}" class="btn btn-primary mt-3">Create Page Content</a>
+                </div>
+            @endforelse
+        </div>
+
+        <div class="d-flex justify-content-center mt-4">
+            {{ $pageContents->links() }}
         </div>
     </div>
 </div>

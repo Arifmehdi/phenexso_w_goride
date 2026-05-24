@@ -19,6 +19,9 @@ use App\Models\Menu;
 use App\Models\Page;
 use App\Models\User;
 use App\Models\Visit;
+use App\Models\Driver;
+use App\Models\Corporate;
+use App\Models\Admin;
 use Illuminate\Http\Request;
 
 class SearchController extends Controller
@@ -43,6 +46,35 @@ class SearchController extends Controller
             ->paginate(100);
             // $users->appends(['q'=> $q, 'type'=>$type]);
             $html = view('admin.users.search_data', ['users' => $users]);
+        }
+        elseif($type == 'driver')
+        {
+            $drivers = Driver::where('name', 'like', "%". $q."%")
+            ->orWhere('email', 'like', "%". $q ."%")
+            ->orWhere('mobile', 'like', "%". $q ."%")
+            ->orWhere('id', 'like', "%". $q ."%")
+            ->orderBy('name')
+            ->paginate(100);
+            $html = view('admin.drivers.search_data', ['drivers' => $drivers]);
+        }
+        elseif($type == 'corporate')
+        {
+            $corporates = Corporate::where('name', 'like', "%". $q."%")
+            ->orWhere('email', 'like', "%". $q ."%")
+            ->orWhere('company_name', 'like', "%". $q ."%")
+            ->orWhere('id', 'like', "%". $q ."%")
+            ->orderBy('name')
+            ->paginate(100);
+            $html = view('admin.corporates.search_data', ['corporates' => $corporates]);
+        }
+        elseif($type == 'admin')
+        {
+            $admins = Admin::where('name', 'like', "%". $q."%")
+            ->orWhere('email', 'like', "%". $q ."%")
+            ->orWhere('id', 'like', "%". $q ."%")
+            ->orderBy('name')
+            ->paginate(100);
+            $html = view('admin.admins.search_data', ['admins' => $admins]);
         }
         elseif($type == 'post')
         {

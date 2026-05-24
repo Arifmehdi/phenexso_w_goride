@@ -2,11 +2,15 @@
 
 @section('title', 'About Us | GoRide Bangladesh')
 
+@php
+    $locale = app()->getLocale();
+@endphp
+
 @section('content')
 <div class="page-hero">
     <div class="page-hero-content">
-        <h1>{{ $pageContents['about']->title ?? 'About GoRide Bangladesh' }}</h1>
-        <p>{{ $pageContents['about']->subtitle ?? 'Our story, mission, and the values that drive us forward every day.' }}</p>
+        <h1>{{ $locale == 'bn' ? ($pageContents['about']->title_bn ?? $pageContents['about']->title) : ($pageContents['about']->title ?? 'About GoRide Bangladesh') }}</h1>
+        <p>{{ $locale == 'bn' ? ($pageContents['about']->subtitle_bn ?? $pageContents['about']->subtitle) : ($pageContents['about']->subtitle ?? 'Our story, mission, and the values that drive us forward every day.') }}</p>
         <div class="breadcrumb">
             <a href="{{ route('home') }}">Home</a>
             <i class="fas fa-chevron-right"></i>
@@ -19,14 +23,21 @@
     <div class="container">
         <div class="about-grid">
             <div class="about-text">
-                <div class="section-label"><i class="fas fa-flag"></i> {{ $pageContents['about']->title ?? 'Our Story' }}</div>
-                <h2>{{ $pageContents['about']->title ?? 'Transforming Transport in Bangladesh Since 2026' }}</h2>
-                <p>{{ $pageContents['about']->content ?? 'GoRide Bangladesh was founded with a single, clear mission: to make transportation reliable, accessible, and efficient for every person in Bangladesh — from corporate executives to everyday commuters.' }}</p>
-                <p>{{ $pageContents['about']->meta['paragraph_2'] ?? 'As a bilingual marketplace serving both English and Bangla speakers, we have eliminated communication barriers and brought together vehicle owners, professional drivers, and customers on one seamless platform.' }}</p>
-                <p>{{ $pageContents['about']->meta['paragraph_3'] ?? 'Our mobile-first approach means GoRide is always right in your pocket — ready when you need to book a quick city trip or a week-long inter-district journey.' }}</p>
+                <div class="section-label"><i class="fas fa-flag"></i> {{ $locale == 'bn' ? 'আমাদের গল্প' : 'Our Story' }}</div>
+                <h2>{{ $locale == 'bn' ? ($pageContents['about']->title_bn ?? $pageContents['about']->title) : ($pageContents['about']->title ?? 'Transforming Transport in Bangladesh Since 2026') }}</h2>
+                <p>{{ $locale == 'bn' ? ($pageContents['about']->content_bn ?? $pageContents['about']->content) : ($pageContents['about']->content ?? '') }}</p>
+                
+                @php
+                    $p2 = $locale == 'bn' ? ($pageContents['about']->meta_bn['paragraph_2'] ?? $pageContents['about']->meta['paragraph_2'] ?? '') : ($pageContents['about']->meta['paragraph_2'] ?? '');
+                    $p3 = $locale == 'bn' ? ($pageContents['about']->meta_bn['paragraph_3'] ?? $pageContents['about']->meta['paragraph_3'] ?? '') : ($pageContents['about']->meta['paragraph_3'] ?? '');
+                @endphp
+                
+                @if($p2) <p>{{ $p2 }}</p> @endif
+                @if($p3) <p>{{ $p3 }}</p> @endif
+
                 <div class="about-highlights">
                     @php
-                        $highlights = $pageContents['about']->highlights;
+                        $highlights = $locale == 'bn' ? ($pageContents['about']->highlights_bn ?? $pageContents['about']->highlights) : ($pageContents['about']->highlights ?? []);
                         if (is_string($highlights)) {
                             $highlights = json_decode($highlights, true);
                         }
@@ -48,7 +59,7 @@
                 @if(isset($pageContents['about']->meta['image']) && $pageContents['about']->meta['image'])
                     <img src="{{ asset('storage/page_contents/' . $pageContents['about']->meta['image']) }}" alt="{{ $pageContents['about']->title ?? 'GoRide journey' }}">
                 @else
-                    <img src="{{ asset('goride/assets/banner/banner_01.jpg') }}" alt="GoRide journey">
+                    <img src="{{ asset('goride/assets/banner_01.jpg') }}" alt="GoRide journey">
                 @endif
             </div>
         </div>
@@ -65,8 +76,8 @@
                 @foreach($vm_cards as $card)
                     <div class="vm-card">
                         <div class="vm-icon"><i class="{{ $card['icon'] ?? 'fas fa-check' }}"></i></div>
-                        <h3>{{ $card['title'] ?? '' }}</h3>
-                        <p>{{ $card['description'] ?? '' }}</p>
+                        <h3>{{ $locale == 'bn' ? ($card['title_bn'] ?? $card['title']) : ($card['title'] ?? '') }}</h3>
+                        <p>{{ $locale == 'bn' ? ($card['description_bn'] ?? $card['description']) : ($card['description'] ?? '') }}</p>
                     </div>
                 @endforeach
             @else
@@ -99,17 +110,17 @@
 <section class="app-section">
     <div class="container">
         <div style="text-align:center; max-width:600px; margin:0 auto;">
-            <span class="app-label" style="margin-bottom:20px;display:inline-flex;"><i class="fas fa-mobile-screen-button"></i> Mobile App</span>
-            <h2 style="font-family:'Sora',sans-serif;font-size:clamp(1.9rem,3.5vw,2.8rem);font-weight:800;margin-bottom:18px;">Carry GoRide<br><span style="color:#7defa0;">Everywhere You Go</span></h2>
-            <p style="opacity:0.8;margin-bottom:36px;">Book rides, track journeys, and explore Bangladesh — all from our mobile app. Available on iOS and Android.</p>
+            <span class="app-label" style="margin-bottom:20px;display:inline-flex;"><i class="fas fa-mobile-screen-button"></i> {{ __('goride.app.label') }}</span>
+            <h2 style="font-family:'Sora',sans-serif;font-size:clamp(1.9rem,3.5vw,2.8rem);font-weight:800;margin-bottom:18px;">{{ __('goride.app.title') }}<br><span style="color:#7defa0;">{{ __('goride.app.span') }}</span></h2>
+            <p style="opacity:0.8;margin-bottom:36px;">{{ __('goride.app.desc') }}</p>
             <div class="app-download-btns" style="justify-content:center;">
                 <a href="#" class="app-store-btn">
                     <i class="fab fa-apple"></i>
-                    <div class="store-text"><small>Download on the</small><strong>App Store</strong></div>
+                    <div class="store-text"><small>{{ __('goride.app.download_apple') }}</small><strong>App Store</strong></div>
                 </a>
                 <a href="#" class="app-store-btn">
                     <i class="fab fa-google-play"></i>
-                    <div class="store-text"><small>Get it on</small><strong>Google Play</strong></div>
+                    <div class="store-text"><small>{{ __('goride.app.download_google') }}</small><strong>Google Play</strong></div>
                 </a>
             </div>
         </div>

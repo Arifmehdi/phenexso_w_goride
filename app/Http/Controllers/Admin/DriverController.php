@@ -3,11 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Driver; // Import the Driver model
-use App\Models\User;
+use App\Models\Driver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-
 
 class DriverController extends Controller
 {
@@ -19,8 +17,7 @@ class DriverController extends Controller
     public function index()
     {
         menuSubmenu('drivers', 'allDrivers');
-        // $drivers = Driver::latest()->paginate(10);
-        $drivers = User::where('role', 'driver')->latest()->paginate(10);
+        $drivers = Driver::latest()->paginate(10);
         return view('admin.drivers.index', compact('drivers'));
     }
 
@@ -46,22 +43,19 @@ class DriverController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'mobile' => 'required|string|max:20|unique:users',
-            'email' => 'nullable|string|email|max:255|unique:users',
+            'mobile' => 'required|string|max:20|unique:drivers',
+            'email' => 'nullable|string|email|max:255|unique:drivers',
+            'password' => 'required|string|min:8|confirmed',
             'license_no' => 'nullable|string|max:255',
             'nid' => 'nullable|string|max:255',
             'address' => 'nullable|string|max:500',
-            'is_approve' => 'required|integer|in:0,1',
-            'vehicle_id' => 'nullable|exists:vehicles,id',
+            'status' => 'required|integer|in:0,1',
         ]);
 
         $data = $request->all();
+        $data['password'] = Hash::make($request->password);
 
-        // Set default password
-        $data['password'] = Hash::make('Hubli@2025');
-        $data['role'] = 'driver';
-
-        User::create($data);
+        Driver::create($data);
 
         return redirect()->route('admin.drivers.index')
                         ->with('success', 'Driver created successfully.');
@@ -73,8 +67,9 @@ class DriverController extends Controller
      * @param  \App\Models\Driver  $driver
      * @return \Illuminate\Http\Response
      */
-    public function edit(User $driver)
+    public function edit(Driver $driver)
     {
+        menuSubmenu('drivers', 'allDrivers');
         $vehicles = \App\Models\Vehicle::where('status', 1)->get();
         return view('admin.drivers.edit', compact('driver', 'vehicles'));
     }
@@ -86,20 +81,25 @@ class DriverController extends Controller
      * @param  \App\Models\Driver  $driver
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, User $driver)
+    public function update(Request $request, Driver $driver)
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'mobile' => 'required|string|max:20|unique:users,mobile,' . $driver->id,
-            'email' => 'nullable|string|email|max:255|unique:users,email,' . $driver->id,
+            'mobile' => 'required|string|max:20|unique:drivers,mobile,' . $driver->id,
+            'email' => 'nullable|string|email|max:255|unique:drivers,email,' . $driver->id,
+            'password' => 'nullable|string|min:8|confirmed',
             'license_no' => 'nullable|string|max:255',
             'nid' => 'nullable|string|max:255',
             'address' => 'nullable|string|max:500',
-            'is_approve' => 'required|integer|in:0,1',
-            'vehicle_id' => 'nullable|exists:vehicles,id',
+            'status' => 'required|integer|in:0,1',
         ]);
 
-        $driver->update($request->all());
+        $data = $request->except(['password', 'password_confirmation']);
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+        }
+
+        $driver->update($data);
 
         return redirect()->route('admin.drivers.index')->with('success', 'Driver updated successfully.');
     }
@@ -110,9 +110,10 @@ class DriverController extends Controller
      * @param  \App\Models\Driver  $driver
      * @return \Illuminate\Http\Response
      */
-    public function destroy(User $driver)
+    public function destroy(Driver $driver)
     {
         $driver->delete();
         return redirect()->route('admin.drivers.index')->with('success', 'Driver deleted successfully.');
     }
 }
+

@@ -139,4 +139,14 @@ function generateSlug($title, $seperator = '-')
   return trim($title);
 }
 
+function currentUser()
+{
+    foreach (['web', 'admin', 'driver', 'corporate'] as $guard) {
+        if (Auth::guard($guard)->check()) {
+            return Auth::guard($guard)->user();
+        }
+    }
+    return null;
+}
+
 

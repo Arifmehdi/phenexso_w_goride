@@ -1,5 +1,5 @@
 @extends('admin.master')
-@section('title',"Admin Dashboard | Drivers")
+@section('title',"Admin Dashboard | Corporates")
 
 @section('body')
     <section class="content py-5">
@@ -9,11 +9,11 @@
 
                     <div class="card">
                         <div class="card-header">
-                            <h3 class="card-title">All Drivers</h3>
+                            <h3 class="card-title">All Corporates</h3>
                             <div class="card-tools">
-                                <a href="{{ route('admin.drivers.create') }}" class="btn btn-success btn-sm mr-2">Add New Driver</a>
+                                <a href="{{ route('admin.corporates.create') }}" class="btn btn-success btn-sm mr-2">Add New Corporate</a>
                                 <div class="input-group input-group-sm" style="display: inline-flex; width: 250px;">
-                                    <input type="search" name="q" class="global-search form-control float-right" data-url="{{ route('admin.global-search-ajax',['type'=>'driver']) }}" placeholder="Search name, email, mobile...">
+                                    <input type="search" name="q" class="global-search form-control float-right" data-url="{{ route('admin.global-search-ajax',['type'=>'corporate']) }}" placeholder="Search name, company, email...">
                                     <div class="input-group-append">
                                         <button type="submit" class="btn btn-default">
                                             <i class="fas fa-search"></i>
@@ -25,7 +25,7 @@
 
                         <div class="card-body p-0 mb-0">
                             <div class="table-responsive data-container">
-                                @include('admin.drivers.search_data')
+                                @include('admin.corporates.search_data')
                             </div>
                         </div>
                     </div>

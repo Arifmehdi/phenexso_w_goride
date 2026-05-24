@@ -1,4 +1,4 @@
-<table id="example1" class="table table-sm table-bordered table-striped">
+<table id="example1" class="table table-sm table-bordered table-striped text-nowrap">
     <thead>
     <tr>
         <th width="20">SL</th>
@@ -15,7 +15,7 @@
         <?php $i = (($users->currentPage() - 1) * $users->perPage() + 1); ?>
 
         @foreach($users as $user)
-        <tr style="height: {{ $users->count() < 3 ? '100px' : '' }};">
+        <tr>
             <td>{{$i++}}</td>
             <td>
 
