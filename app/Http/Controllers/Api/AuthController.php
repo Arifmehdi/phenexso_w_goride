@@ -25,45 +25,106 @@ class AuthController extends Controller
         $request->validate([
             'login'    => 'required|string',
             'password' => 'required|string',
+            'role'     => 'nullable|string|in:user,admin,driver,corporate'
         ]);
 
         $login_type = filter_var($request->input('login'), FILTER_VALIDATE_EMAIL) ? 'email' : 'mobile';
+        $login_value = $request->input('login');
         
         $credentials = [
-            $login_type => $request->input('login'),
+            $login_type => $login_value,
             'password' => $request->input('password'),
         ];
 
-        if (!Auth::attempt($credentials)) {
+        $guards = ['web', 'admin', 'driver', 'corporate'];
+        if ($request->role) {
+            $requestedGuard = $request->role === 'user' ? 'web' : $request->role;
+            // Move requested guard to the front of the array to prioritize it
+            $guards = array_unique(array_merge([$requestedGuard], $guards));
+        }
+
+        $user = null;
+        $activeGuard = null;
+
+        // 1. Try attempting login with provided credentials across relevant guards
+        foreach ($guards as $guard) {
+            if (Auth::guard($guard)->attempt($credentials)) {
+                $user = Auth::guard($guard)->user();
+                $activeGuard = $guard;
+                break;
+            }
+        }
+
+        // 2. If it fails and it's a mobile login, try with formatted mobile
+        if (!$user && $login_type === 'mobile') {
+            $formattedMobile = bdMobile($login_value);
+            if ($formattedMobile !== $login_value) {
+                $credentials['mobile'] = $formattedMobile;
+                foreach ($guards as $guard) {
+                    if (Auth::guard($guard)->attempt($credentials)) {
+                        $user = Auth::guard($guard)->user();
+                        $activeGuard = $guard;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!$user) {
             return response()->json([
+                'success' => false,
                 'message' => 'Invalid credentials'
             ], 401);
         }
 
-        $user = Auth::user();
+        // Check if user is active/approved
+        $status = $user->status ?? null;
+        $isApprove = $user->is_approve ?? null;
+        $isActive = true;
 
-        // Check if user is active
-        if ($user->status !== 'active') {
-            Auth::logout();
+        if ($status !== null) {
+            // Handle both string ('active', 'approved') and integer (1) status
+            if (!in_array($status, [1, '1', 'active', 'approved'])) {
+                $isActive = false;
+            }
+        }
+
+        // Also check is_approve if it exists (some models use this)
+        if ($isActive && $isApprove !== null) {
+            if ($isApprove == 0 || $isApprove === false) {
+                $isActive = false;
+            }
+        }
+
+        if (!$isActive) {
             return response()->json([
-                'message' => 'Your account is ' . $user->status . '. Please contact support.'
+                'success' => false,
+                'message' => 'Your account is ' . ($status ?: 'pending approval') . '. Please contact support.'
             ], 403);
         }
 
-        // Merge guest cart items
-        $guestSessionId = $request->header('X-Session-ID') ?: $request->session_id;
-        if ($guestSessionId) {
-            $cartController->mergeGuestCart($user->id, $guestSessionId);
+        // Merge guest cart items only for web users
+        if ($activeGuard === 'web') {
+            $guestSessionId = $request->header('X-Session-ID') ?: $request->session_id;
+            if ($guestSessionId) {
+                $cartController->mergeGuestCart($user->id, $guestSessionId);
+            }
         }
 
-        // delete old tokens
+        // Delete old tokens to ensure single session if desired, or just create new one
         $user->tokens()->delete();
 
         $token = $user->createToken('flutter')->plainTextToken;
 
+        // Determine the role for the response
+        $role = $activeGuard === 'web' ? 'user' : $activeGuard;
+
         return response()->json([
-            'token' => $token,
-            'user' => new UserResource($user)
+            'success' => true,
+            'token'   => $token,
+            'user'    => $user,
+            'role'    => $role,
+            'guard'   => $activeGuard
         ]);
     }
 
@@ -152,6 +213,29 @@ class AuthController extends Controller
     //         'user' => new UserResource($user)
     //     ], 201);
     // }
+
+    public function me(Request $request)
+    {
+        $user = $request->user();
+        
+        // Determine role based on the model class or role attribute
+        $role = 'user';
+        if ($user instanceof \App\Models\Admin) {
+            $role = 'admin';
+        } elseif ($user instanceof \App\Models\Driver) {
+            $role = 'driver';
+        } elseif ($user instanceof \App\Models\Corporate) {
+            $role = 'corporate';
+        } elseif (isset($user->role)) {
+            $role = $user->role;
+        }
+
+        return response()->json([
+            'success' => true,
+            'user'    => $user,
+            'role'    => $role
+        ]);
+    }
 
     public function logout(Request $request)
     {
