@@ -225,7 +225,7 @@ Route::get('/health-card',[AuthController::class,'healthCard'])->name('health.re
 Route::post('/register',[AuthController::class,'register'])->name('register');
 Route::post('/main-register',[AuthController::class,'mainRegister'])->name('main.register');
 
-Route::middleware(['auth:web,admin,driver,corporate'])->group(function() {
+Route::middleware(['auth:web,admin,driver,corporate', 'active'])->group(function() {
     Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard.index');
     
     // Corporate Dashboard Routes

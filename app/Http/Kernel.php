@@ -73,6 +73,7 @@ class Kernel extends HttpKernel
         'userRole' => \App\Http\Middleware\UserRoleMiddleware::class,
         'retailer' => \App\Http\Middleware\RetailerMiddleware::class,
         'locale' => \App\Http\Middleware\LocaleMiddleware::class,
+        'active' => \App\Http\Middleware\EnsureAccountIsActive::class,
 
     ];
 }

@@ -84,7 +84,8 @@ class AuthController extends Controller
 
         if ($status !== null) {
             // Handle both string ('active', 'approved') and integer (1) status
-            if (!in_array($status, [1, '1', 'active', 'approved'])) {
+            // Non-active: 'pending', 0, '0', 'suspended', 'rejected'
+            if (in_array($status, ['pending', 0, '0', 'suspended', 'rejected'])) {
                 $isActive = false;
             }
         }
@@ -99,7 +100,7 @@ class AuthController extends Controller
         if (!$isActive) {
             return response()->json([
                 'success' => false,
-                'message' => 'Your account is ' . ($status ?: 'pending approval') . '. Please contact support.'
+                'message' => 'Your account is pending approval or inactive. Please contact support.'
             ], 403);
         }
 
@@ -134,7 +135,8 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name'         => 'required|string|max:255',
-            'email'        => 'required|email|unique:users,email',
+            'email'        => 'required|email',
+            'mobile'       => 'required|string',
             'password'     => 'required|string|min:8|confirmed',
             'role'         => 'nullable|string|in:user,driver,owner,corporate,solo',
             'company_name' => 'nullable|string|max:255',
@@ -150,27 +152,64 @@ class AuthController extends Controller
         }
 
         $role = $request->input('role', 'solo');
+        
+        // Customers (solo/user) are active by default, others are pending
+        $isCustomer = ($role === 'solo' || $role === 'user');
+        $status = $isCustomer ? 'active' : 'pending';
 
-        $user = User::create([
-            'company_name' => $request->company_name,
-            'vehicle_type' => $request->vehicle_type,
+        $userData = [
             'name'         => $request->name,
             'email'        => $request->email,
+            'mobile'       => $request->mobile,
             'password'     => Hash::make($request->password),
-            'role'         => $role,
-            'status'       => ($role === 'solo' || $role === 'user') ? 'active' : 'pending',
-        ]);
+            'status'       => $status,
+        ];
 
-        // Create API token (Sanctum)
-        $token = $user->createToken('auth_token')->plainTextToken;
+        if ($role === 'driver') {
+            if (\App\Models\Driver::where('email', $request->email)->exists()) {
+                return response()->json(['success' => false, 'message' => 'Driver with this email already exists'], 400);
+            }
+            $userData['status'] = 0; // Drivers use tinyInteger status
+            $user = \App\Models\Driver::create($userData);
+        } elseif ($role === 'corporate') {
+            if (\App\Models\Corporate::where('email', $request->email)->exists()) {
+                return response()->json(['success' => false, 'message' => 'Corporate user with this email already exists'], 400);
+            }
+            $userData['company_name'] = $request->company_name;
+            $user = \App\Models\Corporate::create($userData);
+        } else {
+            if (\App\Models\User::where('email', $request->email)->exists()) {
+                return response()->json(['success' => false, 'message' => 'User with this email already exists'], 400);
+            }
+            $userData['role'] = $role;
+            $userData['company_name'] = $request->company_name;
+            $userData['vehicle_type'] = $request->vehicle_type;
+            $user = User::create($userData);
+        }
+
+        $isPending = false;
+        if ($user->status === 'pending' || $user->status === 0 || $user->status === '0') {
+            $isPending = true;
+        }
+
+        if ($isPending) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Registration successful! Your account is pending approval. You will be able to login once approved.',
+                'user'    => $user,
+                'pending' => true
+            ], 201);
+        }
+
+        // Create API token (Sanctum) for active users
+        $token = $user->createToken('flutter')->plainTextToken;
 
         return response()->json([
             'success' => true,
             'message' => 'Registration successful',
-            'data' => [
-                'user'  => $user,
-                'token' => $token,
-            ]
+            'token'   => $token,
+            'user'    => $user,
+            'role'    => $role
         ], 201);
     }
 
