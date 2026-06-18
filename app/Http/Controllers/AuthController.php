@@ -54,7 +54,7 @@ class AuthController extends Controller
             'password' => $request->input('password'),
         ];
 
-        // 1. Try the requested guard first (Strictly if multiple accounts exist)
+        // Try the requested guard only (exact match - no fallback to other guards)
         if (Auth::guard($requestedGuard)->attempt($credentials, $request->boolean('remember'))) {
             if ($requestedGuard === 'web') {
                 $this->cartSessionToUser();
@@ -62,18 +62,7 @@ class AuthController extends Controller
             return $this->redirectAfterLogin($requestedGuard);
         }
 
-        // 2. If it fails, check if account exists in OTHER guards to be helpful
-        $otherGuards = array_diff(['web', 'driver', 'corporate', 'admin'], [$requestedGuard]);
-        foreach ($otherGuards as $guard) {
-            if (Auth::guard($guard)->attempt($credentials, $request->boolean('remember'))) {
-                if ($guard === 'web') {
-                    $this->cartSessionToUser();
-                }
-                return $this->redirectAfterLogin($guard);
-            }
-        }
-
-        // 3. Special check for mobile formatting if it's a mobile login
+        // Special check for mobile formatting if it's a mobile login
         if ($login_type === 'mobile') {
             $formattedMobile = bdMobile($request->input('login'));
             if ($formattedMobile !== $request->input('login')) {
@@ -82,10 +71,11 @@ class AuthController extends Controller
                     'password' => $request->input('password'),
                 ];
                 
-                foreach (['web', 'driver', 'corporate', 'admin'] as $guard) {
-                    if (Auth::guard($guard)->attempt($formattedCredentials, $request->boolean('remember'))) {
-                        return $this->redirectAfterLogin($guard);
+                if (Auth::guard($requestedGuard)->attempt($formattedCredentials, $request->boolean('remember'))) {
+                    if ($requestedGuard === 'web') {
+                        $this->cartSessionToUser();
                     }
+                    return $this->redirectAfterLogin($requestedGuard);
                 }
             }
         }

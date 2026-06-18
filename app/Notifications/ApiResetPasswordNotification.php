@@ -52,22 +52,23 @@ class ApiResetPasswordNotification extends Notification
             ], false)); // Use false for relative URL for API, if needed, or adjust
         }
 
-        // For API, we might just want to send the token and email directly,
-        // or a URL that the client app can parse.
-        // Let's assume the client app expects a URL like:
-        // YOUR_APP_FRONTEND_URL/reset-password?token=XXX&email=YYY
-        // Or simply provide the token and email in the mail body.
-
-        $frontendResetUrl = env('FRONTEND_URL') . '/reset-password?token=' . $this->token . '&email=' . $notifiable->getEmailForPasswordReset();
-
+        // Build the reset URL: prefer FRONTEND_URL, fallback to APP_URL, then to request root
+        $baseUrl = env('FRONTEND_URL');
+        if (empty($baseUrl)) {
+            $baseUrl = env('APP_URL');
+        }
+        if (empty($baseUrl)) {
+            $baseUrl = url('/');
+        }
+        $frontendResetUrl = rtrim($baseUrl, '/') . '/reset-password?token=' . $this->token . '&email=' . $notifiable->getEmailForPasswordReset();
 
         return (new MailMessage)
-                    ->subject('Reset Password Notification')
+                    ->subject('Reset Password Notification - GoRide')
                     ->line('You are receiving this email because we received a password reset request for your account.')
                     ->action('Reset Password', $frontendResetUrl)
                     ->line('This password reset link will expire in ' . config('auth.passwords.users.expire') . ' minutes.')
                     ->line('If you did not request a password reset, no further action is required.')
-                    ->line('Alternatively, you can use the following token and email in your application to reset your password:')
+                    ->line('You can also use the following token and email in the GoRide app to reset your password:')
                     ->line('Token: ' . $this->token)
                     ->line('Email: ' . $notifiable->getEmailForPasswordReset());
     }

@@ -263,17 +263,21 @@ Route::post('password/email', [App\Http\Controllers\Auth\ForgotPasswordControlle
 Route::get('password/reset/{token}', [App\Http\Controllers\Auth\ResetPasswordController::class, 'showResetForm'])->name('password.reset');
 Route::post('password/reset', [App\Http\Controllers\Auth\ResetPasswordController::class, 'reset'])->name('password.update');
 
-// Password Reset Frontend Bridge
+// Password Reset Frontend Bridge - renders the actual reset form
 Route::get('/reset-password', function (Illuminate\Http\Request $request) {
     $token = $request->input('token');
     $email = $request->input('email');
-    $frontendUrl = env('FRONTEND_URL');
 
-    if (!$frontendUrl) {
-        return "FRONTEND_URL is not configured in .env file. Please set it to your frontend application's base URL.";
+    if (!$token || !$email) {
+        return redirect()->route('password.request')
+            ->withErrors(['email' => 'Invalid password reset link. Please request a new one.']);
     }
 
-    return redirect()->to($frontendUrl . '/reset-password?token=' . $token . '&email=' . $email);
+    return view('goride.auth.passwords.reset', [
+        'token' => $token,
+        'email' => $email,
+        'guard' => $request->input('guard', 'web'),
+    ]);
 })->name('password.reset.web');
 
 

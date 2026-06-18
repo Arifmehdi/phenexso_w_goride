@@ -62,6 +62,13 @@ Route::middleware('auth:sanctum')->group(function () {
     // 
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
 
+    // Ride Request Routes
+    Route::post('/ride-requests', [\App\Http\Controllers\Api\RideRequestController::class, 'store']);
+    Route::patch('/ride-requests/{id}/status', [\App\Http\Controllers\Api\RideRequestController::class, 'updateStatus']);
+    Route::post('/update-location', [\App\Http\Controllers\Api\RideRequestController::class, 'updateLocation']);
+    Route::get('/nearby-drivers', [\App\Http\Controllers\Api\RideRequestController::class, 'nearbyDrivers']);
+    Route::get('/active-ride', [\App\Http\Controllers\Api\RideRequestController::class, 'activeRide']);
+
     Route::apiResource('products', ProductController::class)->except(['index', 'show']);
     Route::post('products/bulk-store', [ProductController::class, 'bulkStore']);
     // Authenticated API routes for Cart and Orders

@@ -36,35 +36,59 @@ class AuthController extends Controller
             'password' => $request->input('password'),
         ];
 
-        $guards = ['web', 'admin', 'driver', 'corporate'];
-        if ($request->role) {
-            $requestedGuard = $request->role === 'user' ? 'web' : $request->role;
-            // Move requested guard to the front of the array to prioritize it
-            $guards = array_unique(array_merge([$requestedGuard], $guards));
-        }
-
         $user = null;
         $activeGuard = null;
 
-        // 1. Try attempting login with provided credentials across relevant guards
-        foreach ($guards as $guard) {
-            if (Auth::guard($guard)->attempt($credentials)) {
-                $user = Auth::guard($guard)->user();
-                $activeGuard = $guard;
-                break;
+        if ($request->role) {
+            // Exact match: when a role is specified, ONLY try that guard
+            $requestedGuard = $request->role === 'user' ? 'web' : $request->role;
+            
+            // Try with the provided credentials first
+            if (Auth::guard($requestedGuard)->attempt($credentials)) {
+                $user = Auth::guard($requestedGuard)->user();
+                $activeGuard = $requestedGuard;
             }
-        }
+            
+            // If not found and it's a mobile login, try with formatted mobile
+            if (!$user && $login_type === 'mobile') {
+                $formattedMobile = bdMobile($login_value);
+                if ($formattedMobile !== $login_value) {
+                    $formattedCredentials = [
+                        'mobile' => $formattedMobile,
+                        'password' => $request->input('password'),
+                    ];
+                    if (Auth::guard($requestedGuard)->attempt($formattedCredentials)) {
+                        $user = Auth::guard($requestedGuard)->user();
+                        $activeGuard = $requestedGuard;
+                    }
+                }
+            }
+        } else {
+            // No role specified: try all guards (backward compatibility)
+            $guards = ['web', 'admin', 'driver', 'corporate'];
+            
+            foreach ($guards as $guard) {
+                if (Auth::guard($guard)->attempt($credentials)) {
+                    $user = Auth::guard($guard)->user();
+                    $activeGuard = $guard;
+                    break;
+                }
+            }
 
-        // 2. If it fails and it's a mobile login, try with formatted mobile
-        if (!$user && $login_type === 'mobile') {
-            $formattedMobile = bdMobile($login_value);
-            if ($formattedMobile !== $login_value) {
-                $credentials['mobile'] = $formattedMobile;
-                foreach ($guards as $guard) {
-                    if (Auth::guard($guard)->attempt($credentials)) {
-                        $user = Auth::guard($guard)->user();
-                        $activeGuard = $guard;
-                        break;
+            // If it fails and it's a mobile login, try with formatted mobile
+            if (!$user && $login_type === 'mobile') {
+                $formattedMobile = bdMobile($login_value);
+                if ($formattedMobile !== $login_value) {
+                    $formattedCredentials = [
+                        'mobile' => $formattedMobile,
+                        'password' => $request->input('password'),
+                    ];
+                    foreach ($guards as $guard) {
+                        if (Auth::guard($guard)->attempt($formattedCredentials)) {
+                            $user = Auth::guard($guard)->user();
+                            $activeGuard = $guard;
+                            break;
+                        }
                     }
                 }
             }
@@ -77,31 +101,21 @@ class AuthController extends Controller
             ], 401);
         }
 
-        // Check if user is active/approved
+        // Determine approval status
         $status = $user->status ?? null;
         $isApprove = $user->is_approve ?? null;
         $isActive = true;
 
         if ($status !== null) {
-            // Handle both string ('active', 'approved') and integer (1) status
-            // Non-active: 'pending', 0, '0', 'suspended', 'rejected'
             if (in_array($status, ['pending', 0, '0', 'suspended', 'rejected'])) {
                 $isActive = false;
             }
         }
 
-        // Also check is_approve if it exists (some models use this)
         if ($isActive && $isApprove !== null) {
             if ($isApprove == 0 || $isApprove === false) {
                 $isActive = false;
             }
-        }
-
-        if (!$isActive) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Your account is pending approval or inactive. Please contact support.'
-            ], 403);
         }
 
         // Merge guest cart items only for web users
@@ -121,11 +135,12 @@ class AuthController extends Controller
         $role = $activeGuard === 'web' ? 'user' : $activeGuard;
 
         return response()->json([
-            'success' => true,
-            'token'   => $token,
-            'user'    => $user,
-            'role'    => $role,
-            'guard'   => $activeGuard
+            'success'      => true,
+            'token'        => $token,
+            'user'         => $user,
+            'role'         => $role,
+            'guard'        => $activeGuard,
+            'is_approved'  => $isActive,
         ]);
     }
 
