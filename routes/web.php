@@ -693,6 +693,10 @@ Route::middleware(['auth:admin,web', 'userRole:admin'])->prefix('admin')->group(
     // Vehicle Assignment Admin Routes
     Route::resource('vehicle-assignments', \App\Http\Controllers\Admin\VehicleAssignmentController::class)->names('admin.vehicle_assignments');
 
+    // Approvals Management    
+    Route::get('/approvals', [AppHttpControllersAdminApprovalController::class, 'index'])->name('admin.approvals.index');    
+    Route::post('/users/{id}/approve', [AppHttpControllersAdminApprovalController::class, 'approve'])->name('admin.approvals.approve');    Route::post('/users/{id}/reject', [AppHttpControllersAdminApprovalController::class, 'reject'])->name('admin.approvals.reject');
+
     // Admin and Corporate management
     Route::resource('admins', AdminController::class)->names('admin.admins');
     Route::resource('corporates', CorporateController::class)->names('admin.corporates');

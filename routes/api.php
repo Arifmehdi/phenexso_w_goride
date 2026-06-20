@@ -58,6 +58,17 @@ Route::post('/notifications/read/{id}', [NotificationController::class, 'markAsR
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [ApiAuthController::class, 'logout']);
+
+    // ── Profile Completion ──
+    Route::get('/user/profile-completion', [App\Http\Controllers\Api\ProfileCompletionController::class, 'completion']);
+    Route::post('/user/complete-profile', [App\Http\Controllers\Api\ProfileCompletionController::class, 'updateProfile']);
+
+    // ── Admin Approval Routes ──
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/admin/pending-approvals', [App\Http\Controllers\Api\AdminApprovalController::class, 'pendingApprovals']);
+        Route::post('/admin/users/{id}/approve-reject', [App\Http\Controllers\Api\AdminApprovalController::class, 'approveReject']);
+        Route::get('/admin/approval-stats', [App\Http\Controllers\Api\AdminApprovalController::class, 'stats']);
+    });
     Route::get('/user', [ApiAuthController::class, 'me']);
     // 
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);

@@ -615,6 +615,25 @@
                                 </a>
                             </li>
                         </ul>
+
+                    {{-- Approvals --}}
+                    <li class="nav-item {{ session('lsbm') == 'approvals'? ' menu-open ' : ''}}">
+                        <a href="#" class="nav-link {{ session('lsbm') == 'approvals'? ' active ' : ''}}">
+                            <i class="nav-icon fas fa-check-double"></i>
+                            <p>
+                                Approvals
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{{ route('admin.approvals.index') }}" class="nav-link {{ session('lsbsm') == 'approvals' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Pending Approvals</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
                     </li>
 
                     {{-- Corporates --}}
