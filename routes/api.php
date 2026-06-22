@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\ContactFormController; // Import ContactFormControl
 use App\Http\Controllers\Api\SellerDashboardController; // Import SellerDashboardController
 use App\Http\Controllers\Api\RiderDashboardController; // Import RiderDashboardController
 use App\Http\Controllers\NotificationController; // Import RiderDashboardController
+use App\Http\Controllers\Api\RideMatchingController; // Import RideMatchingController
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -56,6 +57,22 @@ Route::get('/notifications', [NotificationController::class, 'index']);
 Route::get('/notifications/ip', [NotificationController::class, 'ipNotifications']);
 Route::post('/notifications/read/{id}', [NotificationController::class, 'markAsRead']);
 
+// Public API - Get driver ratings
+Route::get('/driver-ratings/{driverId}', [AppHttpControllersApiDriverRatingController::class, 'driverRatings']);
+
+// Public API - Get website parameters (per_km_rate for fare calculation)
+Route::get('/website-parameters', function () {
+    $param = \App\Models\WebsiteParameter::first();
+    return response()->json([
+        'success' => true,
+        'data' => [
+            'per_km_rate' => (float) ($param?->per_km_rate ?? 20.00),
+            'base_fare' => 50.00,
+            'currency' => 'BDT',
+        ]
+    ]);
+});
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [ApiAuthController::class, 'logout']);
 
@@ -73,7 +90,21 @@ Route::middleware('auth:sanctum')->group(function () {
     // 
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
 
-    // Ride Request Routes
+    // ── Driver Ratings ──
+    Route::post('/driver-ratings', [AppHttpControllersApiDriverRatingController::class, 'store']);
+    Route::get('/driver-ratings/check/{rideRequestId}', [AppHttpControllersApiDriverRatingController::class, 'checkRating']);
+
+    // ── Ride Matching & History System ──
+    Route::post('/ride-requests/match', [\App\Http\Controllers\Api\RideMatchingController::class, 'matchAndOffer']);
+    Route::post('/ride-offers/{offerId}/respond', [\App\Http\Controllers\Api\RideMatchingController::class, 'respondToOffer']);
+    Route::get('/ride-requests/{id}/offers', [\App\Http\Controllers\Api\RideMatchingController::class, 'rideOffers']);
+    Route::get('/ride-requests/{id}/detail', [\App\Http\Controllers\Api\RideMatchingController::class, 'rideDetail']);
+    Route::get('/ride-history', [\App\Http\Controllers\Api\RideMatchingController::class, 'rideHistory']);
+    Route::post('/ride-requests/{id}/payment', [\App\Http\Controllers\Api\RideMatchingController::class, 'updatePayment']);
+    Route::post('/driver/toggle-online', [\App\Http\Controllers\Api\RideMatchingController::class, 'toggleOnline']);
+    Route::post('/ride-requests/{id}/assign-driver', [\App\Http\Controllers\Api\RideMatchingController::class, 'assignDriver']);
+
+    // Original Ride Request Routes
     Route::post('/ride-requests', [\App\Http\Controllers\Api\RideRequestController::class, 'store']);
     Route::patch('/ride-requests/{id}/status', [\App\Http\Controllers\Api\RideRequestController::class, 'updateStatus']);
     Route::post('/update-location', [\App\Http\Controllers\Api\RideRequestController::class, 'updateLocation']);

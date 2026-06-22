@@ -79,8 +79,11 @@ class RideRequestController extends Controller
                 'completed_at' => now(),
             ]);
         } elseif ($status == 'cancelled') {
+            $cancelledBy = ($user->role === 'driver') ? 'driver' : 'rider';
             $rideRequest->update([
                 'status' => 'cancelled',
+                'cancelled_by' => $request->cancelled_by ?? $cancelledBy,
+                'cancellation_reason' => $request->cancellation_reason ?? 'Cancelled by ' . $cancelledBy,
             ]);
         }
 

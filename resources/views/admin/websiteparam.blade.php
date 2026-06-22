@@ -34,10 +34,26 @@
                                 </div>
 
                                 <div class="form-group ">
-                                    <label for="google_search_console" class="control-label">
+                                    <label for="shipping_cahrge" class="control-label">
                                         Shipping Charge
                                     </label>
                                   <input type="text" name="shipping_cahrge" class="form-control" value="{{ old('shipping_cahrge') ?: $websiteParameter->shipping_cahrge ?? '' }}" id="shipping_cahrge" placeholder="Shipping Charge" autocomplete="off">
+                                </div>
+
+                                <div class="form-group ">
+                                    <label for="per_km_rate" class="control-label">
+                                        Per KM Rate (Fare Calculation)
+                                    </label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">৳</span>
+                                        </div>
+                                        <input type="number" step="0.01" min="0" name="per_km_rate" class="form-control" value="{{ old('per_km_rate') ?: $websiteParameter->per_km_rate ?? '20.00' }}" id="per_km_rate" placeholder="e.g. 20.00" autocomplete="off">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">/km</span>
+                                        </div>
+                                    </div>
+                                    <small class="form-text text-muted">This rate is used to calculate ride fares: Fare = Base Fare + (Distance × Per KM Rate)</small>
                                 </div>
 
                                 <div class="form-group ">

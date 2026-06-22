@@ -636,6 +636,25 @@
                     </li>
                     </li>
 
+                    {{-- Ride Matching --}}
+                    <li class="nav-item {{ session('lsbm') == 'ride_matching'? ' menu-open ' : ''}}">
+                        <a href="#" class="nav-link {{ session('lsbm') == 'ride_matching'? ' active ' : ''}}">
+                            <i class="nav-icon fas fa-route"></i>
+                            <p>
+                                Ride Matching
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{{ route('admin.ride-matching.index') }}" class="nav-link {{ session('lsbsm') == 'rideMatching' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Matching History</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
                     {{-- Corporates --}}
                     <li class="nav-item {{ session('lsbm') == 'corporates'? ' menu-open ' : ''}}">
                         <a href="#" class="nav-link {{ session('lsbm') == 'corporates'? ' active ' : ''}}">

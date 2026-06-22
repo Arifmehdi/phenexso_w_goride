@@ -21,6 +21,8 @@ class Driver extends Authenticatable
         'address',
         'status',
         'user_id',
+        'average_rating',
+        'total_ratings',
     ];
 
     protected $hidden = [
@@ -43,4 +45,25 @@ class Driver extends Authenticatable
         return $this->hasMany(Order::class);
     }
 
+    // ── Rating Relationships ──
+
+    public function ratings()
+    {
+        return $this->hasMany(DriverRating::class);
+    }
+
+    public function rideRequests()
+    {
+        return $this->hasMany(RideRequest::class, 'driver_id');
+    }
+
+    /**
+     * Recalculate the average rating for this driver.
+     */
+    public function recalculateRating()
+    {
+        $this->average_rating = $this->ratings()->avg('rating') ?? 0;
+        $this->total_ratings = $this->ratings()->count();
+        $this->save();
+    }
 }

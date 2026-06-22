@@ -697,6 +697,10 @@ Route::middleware(['auth:admin,web', 'userRole:admin'])->prefix('admin')->group(
     Route::get('/approvals', [AppHttpControllersAdminApprovalController::class, 'index'])->name('admin.approvals.index');    
     Route::post('/users/{id}/approve', [AppHttpControllersAdminApprovalController::class, 'approve'])->name('admin.approvals.approve');    Route::post('/users/{id}/reject', [AppHttpControllersAdminApprovalController::class, 'reject'])->name('admin.approvals.reject');
 
+    // Ride Matching History (Admin View)
+    Route::get('/ride-matching', [\App\Http\Controllers\Admin\RideMatchingController::class, 'index'])->name('admin.ride-matching.index');
+    Route::get('/ride-matching/{id}', [\App\Http\Controllers\Admin\RideMatchingController::class, 'show'])->name('admin.ride-matching.show');
+
     // Admin and Corporate management
     Route::resource('admins', AdminController::class)->names('admin.admins');
     Route::resource('corporates', CorporateController::class)->names('admin.corporates');

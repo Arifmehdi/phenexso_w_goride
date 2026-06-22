@@ -7,6 +7,7 @@
         <th>Mobile</th>
         <th>Email</th>
         <th>License No</th>
+        <th>Rating</th>
         <th>NID</th>
         <th>Address</th>
         <th>Status</th>
@@ -38,6 +39,22 @@
             <td>{{$driver->mobile}}</td>
             <td>{{$driver->email}}</td>
             <td>{{$driver->license_no}}</td>
+            <td>
+                @if($driver->total_ratings > 0)
+                    <span class="text-warning">
+                        @for($s = 1; $s <= 5; $s++)
+                            @if($s <= round($driver->average_rating))
+                                <i class="fas fa-star"></i>
+                            @else
+                                <i class="far fa-star"></i>
+                            @endif
+                        @endfor
+                    </span>
+                    <br><small class="text-muted">{{ number_format($driver->average_rating, 1) }} ({{ $driver->total_ratings }})</small>
+                @else
+                    <span class="text-muted">No ratings yet</span>
+                @endif
+            </td>
             <td>{{$driver->nid}}</td>
             <td>{{Str::limit($driver->address, 30)}}</td>
             <td><span class="badge badge-{{ $driver->status == '1' ? 'success' : 'warning' }}">{{ $driver->status == '1' ? 'Approved' : 'Pending' }}</span></td>

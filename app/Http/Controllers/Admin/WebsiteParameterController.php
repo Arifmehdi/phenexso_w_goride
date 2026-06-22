@@ -18,10 +18,16 @@ class WebsiteParameterController extends Controller
 
     public function update(Request $request, $id){
 
+        $request->validate([
+            'per_km_rate' => 'nullable|numeric|min:0',
+            'shipping_cahrge' => 'nullable|numeric|min:0',
+        ]);
+
         $wp = WebsiteParameter::find($request->id);
 
         $wp->website_title = $request->website_title;
         $wp->shipping_charge = $request->shipping_cahrge;
+        $wp->per_km_rate = $request->per_km_rate ?? 0;
         $wp->google_search_console = $request->google_search_console;
         $wp->google_analytics_code = $request->google_analytics_code;
         $wp->facebook_pixel_code = $request->facebook_pixel_code;
