@@ -29,10 +29,12 @@ class UserResource extends JsonResource
             'role' => $this->role,
             'status' => $this->status,
             'is_approve' => $this->is_approve,
-            // Add any other user attributes you want to expose
+            'image' => $this->image ? asset('storage/' . $this->image) : null,
+            'emergency_contact_name'  => $this->emergency_contact_name,
+            'emergency_contact_phone' => $this->emergency_contact_phone,
+            'blood_group' => $this->blood_group,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            // Example of adding a custom attribute
-            ];
+        ];
     }
 }

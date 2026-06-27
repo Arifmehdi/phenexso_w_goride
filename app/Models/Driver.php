@@ -23,6 +23,7 @@ class Driver extends Authenticatable
         'user_id',
         'average_rating',
         'total_ratings',
+        'fcm_token',
     ];
 
     protected $hidden = [

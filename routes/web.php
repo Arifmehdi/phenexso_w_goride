@@ -245,8 +245,10 @@ Route::middleware(['auth:web,admin,driver,corporate', 'active'])->group(function
         Route::get('/history', [App\Http\Controllers\DashboardController::class, 'ownerHistory'])->name('history');
         Route::get('/earnings', [App\Http\Controllers\DashboardController::class, 'ownerEarnings'])->name('earnings');
         Route::get('/profile', [App\Http\Controllers\DashboardController::class, 'ownerProfile'])->name('profile');
-        Route::get('/documents', [App\Http\Controllers\DashboardController::class, 'ownerDocuments'])->name('documents');
-    });
+         Route::get('/documents', [App\Http\Controllers\DashboardController::class, 'ownerDocuments'])->name('documents');
+         Route::get('/chat', [App\Http\Controllers\ChatController::class, 'webIndex'])->name('chat.index');
+         Route::get('/chat/{conversation}', [App\Http\Controllers\ChatController::class, 'webShow'])->name('chat.show');
+     });
 
     // User (Solo) Specific Routes
     Route::prefix('dashboard/user')->middleware('auth:web')->name('user.')->group(function() {
@@ -710,3 +712,29 @@ Route::middleware(['auth:admin,web', 'userRole:admin'])->prefix('admin')->group(
 Route::middleware(['auth', 'retailer'])->prefix('retailer')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\Retailer\RetailerController::class, 'index'])->name('retailer.dashboard');
 });
+
+// ── Public trip tracking page — no auth required (Task 50) ──
+Route::get('/track/{token}', function (string $token) {
+    $record = \App\Models\TripTrackingToken::where('token', $token)
+        ->where('expires_at', '>', now())->first();
+
+    if (!$record) {
+        return view('track.show', ['expired' => true, 'ride' => null, 'token' => $token]);
+    }
+
+    $ride = \App\Models\RideRequest::with(['user:id,name', 'driver:id,name,average_rating'])
+        ->find($record->ride_request_id);
+
+    $rideData = $ride ? [
+        'status'              => $ride->status,
+        'pickup_address'      => $ride->pickup_address,
+        'destination_address' => $ride->destination_address,
+        'rider_name'          => $ride->user?->name,
+        'driver_name'         => $ride->driver?->name,
+        'driver_rating'       => $ride->driver?->average_rating,
+        'fare'                => $ride->fare,
+        'firebase_trip_id'    => $ride->firebase_trip_id,
+    ] : null;
+
+    return view('track.show', ['expired' => false, 'ride' => $rideData, 'token' => $token]);
+})->name('trip.track');

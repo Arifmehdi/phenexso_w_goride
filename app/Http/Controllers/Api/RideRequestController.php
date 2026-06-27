@@ -57,27 +57,28 @@ class RideRequestController extends Controller
         $rideRequest = RideRequest::findOrFail($id);
         $status = $request->status;
         $user = auth()->user();
+        $fcm = new \App\Services\FcmService();
+
+        $rider  = \App\Models\User::find($rideRequest->user_id);
+        $driver = \App\Models\Driver::find($rideRequest->driver_id);
 
         if ($status == 'accepted') {
-            // Check if it's a driver accepting (using your existing relationship if possible)
-            // Assuming your User model has a 'driver' relationship to the 'drivers' table
             $driverId = ($user->role == 'driver' && isset($user->driver)) ? $user->driver->id : $user->id;
+            $rideRequest->update(['driver_id' => $driverId, 'status' => 'accepted', 'accepted_at' => now()]);
+            if ($rider) $fcm->rideAccepted($rider, $user->name ?? 'Driver');
 
-            $rideRequest->update([
-                'driver_id' => $driverId,
-                'status' => 'accepted',
-                'accepted_at' => now(),
-            ]);
+        } elseif ($status == 'arriving') {
+            $rideRequest->update(['status' => 'arriving']);
+            if ($rider) $fcm->driverArrived($rider);
+
         } elseif ($status == 'in_progress') {
-            $rideRequest->update([
-                'status' => 'in_progress',
-                'started_at' => now(),
-            ]);
+            $rideRequest->update(['status' => 'in_progress', 'started_at' => now()]);
+            if ($rider) $fcm->tripStarted($rider);
+
         } elseif ($status == 'completed') {
-            $rideRequest->update([
-                'status' => 'completed',
-                'completed_at' => now(),
-            ]);
+            $rideRequest->update(['status' => 'completed', 'completed_at' => now()]);
+            if ($rider) $fcm->tripCompleted($rider, (string) $rideRequest->fare);
+
         } elseif ($status == 'cancelled') {
             $cancelledBy = ($user->role === 'driver') ? 'driver' : 'rider';
             $rideRequest->update([
@@ -85,6 +86,12 @@ class RideRequestController extends Controller
                 'cancelled_by' => $request->cancelled_by ?? $cancelledBy,
                 'cancellation_reason' => $request->cancellation_reason ?? 'Cancelled by ' . $cancelledBy,
             ]);
+            // Notify the other party (driver token from drivers table, rider from users)
+            if ($cancelledBy === 'rider' && $driver && !empty($driver->fcm_token)) {
+                $fcm->send($driver->fcm_token, 'Ride Cancelled', 'The rider has cancelled this trip.', ['type' => 'ride_cancelled']);
+            } elseif ($cancelledBy === 'driver' && $rider && !empty($rider->fcm_token)) {
+                $fcm->send($rider->fcm_token, 'Ride Cancelled', 'Your driver has cancelled. We are finding another driver.', ['type' => 'ride_cancelled']);
+            }
         }
 
         return response()->json([

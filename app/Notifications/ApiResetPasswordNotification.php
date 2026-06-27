@@ -60,7 +60,7 @@ class ApiResetPasswordNotification extends Notification
         if (empty($baseUrl)) {
             $baseUrl = url('/');
         }
-        $frontendResetUrl = rtrim($baseUrl, '/') . '/reset-password?token=' . $this->token . '&email=' . $notifiable->getEmailForPasswordReset();
+        $frontendResetUrl = rtrim($baseUrl, '/') . '/reset-password?token=' . $this->token . '&email=' . $notifiable->getEmailForPasswordReset() . '&guard=web';
 
         return (new MailMessage)
                     ->subject('Reset Password Notification - GoRide')

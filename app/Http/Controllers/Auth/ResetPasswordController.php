@@ -28,10 +28,21 @@ class ResetPasswordController extends Controller
 
         $passwordReset = DB::table('password_resets')
             ->where('email', $request->email)
-            ->where('token', $request->token)
             ->first();
 
         if (!$passwordReset) {
+            return back()->withErrors(['email' => 'Invalid token or email!']);
+        }
+
+        // Check token: support both raw (web flow) and hashed (API flow) tokens
+        $tokenValid = false;
+        if (Hash::check($request->token, $passwordReset->token)) {
+            $tokenValid = true;
+        } elseif ($passwordReset->token === $request->token) {
+            $tokenValid = true;
+        }
+
+        if (!$tokenValid) {
             return back()->withErrors(['email' => 'Invalid token or email!']);
         }
 

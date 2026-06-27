@@ -37,7 +37,9 @@ class UpdateProfileRequest extends FormRequest
             'nid' => 'nullable|string|max:20',
             'short_bio' => 'nullable|string|max:1000',
             'mobile' => 'nullable|string|max:20',
-            'role' => 'nullable|string|max:255', // Adjust roles as per your application's roles
+            'emergency_contact_name'  => 'nullable|string|max:100',
+            'emergency_contact_phone' => 'nullable|string|max:20',
+            'role' => 'nullable|string|max:255',
         ];
     }
 }

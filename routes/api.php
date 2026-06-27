@@ -76,6 +76,16 @@ Route::get('/website-parameters', function () {
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [ApiAuthController::class, 'logout']);
 
+    // ── FCM Token ──
+    // auth()->user() returns the correct model automatically:
+    //   rider/corporate/admin → User (users.fcm_token)
+    //   driver               → Driver (drivers.fcm_token)
+    Route::post('/user/fcm-token', function (\Illuminate\Http\Request $request) {
+        $request->validate(['fcm_token' => 'required|string']);
+        auth()->user()->update(['fcm_token' => $request->fcm_token]);
+        return response()->json(['success' => true]);
+    });
+
     // ── Profile Completion ──
     Route::get('/user/profile-completion', [App\Http\Controllers\Api\ProfileCompletionController::class, 'completion']);
     Route::post('/user/complete-profile', [App\Http\Controllers\Api\ProfileCompletionController::class, 'updateProfile']);
@@ -121,6 +131,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/user/profile', [UserController::class, 'updateMyProfile']);
     Route::patch('/user/password', [UserController::class, 'changePassword']);
 
+    // ── Saved Addresses ──
+    Route::apiResource('/user/saved-addresses', \App\Http\Controllers\Api\SavedAddressController::class);
+
     // Dashboard routes for Seller and Rider
     Route::get('/seller/dashboard', [SellerDashboardController::class, 'index']);
     Route::get('/seller/products', [ProductController::class, 'sellerProducts']);
@@ -134,30 +147,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     // routes/api.php
-    Route::get('/test-relationships', function() {
-        $user = \App\Models\User::first();
-        
-        // Test 1: Check if user has conversations
-        $conversations = $user->conversations;
-        // dd('User conversations:', $conversations);
-        
-        // Test 2: Create a conversation
-        $conversation = \App\Models\Conversation::create([
-            'type' => 'private',
-            'created_by' => $user->id
-        ]);
-        
-        // Test 3: Add participants
-        $participant = \App\Models\User::where('id', '!=', $user->id)->first();
-        
-        $cp = \App\Models\ConversationParticipant::create([
-            'conversation_id' => $conversation->id,
-            'user_id' => $participant->id,
-            'is_admin' => false
-        ]);
-        
-        dd('Created participant:', $cp);
-    });
 
         // Chat Routes
     Route::prefix('chat')->group(function () {
@@ -183,7 +172,90 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('users/search', [ChatController::class, 'searchUsers']);
         Route::get('users/{user}/conversation', [ChatController::class, 'getOrCreatePrivateConversation']);
     });
+
+    // ── Wallet (Task 21-22) ──
+    Route::get('/wallet/balance', [\App\Http\Controllers\Api\WalletController::class, 'balance']);
+    Route::get('/wallet/transactions', [\App\Http\Controllers\Api\WalletController::class, 'transactions']);
+    Route::post('/wallet/top-up', [\App\Http\Controllers\Api\WalletController::class, 'topUp']);
+    Route::post('/ride-requests/{rideId}/pay-wallet', [\App\Http\Controllers\Api\WalletController::class, 'payForRide']);
+
+    // ── Promo Codes (Task 24) ──
+    Route::post('/promo/validate', [\App\Http\Controllers\Api\PromoCodeController::class, 'validate']);
+
+    // ── Driver Earnings (Task 26) ──
+    Route::get('/driver/earnings', [\App\Http\Controllers\Api\EarningsController::class, 'index']);
+
+    // ── Receipt PDF (Task 29) ──
+    Route::get('/ride-requests/{rideId}/receipt', [\App\Http\Controllers\Api\EarningsController::class, 'receiptPdf']);
+
+    // ── Phase 6: Safety Features ──
+    Route::post('/sos/trigger',              [\App\Http\Controllers\Api\SosController::class, 'trigger']);
+    Route::post('/sos/alerts/{alert}/resolve', [\App\Http\Controllers\Api\SosController::class, 'resolve']);
+    Route::get('/admin/sos/alerts',          [\App\Http\Controllers\Api\SosController::class, 'index']);
+    Route::post('/ride-requests/{rideId}/tracking-token', [\App\Http\Controllers\Api\TripTrackingController::class, 'generateToken']);
+
+    // ── Phase 3: Driver Management ──
+    // Task 30: Document upload
+    Route::post('/driver/upload-document', [\App\Http\Controllers\Api\DriverDocumentController::class, 'upload']);
+    Route::get('/driver/my-documents', [\App\Http\Controllers\Api\DriverDocumentController::class, 'myDocuments']);
+    // Admin document review
+    Route::get('/admin/documents/pending', [\App\Http\Controllers\Api\DriverDocumentController::class, 'pending']);
+    Route::post('/admin/documents/{document}/review', [\App\Http\Controllers\Api\DriverDocumentController::class, 'review']);
+
+    // Task 32/33: Driver stats
+    Route::get('/driver/stats', [\App\Http\Controllers\Api\DriverStatsController::class, 'stats']);
+
+    // Task 31: Vehicle API
+    Route::get('/vehicles', function () {
+        $user = auth()->user();
+        $vehicles = \App\Models\Vehicle::whereHas('drivers', fn($q) => $q->where('user_id', $user->id))
+            ->orWhere('user_id', $user->id)->get();
+        return response()->json(['success' => true, 'vehicles' => $vehicles]);
+    });
+
+    // Task 35: OTP (public routes below, auth routes here for resend)
+    Route::post('/auth/resend-otp', [\App\Http\Controllers\Api\OtpController::class, 'send']);
+
+    // Task 36: Notifications already exist at /api/notifications
+
+    // ── Rider Rating by Driver (Task 20) ──
+    Route::post('/rider-ratings', function (\Illuminate\Http\Request $request) {
+        $request->validate([
+            'ride_request_id' => 'required|integer',
+            'rider_id'        => 'required|integer',
+            'rating'          => 'required|integer|min:1|max:5',
+            'tags'            => 'nullable|array',
+        ]);
+        $driver = auth()->user();
+        \App\Models\RiderRating::updateOrCreate(
+            ['ride_request_id' => $request->ride_request_id, 'driver_id' => $driver->id],
+            ['rider_id' => $request->rider_id, 'rating' => $request->rating,
+             'review' => $request->review, 'tags' => $request->tags]
+        );
+        return response()->json(['success' => true]);
+    });
 });
+
+// ── Banners — public (Task 25) ──
+Route::get('/banners', [\App\Http\Controllers\Api\BannerController::class, 'index']);
+
+// ── Public trip tracking — no auth (Task 50) ──
+Route::get('/public/track/{token}',          [\App\Http\Controllers\Api\TripTrackingController::class, 'publicTrack']);
+Route::get('/public/track/{token}/location', function (string $token) {
+    $record = \App\Models\TripTrackingToken::where('token', $token)
+        ->where('expires_at', '>', now())->first();
+    if (!$record) return response()->json(['error' => 'Expired'], 404);
+    $ride = \App\Models\RideRequest::find($record->ride_request_id);
+    $driver = $ride ? \App\Models\Driver::find($ride->driver_id) : null;
+    return response()->json([
+        'lat' => $driver?->latitude,
+        'lng' => $driver?->longitude,
+    ]);
+});
+
+// ── OTP — public (Task 35) ──
+Route::post('/auth/send-otp',   [\App\Http\Controllers\Api\OtpController::class, 'send']);
+Route::post('/auth/verify-otp', [\App\Http\Controllers\Api\OtpController::class, 'verify']);
 
 
 

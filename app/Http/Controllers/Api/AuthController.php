@@ -310,7 +310,7 @@ class AuthController extends Controller
     {
         $request->validate(['email' => 'required|email']);
 
-        $response = Password::sendResetLink(
+        $response = Password::broker('users')->sendResetLink(
             $request->only('email')
         );
 

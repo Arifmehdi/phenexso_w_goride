@@ -182,6 +182,9 @@ class RideMatchingController extends Controller
                     ->where('id', '!=', $offer->id)
                     ->update(['status' => 'expired', 'responded_at' => now()]);
 
+                // Update acceptance rate
+                $this->updateAcceptanceRate($driverId, accepted: true);
+
                 DB::commit();
 
                 return response()->json([
@@ -205,6 +208,9 @@ class RideMatchingController extends Controller
             } else {
                 // ── Driver declines the offer ──
                 $offer->update(['status' => 'declined', 'responded_at' => now()]);
+
+                // Update acceptance rate
+                $this->updateAcceptanceRate($driverId, accepted: false);
 
                 DB::commit();
 
@@ -581,5 +587,20 @@ class RideMatchingController extends Controller
             'message' => 'Driver assigned successfully',
             'data' => $rideRequest
         ]);
+    }
+
+    private function updateAcceptanceRate(int $userId, bool $accepted): void
+    {
+        $driver = \App\Models\Driver::where('user_id', $userId)->first()
+            ?? \App\Models\Driver::find($userId);
+        if (!$driver) return;
+
+        $driver->increment('total_offers');
+        if ($accepted) $driver->increment('accepted_offers');
+
+        $rate = $driver->total_offers > 0
+            ? round(($driver->accepted_offers / $driver->total_offers) * 100, 2)
+            : 100;
+        $driver->update(['acceptance_rate' => $rate]);
     }
 }
