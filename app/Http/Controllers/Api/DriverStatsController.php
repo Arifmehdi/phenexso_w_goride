@@ -12,7 +12,13 @@ class DriverStatsController extends Controller
     {
         $user   = auth()->user();
         $today  = Carbon::today();
-        $driver = $user->driver;
+
+        // The authenticated entity IS the Driver when logged in via the
+        // driver guard. Only fall back to $user->driver for a User account
+        // that has a linked driver row (legacy / admin-created drivers).
+        $driver = ($user instanceof \App\Models\Driver)
+            ? $user
+            : ($user->driver ?? null);
 
         $todayTrips = RideRequest::where('driver_id', $user->id)
             ->where('status', 'completed')

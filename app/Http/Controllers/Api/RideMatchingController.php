@@ -329,6 +329,28 @@ class RideMatchingController extends Controller
             'priority_order' => $maxPriority + 1,
         ]);
 
+        // RING the next driver's phone (transfer the call to them)
+        $driverModel = Driver::find($nextDriver->id);
+        if ($driverModel) {
+            (new \App\Services\FcmService())->rideCallToDriver($driverModel, [
+                'request_id'      => (string) $rideRequest->id,
+                'ride_request_id' => (string) $rideRequest->id,
+                'mysqlRideId'     => (string) $rideRequest->id,
+                'trip_id'         => (string) ($rideRequest->firebase_trip_id ?? ''),
+                'offer_id'        => (string) $newOffer->id,
+                'rider_name'      => (string) ($rideRequest->user->name ?? 'Passenger'),
+                'rider_phone'     => (string) ($rideRequest->user->mobile ?? ''),
+                'ride_type'       => (string) ($rideRequest->ride_type ?? 'car'),
+                'fare'            => (string) ($rideRequest->fare ?? 0),
+                'pickup'          => (string) $rideRequest->pickup_address,
+                'destination'     => (string) $rideRequest->destination_address,
+                'pickup_lat'      => (string) $rideRequest->pickup_latitude,
+                'pickup_lng'      => (string) $rideRequest->pickup_longitude,
+                'dest_lat'        => (string) $rideRequest->destination_latitude,
+                'dest_lng'        => (string) $rideRequest->destination_longitude,
+            ]);
+        }
+
         return [
             'offer_id' => $newOffer->id,
             'driver_id' => $nextDriver->id,
@@ -336,6 +358,43 @@ class RideMatchingController extends Controller
             'distance_km' => round($nextDriver->distance, 2),
             'priority_order' => $newOffer->priority_order,
         ];
+    }
+
+    /**
+     * Driver declines from the incoming-call screen. Marks their offer
+     * declined and transfers the call to the next nearest driver.
+     */
+    public function declineAndTransfer(Request $request, $rideId)
+    {
+        $rideRequest = RideRequest::find($rideId);
+        if (!$rideRequest) {
+            return response()->json(['success' => false, 'message' => 'Ride not found'], 404);
+        }
+
+        $user = auth()->user();
+        $driverId = ($user instanceof \App\Models\Driver)
+            ? $user->id
+            : (\App\Models\Driver::where('user_id', $user->id)->value('id'));
+
+        // Mark this driver's pending offer as declined (so they aren't re-offered)
+        if ($driverId) {
+            RideOffer::where('ride_request_id', $rideRequest->id)
+                ->where('driver_id', $driverId)
+                ->where('status', 'pending')
+                ->update(['status' => 'declined', 'responded_at' => now()]);
+        }
+
+        // Only transfer if still waiting for a driver
+        if ($rideRequest->status === 'pending') {
+            $next = $this->findAndOfferNextDriver($rideRequest);
+            return response()->json([
+                'success'    => true,
+                'transferred' => $next !== null,
+                'next_driver' => $next,
+            ]);
+        }
+
+        return response()->json(['success' => true, 'transferred' => false]);
     }
 
     /**
@@ -384,7 +443,11 @@ class RideMatchingController extends Controller
 
         $query = RideRequest::with(['driver:id,name,mobile', 'user:id,name,mobile']);
 
-        if ($user->role === 'driver' && isset($user->driver)) {
+        // The authenticated entity IS the Driver when logged in via the driver
+        // guard — only fall back to $user->driver for a User with a linked row.
+        if ($user instanceof \App\Models\Driver) {
+            $query->where('driver_id', $user->id);
+        } elseif ($user->role === 'driver' && $user->driver) {
             $query->where('driver_id', $user->driver->id);
         } else {
             $query->where('user_id', $user->id);
@@ -403,8 +466,8 @@ class RideMatchingController extends Controller
                 'ride_type' => $ride->ride_type,
                 'pickup_address' => $ride->pickup_address,
                 'destination_address' => $ride->destination_address,
-                'fare' => $ride->fare,
-                'actual_fare' => $ride->actual_fare,
+                'fare' => (float) $ride->fare,
+                'actual_fare' => $ride->actual_fare !== null ? (float) $ride->actual_fare : null,
                 'status' => $ride->status,
                 'payment_status' => $ride->payment_status,
                 'payment_method' => $ride->payment_method,
@@ -466,8 +529,8 @@ class RideMatchingController extends Controller
                 'destination_address' => $ride->destination_address,
                 'destination_latitude' => $ride->destination_latitude,
                 'destination_longitude' => $ride->destination_longitude,
-                'fare' => $ride->fare,
-                'actual_fare' => $ride->actual_fare,
+                'fare' => (float) $ride->fare,
+                'actual_fare' => $ride->actual_fare !== null ? (float) $ride->actual_fare : null,
                 'status' => $ride->status,
                 'payment_status' => $ride->payment_status,
                 'payment_method' => $ride->payment_method,

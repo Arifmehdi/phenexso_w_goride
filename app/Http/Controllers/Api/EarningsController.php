@@ -39,12 +39,16 @@ class EarningsController extends Controller
             'success' => true,
             'period'  => $period,
             'summary' => [
-                'total_earnings' => $periodData->sum('fare'),
+                'total_earnings' => (float) $periodData->sum('fare'),
                 'total_trips'    => $periodData->count(),
-                'avg_fare'       => round($periodData->avg('fare') ?? 0, 2),
+                'avg_fare'       => round((float) ($periodData->avg('fare') ?? 0), 2),
                 'all_time_trips' => $query->count(),
             ],
-            'daily_chart' => $daily,
+            'daily_chart' => $daily->map(fn ($d) => [
+                'date'  => $d->date,
+                'total' => (float) $d->total,
+                'trips' => (int) $d->trips,
+            ]),
         ]);
     }
 

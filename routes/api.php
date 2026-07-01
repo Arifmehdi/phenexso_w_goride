@@ -106,6 +106,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ── Ride Matching & History System ──
     Route::post('/ride-requests/match', [\App\Http\Controllers\Api\RideMatchingController::class, 'matchAndOffer']);
+    Route::post('/ride-requests/{rideId}/decline', [\App\Http\Controllers\Api\RideMatchingController::class, 'declineAndTransfer']);
     Route::post('/ride-offers/{offerId}/respond', [\App\Http\Controllers\Api\RideMatchingController::class, 'respondToOffer']);
     Route::get('/ride-requests/{id}/offers', [\App\Http\Controllers\Api\RideMatchingController::class, 'rideOffers']);
     Route::get('/ride-requests/{id}/detail', [\App\Http\Controllers\Api\RideMatchingController::class, 'rideDetail']);
