@@ -227,7 +227,12 @@ Route::post('/main-register',[AuthController::class,'mainRegister'])->name('main
 
 Route::middleware(['auth:web,admin,driver,corporate', 'active'])->group(function() {
     Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard.index');
-    
+
+    // Web user notifications (customer / owner / corporate)
+    Route::get('/dashboard/notifications', [App\Http\Controllers\Goride\NotificationController::class, 'index'])->name('user.notifications');
+    Route::post('/dashboard/notifications/{id}/read', [App\Http\Controllers\Goride\NotificationController::class, 'markRead'])->name('user.notifications.read');
+    Route::post('/dashboard/notifications/read-all', [App\Http\Controllers\Goride\NotificationController::class, 'markAllRead'])->name('user.notifications.read-all');
+
     // Corporate Dashboard Routes
     Route::prefix('dashboard/corporate')->middleware('auth:corporate')->name('corporate.')->group(function() {
         Route::get('/', [App\Http\Controllers\DashboardController::class, 'corporateDashboard'])->name('dashboard');
@@ -689,7 +694,14 @@ Route::middleware(['auth:admin,web', 'userRole:admin'])->prefix('admin')->group(
     // Vehicle Admin Routes
     Route::resource('vehicles', \App\Http\Controllers\Admin\VehicleController::class)->names('admin.vehicles');
 
+    // Notification broadcast (admin)
+    Route::get('notifications', [\App\Http\Controllers\Admin\NotificationController::class, 'index'])->name('admin.notifications.index');
+    Route::post('notifications/send', [\App\Http\Controllers\Admin\NotificationController::class, 'send'])->name('admin.notifications.send');
+    Route::delete('notifications/{notification}', [\App\Http\Controllers\Admin\NotificationController::class, 'destroy'])->name('admin.notifications.destroy');
+
     // Driver Admin Routes
+    Route::post('drivers/{driver}/toggle-status', [\App\Http\Controllers\Admin\DriverController::class, 'toggleStatus'])->name('admin.drivers.toggle-status');
+    Route::get('drivers/{driver}/verification', [\App\Http\Controllers\Admin\DriverController::class, 'verification'])->name('admin.drivers.verification');
     Route::resource('drivers', \App\Http\Controllers\Admin\DriverController::class)->names('admin.drivers');
 
     // Vehicle Assignment Admin Routes

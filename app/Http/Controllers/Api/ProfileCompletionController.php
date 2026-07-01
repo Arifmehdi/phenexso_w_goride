@@ -40,9 +40,9 @@ class ProfileCompletionController extends Controller
         ];
 
         // Return fields appropriate for the model type
-        if ($user instanceof AppModelsDriver) {
+        if ($user instanceof \App\Models\Driver) {
             return $driverFields;
-        } elseif ($user instanceof AppModelsCorporate) {
+        } elseif ($user instanceof \App\Models\Corporate) {
             return $corporateFields;
         } else {
             // Regular User model

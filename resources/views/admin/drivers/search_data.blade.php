@@ -2,21 +2,33 @@
     <thead>
     <tr>
         <th width="20">SL</th>
-        <th width="100">Action</th>
+        <th width="90">Action</th>
         <th>Name</th>
         <th>Mobile</th>
         <th>Email</th>
         <th>License No</th>
-        <th>Rating</th>
         <th>NID</th>
-        <th>Address</th>
-        <th>Status</th>
+        <th width="160">Profile Completion</th>
+        <th>Verification</th>
+        <th width="120">Approve</th>
     </tr>
     </thead>
     <tbody>
         <?php $i = (($drivers->currentPage() - 1) * $drivers->perPage() + 1); ?>
 
         @foreach($drivers as $driver)
+        @php
+            $completion = $driver->profile_completion ?? 0;
+            $vstatus    = $driver->verification_status ?? null;
+            $barColor   = $completion >= 100 ? 'bg-success' : ($completion >= 50 ? 'bg-warning' : 'bg-danger');
+            $vBadge     = [
+                'incomplete' => 'secondary',
+                'pending'    => 'warning',
+                'verified'   => 'success',
+                'rejected'   => 'danger',
+            ][$vstatus] ?? 'secondary';
+            $isApproved = $driver->status == 1;
+        @endphp
         <tr>
             <td>{{$i++}}</td>
             <td>
@@ -24,8 +36,8 @@
                     <a class="btn btn-primary btn-xs dropdown-toggle" href="#" role="button" id="dropdownMenuLink{{$driver->id}}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         Action
                     </a>
-
                     <div class="dropdown-menu" aria-labelledby="dropdownMenuLink{{$driver->id}}">
+                        <a class="dropdown-item" href="{{route('admin.drivers.verification',$driver->id)}}"><i class="fas fa-id-card"></i> View Documents</a>
                         <a class="dropdown-item" href="{{route('admin.drivers.edit',$driver->id)}}"><i class="fas fa-edit"></i> Edit</a>
                         <form action="{{ route('admin.drivers.destroy', $driver->id) }}" method="POST" onsubmit="return confirm('Are you sure?')">
                             @csrf
@@ -37,27 +49,34 @@
             </td>
             <td>{{$driver->name}}</td>
             <td>{{$driver->mobile}}</td>
-            <td>{{$driver->email}}</td>
-            <td>{{$driver->license_no}}</td>
+            <td>{{$driver->email ?: '—'}}</td>
+            <td>{{$driver->license_no ?: '—'}}</td>
+            <td>{{$driver->nid ?: '—'}}</td>
             <td>
-                @if($driver->total_ratings > 0)
-                    <span class="text-warning">
-                        @for($s = 1; $s <= 5; $s++)
-                            @if($s <= round($driver->average_rating))
-                                <i class="fas fa-star"></i>
-                            @else
-                                <i class="far fa-star"></i>
-                            @endif
-                        @endfor
-                    </span>
-                    <br><small class="text-muted">{{ number_format($driver->average_rating, 1) }} ({{ $driver->total_ratings }})</small>
-                @else
-                    <span class="text-muted">No ratings yet</span>
-                @endif
+                <div class="progress" style="height: 18px;">
+                    <div class="progress-bar {{ $barColor }}" role="progressbar"
+                         style="width: {{ $completion }}%;"
+                         aria-valuenow="{{ $completion }}" aria-valuemin="0" aria-valuemax="100">
+                        {{ $completion }}%
+                    </div>
+                </div>
             </td>
-            <td>{{$driver->nid}}</td>
-            <td>{{Str::limit($driver->address, 30)}}</td>
-            <td><span class="badge badge-{{ $driver->status == '1' ? 'success' : 'warning' }}">{{ $driver->status == '1' ? 'Approved' : 'Pending' }}</span></td>
+            <td>
+                <span class="badge badge-{{ $vBadge }}">{{ ucfirst($vstatus ?? 'incomplete') }}</span>
+            </td>
+            <td>
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input driver-approve-switch"
+                           id="approveSwitch{{$driver->id}}"
+                           data-id="{{ $driver->id }}"
+                           data-name="{{ $driver->name }}"
+                           data-url="{{ route('admin.drivers.toggle-status', $driver->id) }}"
+                           {{ $isApproved ? 'checked' : '' }}>
+                    <label class="custom-control-label" for="approveSwitch{{$driver->id}}">
+                        <span class="switch-label-text">{{ $isApproved ? 'Approved' : 'Inactive' }}</span>
+                    </label>
+                </div>
+            </td>
         </tr>
     @endforeach
     </tbody>

@@ -10,33 +10,40 @@ class NotificationController extends Controller
 
     public function index(Request $request)
     {
-         // FIX 1: Manually check for sanctum user if route is public
         $user = auth('sanctum')->user() ?? $request->user();
-         $ip = $request->ip();
-    
-         $notifications = Notification::where(function ($query) use ($user, $ip) {
-             
-             // 1. Show Broadcast notifications (Public)
-            $query->where('all_show', 1);
-   
-            // 2. If user is logged in, show their private notifications
-            if ($user) {
-                $query->orWhere('user_id', $user->id);
-            }
-   
-            // 3. Show notifications for this specific IP (Guest history)
-            // We only show IP notifications where user_id is null to avoid duplicates
-            $query->orWhere(function($q) use ($ip) {
-                $q->whereNull('user_id')->where('ip_address', $ip);
-           });
+        $ip = $request->ip();
 
+        // Which audience does the logged-in account belong to?
+        // (user | driver | corporate | admin — each is a separate table)
+        $audience = $user ? notificationAudience($user) : 'user';
+
+        $notifications = Notification::where(function ($query) use ($user, $ip, $audience) {
+
+            // 1. Broadcasts meant for this audience (or 'all')
+            $query->where(function ($q) use ($audience) {
+                $q->where('all_show', 1)
+                  ->whereIn('recipient_type', ['all', $audience]);
+            });
+
+            // 2. This account's private notifications (match audience + id)
+            if ($user) {
+                $query->orWhere(function ($q) use ($user, $audience) {
+                    $q->where('user_id', $user->id)
+                      ->where('recipient_type', $audience);
+                });
+            }
+
+            // 3. Guest history by IP (null user, matching IP)
+            $query->orWhere(function ($q) use ($ip) {
+                $q->whereNull('user_id')->where('ip_address', $ip);
+            });
         })
-       ->latest()
+        ->latest()
         ->paginate(20);
-   
+
         return response()->json([
             'status' => true,
-           'notifications' => $notifications
+            'notifications' => $notifications,
         ]);
     }
 
@@ -68,21 +75,16 @@ class NotificationController extends Controller
 
     public function markAsRead(Request $request, $id)
     {
-        $user = $request->user();
-        $ip = $request->ip();
+        $user = auth('sanctum')->user() ?? $request->user();
+        if (!$user) {
+            return response()->json(['status' => false, 'message' => 'Unauthenticated'], 401);
+        }
+        $audience = notificationAudience($user);
 
+        // Only this account's personal notification (match id AND audience)
         $notification = Notification::where('id', $id)
-            ->where(function ($query) use ($user, $ip) {
-
-                $query->whereNull('user_id');
-
-                if ($user) {
-                    $query->orWhere('user_id', $user->id);
-                }
-
-                $query->orWhere('ip_address', $ip);
-
-            })
+            ->where('user_id', $user->id)
+            ->where('recipient_type', $audience)
             ->first();
 
         if (!$notification) {
@@ -92,9 +94,7 @@ class NotificationController extends Controller
             ], 404);
         }
 
-        $notification->update([
-            'is_read' => 1
-        ]);
+        $notification->update(['is_read' => 1, 'read_at' => now()]);
 
         return response()->json([
             'status' => true,
@@ -104,15 +104,15 @@ class NotificationController extends Controller
 
     public function markAllRead(Request $request)
     {
-        $user = $request->user();
+        $user = auth('sanctum')->user() ?? $request->user();
+        if (!$user) {
+            return response()->json(['status' => false, 'message' => 'Unauthenticated'], 401);
+        }
 
-        Notification::where(function ($query) use ($user) {
-            $query->whereNull('user_id')
-                ->orWhere('user_id', $user->id);
-        })
-        ->update([
-            'is_read' => 1
-        ]);
+        Notification::where('user_id', $user->id)
+            ->where('recipient_type', notificationAudience($user))
+            ->where('is_read', 0)
+            ->update(['is_read' => 1, 'read_at' => now()]);
 
         return response()->json([
             'status' => true,

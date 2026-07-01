@@ -63,9 +63,30 @@ class RideRequestController extends Controller
         $driver = \App\Models\Driver::find($rideRequest->driver_id);
 
         if ($status == 'accepted') {
-            $driverId = ($user->role == 'driver' && isset($user->driver)) ? $user->driver->id : $user->id;
+            $driverId = ($user instanceof \App\Models\Driver)
+                ? $user->id
+                : (($user->driver->id ?? null) ?: $user->id);
             $rideRequest->update(['driver_id' => $driverId, 'status' => 'accepted', 'accepted_at' => now()]);
             if ($rider) $fcm->rideAccepted($rider, $user->name ?? 'Driver');
+
+            // Tell all OTHER offered drivers the ride is gone — cancels their
+            // ringing notification in real time (first-to-accept wins).
+            $otherDriverIds = \App\Models\RideOffer::where('ride_request_id', $rideRequest->id)
+                ->where('driver_id', '!=', $driverId)
+                ->whereIn('status', ['pending'])
+                ->pluck('driver_id');
+
+            \App\Models\RideOffer::where('ride_request_id', $rideRequest->id)
+                ->where('driver_id', '!=', $driverId)
+                ->where('status', 'pending')
+                ->update(['status' => 'expired', 'responded_at' => now()]);
+
+            foreach (\App\Models\Driver::whereIn('id', $otherDriverIds)->whereNotNull('fcm_token')->get() as $other) {
+                $fcm->sendData($other->fcm_token, [
+                    'type'       => 'ride_taken',
+                    'request_id' => (string) $rideRequest->id,
+                ]);
+            }
 
         } elseif ($status == 'arriving') {
             $rideRequest->update(['status' => 'arriving']);
@@ -112,21 +133,19 @@ class RideRequestController extends Controller
         ]);
 
         $user = auth()->user();
-        
-        // Update User table
-        $user->update([
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
-            'last_location_update' => now(),
-        ]);
 
-        // If this user is a driver, also update the Drivers table
-        if ($user->role == 'driver' && isset($user->driver)) {
-            $user->driver->update([
-                'latitude' => $request->latitude,
-                'longitude' => $request->longitude,
-                'last_location_update' => now(),
-            ]);
+        $coords = [
+            'latitude'             => $request->latitude,
+            'longitude'            => $request->longitude,
+            'last_location_update' => now(),
+        ];
+
+        // Always update the authenticated entity (User OR Driver row).
+        $user->update($coords);
+
+        // If a User has a linked driver row, keep that in sync too.
+        if (!($user instanceof \App\Models\Driver) && ($user->driver ?? null)) {
+            $user->driver->update($coords);
         }
 
         return response()->json([

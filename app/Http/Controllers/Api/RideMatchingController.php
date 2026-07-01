@@ -82,6 +82,26 @@ class RideMatchingController extends Controller
         $maxPriority = RideOffer::where('ride_request_id', $rideRequest->id)
             ->max('priority_order') ?? 0;
 
+        $fcm = new \App\Services\FcmService();
+
+        // Ride payload sent to each offered driver so their app can ring + show the call
+        $ridePayload = [
+            'request_id'      => (string) $rideRequest->id,
+            'ride_request_id' => (string) $rideRequest->id,
+            'trip_id'         => (string) ($rideRequest->firebase_trip_id ?? ''),
+            'mysqlRideId'     => (string) $rideRequest->id,
+            'rider_name'      => (string) ($rideRequest->user->name ?? 'Passenger'),
+            'rider_phone'     => (string) ($rideRequest->user->mobile ?? ''),
+            'ride_type'       => (string) ($rideRequest->ride_type ?? 'car'),
+            'fare'            => (string) ($rideRequest->fare ?? 0),
+            'pickup'          => (string) $rideRequest->pickup_address,
+            'destination'     => (string) $rideRequest->destination_address,
+            'pickup_lat'      => (string) $rideRequest->pickup_latitude,
+            'pickup_lng'      => (string) $rideRequest->pickup_longitude,
+            'dest_lat'        => (string) $rideRequest->destination_latitude,
+            'dest_lng'        => (string) $rideRequest->destination_longitude,
+        ];
+
         $offers = [];
         foreach ($nearbyDrivers as $i => $driver) {
             $offer = RideOffer::create([
@@ -91,6 +111,14 @@ class RideMatchingController extends Controller
                 'offered_at' => now(),
                 'priority_order' => $maxPriority + $i + 1,
             ]);
+
+            // RING the driver's phone right now (works even if app is closed)
+            $driverModel = Driver::find($driver->id);
+            if ($driverModel) {
+                $fcm->rideCallToDriver($driverModel, array_merge($ridePayload, [
+                    'offer_id' => (string) $offer->id,
+                ]));
+            }
 
             $offers[] = [
                 'offer_id' => $offer->id,
@@ -526,12 +554,20 @@ class RideMatchingController extends Controller
         ]);
 
         $user = auth()->user();
-        if ($user->role !== 'driver' || !isset($user->driver)) {
+
+        // Resolve the Driver record whether the logged-in entity is a Driver
+        // (driver guard) or a User that has a linked driver row.
+        $driver = ($user instanceof \App\Models\Driver)
+            ? $user
+            : ($user->driver ?? \App\Models\Driver::where('user_id', $user->id)->first());
+
+        if (!$driver) {
             return response()->json(['success' => false, 'message' => 'Only drivers can toggle online status'], 403);
         }
 
-        $user->driver->update([
-            'is_online' => $request->is_online,
+        $driver->update([
+            'is_online'            => $request->is_online,
+            'last_location_update' => now(),
         ]);
 
         return response()->json([

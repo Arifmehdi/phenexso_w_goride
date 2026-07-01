@@ -208,11 +208,17 @@ class AuthController extends Controller
         }
 
         if ($isPending) {
+            // Issue a token so the pending driver can complete their verification
+            // profile (NID, license, photos) while waiting for admin approval.
+            $token = $user->createToken('flutter')->plainTextToken;
             return response()->json([
-                'success' => true,
-                'message' => 'Registration successful! Your account is pending approval. You will be able to login once approved.',
-                'user'    => $user,
-                'pending' => true
+                'success'     => true,
+                'message'     => 'Registration successful! Complete your verification, then wait for admin approval.',
+                'token'       => $token,
+                'user'        => $user,
+                'role'        => $role,
+                'is_approved' => false,
+                'pending'     => true,
             ], 201);
         }
 

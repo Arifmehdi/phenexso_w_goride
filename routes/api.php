@@ -188,6 +188,14 @@ Route::middleware('auth:sanctum')->group(function () {
     // ── Receipt PDF (Task 29) ──
     Route::get('/ride-requests/{rideId}/receipt', [\App\Http\Controllers\Api\EarningsController::class, 'receiptPdf']);
 
+    // ── Driver Verification / Profile Completion ──
+    Route::get('/driver/profile-status', [\App\Http\Controllers\Api\DriverProfileController::class, 'status']);
+    Route::post('/driver/profile/update', [\App\Http\Controllers\Api\DriverProfileController::class, 'update']);
+    // Admin verification
+    Route::get('/admin/drivers/verification', [\App\Http\Controllers\Api\DriverProfileController::class, 'verificationList']);
+    Route::get('/admin/drivers/{driver}/verification', [\App\Http\Controllers\Api\DriverProfileController::class, 'adminShow']);
+    Route::post('/admin/drivers/{driver}/verify', [\App\Http\Controllers\Api\DriverProfileController::class, 'review']);
+
     // ── Phase 6: Safety Features ──
     Route::post('/sos/trigger',              [\App\Http\Controllers\Api\SosController::class, 'trigger']);
     Route::post('/sos/alerts/{alert}/resolve', [\App\Http\Controllers\Api\SosController::class, 'resolve']);
