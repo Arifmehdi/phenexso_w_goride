@@ -22,6 +22,9 @@ class VerifyCsrfToken extends Middleware
         '/cancel',
         '/ipn',
         'order/*',
+
+        // Ride payment webhooks — called server-to-server, no CSRF token available
+        '/payment/sslcommerz/ipn',
     ];
 
 }

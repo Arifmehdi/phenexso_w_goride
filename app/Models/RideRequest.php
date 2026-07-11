@@ -33,6 +33,9 @@ class RideRequest extends Model
         'distance_km',
         'duration_minutes',
         'notes',
+        'corporate_id',
+        'booked_for_name',
+        'booked_for_mobile',
     ];
 
     protected $casts = [

@@ -58,17 +58,25 @@ Route::get('/notifications/ip', [NotificationController::class, 'ipNotifications
 Route::post('/notifications/read/{id}', [NotificationController::class, 'markAsRead']);
 
 // Public API - Get driver ratings
-Route::get('/driver-ratings/{driverId}', [AppHttpControllersApiDriverRatingController::class, 'driverRatings']);
+Route::get('/driver-ratings/{driverId}', [\App\Http\Controllers\Api\DriverRatingController::class, 'driverRatings']);
 
 // Public API - Get website parameters (per_km_rate for fare calculation)
-Route::get('/website-parameters', function () {
+// Optional ?lat=&lng= includes the active surge multiplier for that point.
+Route::get('/website-parameters', function (\Illuminate\Http\Request $request) {
     $param = \App\Models\WebsiteParameter::first();
+    $surgeMultiplier = 1.0;
+    if ($request->filled('lat') && $request->filled('lng')) {
+        $surgeMultiplier = \App\Models\SurgeZone::multiplierFor(
+            (float) $request->lat, (float) $request->lng
+        );
+    }
     return response()->json([
         'success' => true,
         'data' => [
             'per_km_rate' => (float) ($param?->per_km_rate ?? 20.00),
             'base_fare' => 50.00,
             'currency' => 'BDT',
+            'surge_multiplier' => $surgeMultiplier,
         ]
     ]);
 });
@@ -101,8 +109,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
 
     // ── Driver Ratings ──
-    Route::post('/driver-ratings', [AppHttpControllersApiDriverRatingController::class, 'store']);
-    Route::get('/driver-ratings/check/{rideRequestId}', [AppHttpControllersApiDriverRatingController::class, 'checkRating']);
+    Route::post('/driver-ratings', [\App\Http\Controllers\Api\DriverRatingController::class, 'store']);
+    Route::get('/driver-ratings/check/{rideRequestId}', [\App\Http\Controllers\Api\DriverRatingController::class, 'checkRating']);
 
     // ── Ride Matching & History System ──
     Route::post('/ride-requests/match', [\App\Http\Controllers\Api\RideMatchingController::class, 'matchAndOffer']);
@@ -181,7 +189,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/ride-requests/{rideId}/pay-wallet', [\App\Http\Controllers\Api\WalletController::class, 'payForRide']);
 
     // ── Promo Codes (Task 24) ──
-    Route::post('/promo/validate', [\App\Http\Controllers\Api\PromoCodeController::class, 'validate']);
+    Route::post('/promo/validate', [\App\Http\Controllers\Api\PromoCodeController::class, 'checkCode']);
 
     // ── Driver Earnings (Task 26) ──
     Route::get('/driver/earnings', [\App\Http\Controllers\Api\EarningsController::class, 'index']);
@@ -226,6 +234,60 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/resend-otp', [\App\Http\Controllers\Api\OtpController::class, 'send']);
 
     // Task 36: Notifications already exist at /api/notifications
+
+    // ══════════════════════════════════════════════════════════════════
+    //  new_api.txt feature set
+    // ══════════════════════════════════════════════════════════════════
+
+    // ── Admin: dashboard, live map, reports ──
+    Route::get('/admin/dashboard-stats',   [\App\Http\Controllers\Api\AdminDashboardController::class, 'dashboardStats']);
+    Route::get('/admin/active-rides',      [\App\Http\Controllers\Api\AdminDashboardController::class, 'activeRides']);
+    Route::get('/admin/reports/revenue',   [\App\Http\Controllers\Api\AdminDashboardController::class, 'revenueReport']);
+    Route::get('/admin/reports/rides',     [\App\Http\Controllers\Api\AdminDashboardController::class, 'ridesReport']);
+    Route::get('/admin/reports/drivers',   [\App\Http\Controllers\Api\AdminDashboardController::class, 'driversReport']);
+    Route::post('/admin/notifications/broadcast', [\App\Http\Controllers\Api\AdminDashboardController::class, 'broadcastNotification']);
+
+    // ── Support Tickets ──
+    Route::post('/support-tickets',              [\App\Http\Controllers\Api\SupportTicketController::class, 'store']);
+    Route::get('/support-tickets',                [\App\Http\Controllers\Api\SupportTicketController::class, 'index']);
+    Route::get('/support-tickets/{ticket}',        [\App\Http\Controllers\Api\SupportTicketController::class, 'show']);
+    Route::post('/support-tickets/{ticket}/reply', [\App\Http\Controllers\Api\SupportTicketController::class, 'reply']);
+    Route::get('/admin/support-tickets',            [\App\Http\Controllers\Api\SupportTicketController::class, 'adminIndex']);
+    Route::patch('/admin/support-tickets/{ticket}', [\App\Http\Controllers\Api\SupportTicketController::class, 'adminUpdate']);
+
+    // ── Payments: ShurjoPay (bKash/Nagad) ──
+    Route::post('/payment/shurjopay/initiate', [\App\Http\Controllers\Api\RidePaymentController::class, 'shurjopayInitiate']);
+    Route::post('/payment/shurjopay/callback', [\App\Http\Controllers\Api\RidePaymentController::class, 'shurjopayCallback']);
+
+    // ── Trip share link — GET alias alongside the existing POST (token-creation) ──
+    Route::get('/ride-requests/{rideId}/tracking-token', [\App\Http\Controllers\Api\TripTrackingController::class, 'generateToken']);
+
+    // ── Owner ──
+    Route::get('/owner/dashboard', [\App\Http\Controllers\Api\OwnerController::class, 'dashboard']);
+    Route::get('/owner/fleet',     [\App\Http\Controllers\Api\OwnerController::class, 'fleet']);
+    Route::get('/owner/earnings',  [\App\Http\Controllers\Api\OwnerController::class, 'earnings']);
+
+    // ── Corporate ──
+    Route::get('/corporate/dashboard',              [\App\Http\Controllers\Api\CorporateController::class, 'dashboard']);
+    Route::post('/corporate/ride-request',          [\App\Http\Controllers\Api\CorporateController::class, 'createRideRequest']);
+    Route::get('/corporate/billing',                [\App\Http\Controllers\Api\CorporateController::class, 'billing']);
+    Route::get('/corporate/billing/{month}/pdf',    [\App\Http\Controllers\Api\CorporateController::class, 'billingPdf']);
+
+    // ── Ride Pooling ──
+    Route::get('/ride-requests/pool/available', [\App\Http\Controllers\Api\RidePoolController::class, 'available']);
+
+    // ── Referrals ──
+    Route::get('/referrals', [\App\Http\Controllers\Api\ReferralController::class, 'stats']);
+
+    // ── Surge Pricing (admin) ──
+    Route::get('/admin/surge',        [\App\Http\Controllers\Api\SurgeController::class, 'index']);
+    Route::post('/admin/surge',       [\App\Http\Controllers\Api\SurgeController::class, 'store']);
+    Route::patch('/admin/surge/{zone}', [\App\Http\Controllers\Api\SurgeController::class, 'update']);
+
+    // ── Driver Payouts (admin) ──
+    Route::get('/admin/payouts/pending',  [\App\Http\Controllers\Api\DriverPayoutController::class, 'pending']);
+    Route::post('/admin/payouts/process', [\App\Http\Controllers\Api\DriverPayoutController::class, 'process']);
+    Route::get('/admin/payouts/export',   [\App\Http\Controllers\Api\DriverPayoutController::class, 'export']);
 
     // ── Rider Rating by Driver (Task 20) ──
     Route::post('/rider-ratings', function (\Illuminate\Http\Request $request) {

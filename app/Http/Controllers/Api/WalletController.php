@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\RideRequest;
 use App\Models\Wallet;
 use App\Models\WalletTransaction;
 use Illuminate\Http\Request;
@@ -100,6 +101,10 @@ class WalletController extends Controller
                 'reference'     => "ride_$rideId",
                 'balance_after' => $wallet->fresh()->balance,
             ]);
+            RideRequest::where('id', $rideId)->update([
+                'payment_status' => 'paid',
+                'payment_method' => 'wallet',
+            ]);
         });
 
         return response()->json(['success' => true, 'balance' => (float) $this->wallet()->balance]);
@@ -111,15 +116,24 @@ class WalletController extends Controller
      */
     public static function creditDriverEarnings($driver, float $amount, string $description, ?string $reference = null): void
     {
-        DB::transaction(function () use ($driver, $amount, $description, $reference) {
+        static::creditWallet($driver->id, 'driver', $amount, $description, $reference);
+    }
+
+    /**
+     * Generic wallet credit for any owner type ('user'|'driver'|'corporate'|'admin').
+     * Used by payouts, referral bonuses, and refunds.
+     */
+    public static function creditWallet(int $ownerId, string $ownerType, float $amount, string $description, ?string $reference = null): void
+    {
+        DB::transaction(function () use ($ownerId, $ownerType, $amount, $description, $reference) {
             $wallet = Wallet::firstOrCreate(
-                ['user_id' => $driver->id, 'owner_type' => 'driver'],
+                ['user_id' => $ownerId, 'owner_type' => $ownerType],
                 ['balance' => 0]
             );
             $wallet->increment('balance', $amount);
             WalletTransaction::create([
-                'user_id'       => $driver->id,
-                'owner_type'    => 'driver',
+                'user_id'       => $ownerId,
+                'owner_type'    => $ownerType,
                 'type'          => 'credit',
                 'amount'        => $amount,
                 'description'   => $description,

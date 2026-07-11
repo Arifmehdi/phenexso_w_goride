@@ -147,4 +147,75 @@ class AdminApprovalController extends Controller
             ],
         ]);
     }
+
+    // ── Web (Blade) admin panel — resources/views/admin/approvals/index.blade.php ──
+
+    public function index(Request $request)
+    {
+        $this->checkAdmin($request->user());
+
+        $type = $request->query('type', 'all');
+        $query = User::query();
+        if ($type !== 'all') {
+            $query->where('role', $type);
+        }
+
+        $users = $query->where(function ($q) {
+            $q->whereIn('status', ['pending', 0, '0', 'inactive'])
+              ->orWhere(function ($q2) {
+                  $q2->where('is_approve', 0)->orWhere('is_approve', false);
+              });
+        })->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
+
+        // The view reads $user->profile_completion — not a real column, compute a cheap estimate.
+        $users->getCollection()->transform(function ($user) {
+            $fields = [$user->name, $user->email, $user->mobile, $user->nid, $user->address, $user->dob];
+            $filled = count(array_filter($fields, fn ($f) => !empty($f)));
+            $user->profile_completion = (int) round(($filled / count($fields)) * 100);
+            return $user;
+        });
+
+        $statsData = $this->computeStats();
+
+        return view('admin.approvals.index', ['users' => $users, 'stats' => $statsData]);
+    }
+
+    public function approve(Request $request, $id)
+    {
+        return $this->webApproveReject($request, $id, 'approve');
+    }
+
+    public function reject(Request $request, $id)
+    {
+        return $this->webApproveReject($request, $id, 'reject');
+    }
+
+    private function webApproveReject(Request $request, $id, string $action)
+    {
+        $this->checkAdmin($request->user());
+        $user = User::findOrFail($id);
+
+        if ($action === 'approve') {
+            $user->update(['status' => 'active', 'is_approve' => true]);
+            $message = "{$user->name} has been approved.";
+        } else {
+            $user->update(['status' => 'rejected', 'is_approve' => false]);
+            $message = "{$user->name} has been rejected.";
+        }
+
+        return back()->with('success', $message);
+    }
+
+    private function computeStats(): array
+    {
+        return [
+            'pending_drivers' => User::where('role', 'driver')
+                ->where(fn ($q) => $q->whereIn('status', ['pending', 0, '0', 'inactive'])->orWhere('is_approve', 0))
+                ->count(),
+            'pending_corporates' => User::where('role', 'corporate')
+                ->where(fn ($q) => $q->whereIn('status', ['pending', 0, '0', 'inactive'])->orWhere('is_approve', 0))
+                ->count(),
+            'total_pending' => User::where(fn ($q) => $q->whereIn('status', ['pending', 0, '0', 'inactive'])->orWhere('is_approve', 0))->count(),
+        ];
+    }
 }

@@ -707,9 +707,10 @@ Route::middleware(['auth:admin,web', 'userRole:admin'])->prefix('admin')->group(
     // Vehicle Assignment Admin Routes
     Route::resource('vehicle-assignments', \App\Http\Controllers\Admin\VehicleAssignmentController::class)->names('admin.vehicle_assignments');
 
-    // Approvals Management    
-    Route::get('/approvals', [AppHttpControllersAdminApprovalController::class, 'index'])->name('admin.approvals.index');    
-    Route::post('/users/{id}/approve', [AppHttpControllersAdminApprovalController::class, 'approve'])->name('admin.approvals.approve');    Route::post('/users/{id}/reject', [AppHttpControllersAdminApprovalController::class, 'reject'])->name('admin.approvals.reject');
+    // Approvals Management
+    Route::get('/approvals', [\App\Http\Controllers\Api\AdminApprovalController::class, 'index'])->name('admin.approvals.index');
+    Route::post('/users/{id}/approve', [\App\Http\Controllers\Api\AdminApprovalController::class, 'approve'])->name('admin.approvals.approve');
+    Route::post('/users/{id}/reject', [\App\Http\Controllers\Api\AdminApprovalController::class, 'reject'])->name('admin.approvals.reject');
 
     // Ride Matching History (Admin View)
     Route::get('/ride-matching', [\App\Http\Controllers\Admin\RideMatchingController::class, 'index'])->name('admin.ride-matching.index');
@@ -750,3 +751,6 @@ Route::get('/track/{token}', function (string $token) {
 
     return view('track.show', ['expired' => false, 'ride' => $rideData, 'token' => $token]);
 })->name('trip.track');
+
+// ── SSLCommerz IPN for ride payments — server-to-server, CSRF-exempt ──
+Route::post('/payment/sslcommerz/ipn', [\App\Http\Controllers\Api\RidePaymentController::class, 'sslcommerzIpn']);

@@ -55,6 +55,7 @@ class RideRequestController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $rideRequest = RideRequest::findOrFail($id);
+        $previousStatus = $rideRequest->status;
         $status = $request->status;
         $user = auth()->user();
         $fcm = new \App\Services\FcmService();
@@ -90,7 +91,16 @@ class RideRequestController extends Controller
 
         } elseif ($status == 'arriving') {
             $rideRequest->update(['status' => 'arriving']);
-            if ($rider) $fcm->driverArrived($rider);
+            if ($rider) {
+                // Stores an in-app Notification row AND sends the FCM push
+                // (unlike FcmService::driverArrived(), which is push-only and
+                // silently does nothing if no FCM token/credentials exist).
+                app(\App\Services\NotificationService::class)->toUser(
+                    $rider, '📍 Driver Arrived',
+                    'Your driver has arrived at the pickup location.',
+                    'driver_arrived'
+                );
+            }
 
         } elseif ($status == 'in_progress') {
             $rideRequest->update(['status' => 'in_progress', 'started_at' => now()]);
@@ -100,6 +110,23 @@ class RideRequestController extends Controller
             $rideRequest->update(['status' => 'completed', 'completed_at' => now()]);
             if ($rider) $fcm->tripCompleted($rider, (string) $rideRequest->fare);
 
+            // Referral bonus: when a referred rider completes their FIRST ride,
+            // credit the referrer ৳50 (once only).
+            if ($rider && $rider->referred_by && !$rider->referral_credited) {
+                $isFirstRide = \App\Models\RideRequest::where('user_id', $rider->id)
+                    ->where('status', 'completed')
+                    ->where('id', '!=', $rideRequest->id)
+                    ->doesntExist();
+                if ($isFirstRide) {
+                    \App\Http\Controllers\Api\WalletController::creditWallet(
+                        $rider->referred_by, 'user', 50,
+                        "Referral bonus — {$rider->name} completed their first ride",
+                        "referral_{$rider->id}"
+                    );
+                    $rider->update(['referral_credited' => true]);
+                }
+            }
+
         } elseif ($status == 'cancelled') {
             $cancelledBy = ($user->role === 'driver') ? 'driver' : 'rider';
             $rideRequest->update([
@@ -107,6 +134,48 @@ class RideRequestController extends Controller
                 'cancelled_by' => $request->cancelled_by ?? $cancelledBy,
                 'cancellation_reason' => $request->cancellation_reason ?? 'Cancelled by ' . $cancelledBy,
             ]);
+
+            // A driver had already been assigned and was on the way (or the
+            // trip was running) — this is the "chargeable" window on both sides.
+            $wasChargeable = in_array($previousStatus, ['accepted', 'arriving', 'in_progress']);
+            $cancelFee = 50.0;
+
+            if ($wasChargeable && $cancelledBy === 'rider' && $rider) {
+                // Fixed cancellation fee — charged to the rider (balance may go
+                // negative; settled on their next top-up, same as other apps)
+                // and paid to the driver as compensation for the wasted trip.
+                $riderWallet = \App\Models\Wallet::firstOrCreate(
+                    ['user_id' => $rider->id, 'owner_type' => 'user'],
+                    ['balance' => 0]
+                );
+                $riderWallet->decrement('balance', $cancelFee);
+                \App\Models\WalletTransaction::create([
+                    'user_id'       => $rider->id,
+                    'owner_type'    => 'user',
+                    'type'          => 'debit',
+                    'amount'        => $cancelFee,
+                    'description'   => "Cancellation fee — ride #{$rideRequest->id}",
+                    'reference'     => "cancel_fee_{$rideRequest->id}",
+                    'balance_after' => $riderWallet->fresh()->balance,
+                ]);
+                if ($driver) {
+                    \App\Http\Controllers\Api\WalletController::creditWallet(
+                        $driver->id, 'driver', $cancelFee,
+                        "Cancellation compensation — ride #{$rideRequest->id}",
+                        "cancel_comp_{$rideRequest->id}"
+                    );
+                }
+            } elseif ($wasChargeable && $cancelledBy === 'driver' && $driver) {
+                // No cash fee for the driver — instead, a reliability strike:
+                // a running cancellation count (visible on their profile) and
+                // a hit to acceptance_rate, the same score shown in the admin
+                // driver report and the driver's own stats screen.
+                $driver->increment('cancelled_rides_count');
+                $driver->update([
+                    'acceptance_rate' => max(0, (float) $driver->acceptance_rate - 5),
+                ]);
+            }
+
             // Notify the other party (driver token from drivers table, rider from users)
             if ($cancelledBy === 'rider' && $driver && !empty($driver->fcm_token)) {
                 $fcm->send($driver->fcm_token, 'Ride Cancelled', 'The rider has cancelled this trip.', ['type' => 'ride_cancelled']);

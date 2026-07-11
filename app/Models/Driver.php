@@ -23,6 +23,10 @@ class Driver extends Authenticatable
         'user_id',
         'average_rating',
         'total_ratings',
+        'acceptance_rate',
+        'total_offers',
+        'accepted_offers',
+        'cancelled_rides_count',
         'fcm_token',
         // Live location & availability (required for ride matching)
         'latitude',

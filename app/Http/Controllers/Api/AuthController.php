@@ -156,6 +156,7 @@ class AuthController extends Controller
             'role'         => 'nullable|string|in:user,driver,owner,corporate,solo',
             'company_name' => 'nullable|string|max:255',
             'vehicle_type' => 'nullable|string|max:255',
+            'referral_code' => 'nullable|string|max:12',
         ]);
 
         if ($validator->fails()) {
@@ -199,6 +200,15 @@ class AuthController extends Controller
             $userData['role'] = $role;
             $userData['company_name'] = $request->company_name;
             $userData['vehicle_type'] = $request->vehicle_type;
+            // Referral support: every new user gets their own code; if they
+            // signed up with someone's code, record who referred them.
+            $userData['referral_code'] = $this->generateReferralCode();
+            if ($request->filled('referral_code')) {
+                $referrer = User::where('referral_code', strtoupper($request->referral_code))->first();
+                if ($referrer) {
+                    $userData['referred_by'] = $referrer->id;
+                }
+            }
             $user = User::create($userData);
         }
 
@@ -232,6 +242,15 @@ class AuthController extends Controller
             'user'    => $user,
             'role'    => $role
         ], 201);
+    }
+
+    /** Unique short referral code, e.g. GR3F9A2C. */
+    private function generateReferralCode(): string
+    {
+        do {
+            $code = 'GR' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 6));
+        } while (User::where('referral_code', $code)->exists());
+        return $code;
     }
 
     // public function register(Request $request)

@@ -8,7 +8,12 @@ use Illuminate\Http\Request;
 
 class PromoCodeController extends Controller
 {
-    public function validate(Request $request)
+    /**
+     * Named checkCode() rather than validate() — the base Controller class
+     * uses the ValidatesRequests trait, whose validate() has an incompatible
+     * signature. Overriding it fatals at class-load time.
+     */
+    public function checkCode(Request $request)
     {
         $request->validate([
             'code'     => 'required|string',

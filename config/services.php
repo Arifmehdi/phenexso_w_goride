@@ -38,4 +38,9 @@ return [
         'credentials' => env('FIREBASE_CREDENTIALS', storage_path('app/firebase/service-account.json')),
     ],
 
+    'goride' => [
+        // Platform commission taken from driver gross earnings (payouts)
+        'commission_rate' => (float) env('GORIDE_COMMISSION_RATE', 0.15),
+    ],
+
 ];
