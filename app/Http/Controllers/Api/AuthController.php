@@ -40,11 +40,18 @@ class AuthController extends Controller
         $activeGuard = null;
 
         if ($request->role) {
-            // Exact match: when a role is specified, ONLY try that guard
+            // Admin credentials always sign in as admin, whatever tab was
+            // picked — so an admin reaches the admin dashboard without needing
+            // a dedicated Admin tab. (Passenger/rider/corporate credentials are
+            // not in the admins table, so they're unaffected.)
+            if (Auth::guard('admin')->attempt($credentials)) {
+                $user = Auth::guard('admin')->user();
+                $activeGuard = 'admin';
+            }
+
+            // Otherwise use the guard for the selected tab.
             $requestedGuard = $request->role === 'user' ? 'web' : $request->role;
-            
-            // Try with the provided credentials first
-            if (Auth::guard($requestedGuard)->attempt($credentials)) {
+            if (!$user && Auth::guard($requestedGuard)->attempt($credentials)) {
                 $user = Auth::guard($requestedGuard)->user();
                 $activeGuard = $requestedGuard;
             }
@@ -95,9 +102,21 @@ class AuthController extends Controller
         }
 
         if (!$user) {
+            // Role-specific message so the user knows which login they failed.
+            $roleLabels = [
+                'user'      => 'passenger',
+                'driver'    => 'rider',
+                'corporate' => 'corporate',
+                'admin'     => 'admin',
+            ];
+            $label = $roleLabels[$request->role] ?? null;
+            $message = $label
+                ? "As a {$label}, your email or password is invalid."
+                : 'Invalid email or password.';
+
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid credentials'
+                'message' => $message,
             ], 401);
         }
 
@@ -197,7 +216,10 @@ class AuthController extends Controller
             if (\App\Models\User::where('email', $request->email)->exists()) {
                 return response()->json(['success' => false, 'message' => 'User with this email already exists'], 400);
             }
-            $userData['role'] = $role;
+            // The users.role column is an enum ('admin','corporate','owner',
+            // 'driver','solo') with NO 'user'. The Passenger tab sends 'user',
+            // so store it as the equivalent 'solo' to avoid a truncation error.
+            $userData['role'] = ($role === 'user') ? 'solo' : $role;
             $userData['company_name'] = $request->company_name;
             $userData['vehicle_type'] = $request->vehicle_type;
             // Referral support: every new user gets their own code; if they
@@ -334,6 +356,10 @@ class AuthController extends Controller
     public function forgotPassword(Request $request)
     {
         $request->validate(['email' => 'required|email']);
+
+        // Build the email link from the domain this request came in on, so the
+        // same codebase works on any domain (includes subfolder installs).
+        \App\Notifications\ApiResetPasswordNotification::$resetBaseUrl = $request->root();
 
         $response = Password::broker('users')->sendResetLink(
             $request->only('email')

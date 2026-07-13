@@ -118,6 +118,19 @@ class RideMatchingController extends Controller
                 $fcm->rideCallToDriver($driverModel, array_merge($ridePayload, [
                     'offer_id' => (string) $offer->id,
                 ]));
+
+                // Also store an in-app notification so this ride request shows
+                // in the driver's notification bell list (the push above is
+                // data-only and does not create a DB row on its own).
+                \App\Models\Notification::create([
+                    'user_id'        => $driverModel->id,
+                    'recipient_type' => 'driver',
+                    'title'          => '🔔 New Ride Request',
+                    'message'        => "{$ridePayload['pickup']} → {$ridePayload['destination']} • ৳{$ridePayload['fare']}",
+                    'type'           => 'ride_request',
+                    'data'           => ['ride_request_id' => $rideRequest->id],
+                    'all_show'       => false,
+                ]);
             }
 
             $offers[] = [
@@ -435,6 +448,37 @@ class RideMatchingController extends Controller
     /**
      * Get ride history for the authenticated user (rider or driver).
      */
+    /**
+     * Aggregated dashboard stats for the authenticated passenger — powers the
+     * customer "Account" dashboard (total trips, spend, wallet, member since).
+     */
+    public function riderStats(Request $request)
+    {
+        $user = auth()->user();
+
+        $base = RideRequest::where('user_id', $user->id);
+        $total     = (clone $base)->count();
+        $completed = (clone $base)->where('status', 'completed')->count();
+        $cancelled = (clone $base)->where('status', 'cancelled')->count();
+        $totalSpent = (clone $base)->where('status', 'completed')
+            ->sum(DB::raw('COALESCE(actual_fare, fare)'));
+
+        $wallet = \App\Models\Wallet::where('user_id', $user->id)
+            ->where('owner_type', 'user')->value('balance') ?? 0;
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'total_trips'     => $total,
+                'completed_trips' => $completed,
+                'cancelled_trips' => $cancelled,
+                'total_spent'     => (float) $totalSpent,
+                'wallet_balance'  => (float) $wallet,
+                'member_since'    => $user->created_at,
+            ],
+        ]);
+    }
+
     public function rideHistory(Request $request)
     {
         $user = auth()->user();
@@ -522,6 +566,7 @@ class RideMatchingController extends Controller
             'success' => true,
             'data' => [
                 'id' => $ride->id,
+                'firebase_trip_id' => $ride->firebase_trip_id,
                 'ride_type' => $ride->ride_type,
                 'pickup_address' => $ride->pickup_address,
                 'pickup_latitude' => $ride->pickup_latitude,
@@ -582,10 +627,17 @@ class RideMatchingController extends Controller
 
         $ride = RideRequest::findOrFail($id);
 
-        // Only the assigned driver or admin can update payment
+        // The assigned driver, the ride's passenger, or an admin may update
+        // payment. Allowing the passenger is what makes cash/card settlement
+        // reliable — they confirm payment in the app and Laravel is marked
+        // paid immediately (which then credits the driver's earnings), instead
+        // of depending on the driver's app being open to relay it.
         $user = auth()->user();
-        $isDriver = $user->role === 'driver' && isset($user->driver) && $user->driver->id === $ride->driver_id;
-        if (!$isDriver && $user->role !== 'admin') {
+        $isDriver = ($user instanceof \App\Models\Driver && $user->id === $ride->driver_id)
+            || (($user->role ?? null) === 'driver' && isset($user->driver) && $user->driver->id === $ride->driver_id);
+        $isRider  = ($user instanceof \App\Models\User) && $user->id === $ride->user_id;
+        $isAdmin  = ($user instanceof \App\Models\Admin) || ($user->role ?? null) === 'admin';
+        if (!$isDriver && !$isRider && !$isAdmin) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
 
@@ -598,6 +650,12 @@ class RideMatchingController extends Controller
 
         if (!empty($updateData)) {
             $ride->update($updateData);
+        }
+
+        // When the ride is now marked paid (cash or card), credit the driver
+        // their earnings. Idempotent — only ever credits once per ride.
+        if (($ride->payment_status ?? null) === 'paid') {
+            \App\Http\Controllers\Api\WalletController::settleDriverEarnings($ride->fresh());
         }
 
         return response()->json([

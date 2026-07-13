@@ -655,6 +655,44 @@
                         </ul>
                     </li>
 
+                    {{-- Promo Codes --}}
+                    <li class="nav-item {{ session('lsbm') == 'promo_codes'? ' menu-open ' : ''}}">
+                        <a href="#" class="nav-link {{ session('lsbm') == 'promo_codes'? ' active ' : ''}}">
+                            <i class="nav-icon fas fa-tags"></i>
+                            <p>
+                                Promo Codes
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{{ route('admin.promo-codes.index') }}" class="nav-link {{ session('lsbsm') == 'promoCodesSM' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Manage Promo Codes</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    {{-- Banners --}}
+                    <li class="nav-item {{ session('lsbm') == 'banners'? ' menu-open ' : ''}}">
+                        <a href="#" class="nav-link {{ session('lsbm') == 'banners'? ' active ' : ''}}">
+                            <i class="nav-icon fas fa-images"></i>
+                            <p>
+                                App Banners
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{{ route('admin.banners.index') }}" class="nav-link {{ session('lsbsm') == 'bannersSM' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Manage Banners</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
                     {{-- Corporates --}}
                     <li class="nav-item {{ session('lsbm') == 'corporates'? ' menu-open ' : ''}}">
                         <a href="#" class="nav-link {{ session('lsbm') == 'corporates'? ' active ' : ''}}">

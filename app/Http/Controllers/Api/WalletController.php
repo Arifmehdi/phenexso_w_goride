@@ -107,6 +107,9 @@ class WalletController extends Controller
             ]);
         });
 
+        // Pay the driver their share now that the ride is paid.
+        static::settleDriverEarnings(RideRequest::find($rideId));
+
         return response()->json(['success' => true, 'balance' => (float) $this->wallet()->balance]);
     }
 
@@ -117,6 +120,61 @@ class WalletController extends Controller
     public static function creditDriverEarnings($driver, float $amount, string $description, ?string $reference = null): void
     {
         static::creditWallet($driver->id, 'driver', $amount, $description, $reference);
+    }
+
+    /**
+     * Settle a PAID ride: credit the assigned driver their earnings
+     * (fare minus the platform commission). Idempotent — safe to call from
+     * every payment path (cash, wallet, card); it credits at most once per
+     * ride, guarded by a unique transaction reference.
+     */
+    public static function settleDriverEarnings(?RideRequest $ride): void
+    {
+        if (!$ride || $ride->payment_status !== 'paid' || empty($ride->driver_id)) {
+            return;
+        }
+
+        try {
+            $reference = "ride_earning_{$ride->id}";
+            if (WalletTransaction::where('reference', $reference)->exists()) {
+                return; // already settled
+            }
+
+            $gross = (float) ($ride->actual_fare ?? $ride->fare);
+            if ($gross <= 0) {
+                return;
+            }
+
+            // Commission is admin-configurable (website_parameters.commission_rate,
+            // stored as a percent). Fall back to the config default if unset.
+            $commissionPercent = \App\Models\WebsiteParameter::query()->value('commission_rate');
+            $commissionRate = $commissionPercent !== null
+                ? ((float) $commissionPercent / 100)
+                : (float) config('services.goride.commission_rate', 0.15);
+
+            $earnings = round($gross * (1 - $commissionRate), 2);
+
+            static::creditWallet($ride->driver_id, 'driver', $earnings,
+                "Ride earnings #{$ride->id}", $reference);
+
+            // In-app notification so the earning shows in the driver's bell list.
+            \App\Models\Notification::create([
+                'user_id'        => $ride->driver_id,
+                'recipient_type' => 'driver',
+                'title'          => '💰 Ride Earnings',
+                'message'        => "You earned ৳{$earnings} from ride #{$ride->id}.",
+                'type'           => 'earnings',
+                'data'           => ['ride_request_id' => $ride->id],
+                'all_show'       => false,
+            ]);
+        } catch (\Throwable $e) {
+            // Never let a wallet-credit failure break the payment flow. Most
+            // likely cause if this fires: the drop-FK migration hasn't been run
+            // on this server yet (see 2026_07_12_000002).
+            \Illuminate\Support\Facades\Log::error(
+                "settleDriverEarnings failed for ride {$ride->id}: " . $e->getMessage()
+            );
+        }
     }
 
     /**

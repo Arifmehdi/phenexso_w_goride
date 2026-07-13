@@ -405,6 +405,18 @@ Route::middleware(['auth:admin,web', 'userRole:admin'])->prefix('admin')->group(
     Route::get('websiteparam',[WebsiteParameterController::class,'websiteparam'])->name('websiteparam');
     Route::post('websiteparam/update/{id}',[WebsiteParameterController::class,'update'])->name('websiteparam.update');
 
+    // Promo code management (feeds the app's /api/promo/validate)
+    Route::get('promo-codes', [\App\Http\Controllers\Admin\PromoCodeController::class, 'index'])->name('admin.promo-codes.index');
+    Route::post('promo-codes', [\App\Http\Controllers\Admin\PromoCodeController::class, 'store'])->name('admin.promo-codes.store');
+    Route::post('promo-codes/{id}/update', [\App\Http\Controllers\Admin\PromoCodeController::class, 'update'])->name('admin.promo-codes.update');
+    Route::delete('promo-codes/{id}', [\App\Http\Controllers\Admin\PromoCodeController::class, 'destroy'])->name('admin.promo-codes.destroy');
+
+    // Ride home-screen banner management (feeds the app's /api/banners)
+    Route::get('banners', [\App\Http\Controllers\Admin\BannerController::class, 'index'])->name('admin.banners.index');
+    Route::post('banners', [\App\Http\Controllers\Admin\BannerController::class, 'store'])->name('admin.banners.store');
+    Route::post('banners/{id}/update', [\App\Http\Controllers\Admin\BannerController::class, 'update'])->name('admin.banners.update');
+    Route::delete('banners/{id}', [\App\Http\Controllers\Admin\BannerController::class, 'destroy'])->name('admin.banners.destroy');
+
     Route::resource('page_contents', PageContentController::class)->names([
         'index' => 'admin.page_contents.index',
         'create' => 'admin.page_contents.create',

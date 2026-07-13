@@ -20,6 +20,7 @@ class WebsiteParameterController extends Controller
 
         $request->validate([
             'per_km_rate' => 'nullable|numeric|min:0',
+            'commission_rate' => 'nullable|numeric|min:0|max:100',
             'shipping_cahrge' => 'nullable|numeric|min:0',
         ]);
 
@@ -28,6 +29,7 @@ class WebsiteParameterController extends Controller
         $wp->website_title = $request->website_title;
         $wp->shipping_charge = $request->shipping_cahrge;
         $wp->per_km_rate = $request->per_km_rate ?? 0;
+        $wp->commission_rate = $request->commission_rate ?? 15;
         $wp->google_search_console = $request->google_search_console;
         $wp->google_analytics_code = $request->google_analytics_code;
         $wp->facebook_pixel_code = $request->facebook_pixel_code;

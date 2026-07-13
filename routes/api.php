@@ -119,6 +119,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/ride-requests/{id}/offers', [\App\Http\Controllers\Api\RideMatchingController::class, 'rideOffers']);
     Route::get('/ride-requests/{id}/detail', [\App\Http\Controllers\Api\RideMatchingController::class, 'rideDetail']);
     Route::get('/ride-history', [\App\Http\Controllers\Api\RideMatchingController::class, 'rideHistory']);
+    Route::get('/rider/stats', [\App\Http\Controllers\Api\RideMatchingController::class, 'riderStats']);
+
+    // Resolve the Laravel ride id from a Firestore trip id. Lets the app sync
+    // status/payment even when the numeric id wasn't captured during the
+    // real-time (Firestore) accept handshake — the fix for rides stuck 'pending'.
+    Route::get('/trips/{firebaseTripId}/resolve', function ($firebaseTripId) {
+        $ride = \App\Models\RideRequest::where('firebase_trip_id', $firebaseTripId)
+            ->latest('id')->first();
+        return response()->json(['success' => (bool) $ride, 'ride_id' => $ride?->id]);
+    });
     Route::post('/ride-requests/{id}/payment', [\App\Http\Controllers\Api\RideMatchingController::class, 'updatePayment']);
     Route::post('/driver/toggle-online', [\App\Http\Controllers\Api\RideMatchingController::class, 'toggleOnline']);
     Route::post('/ride-requests/{id}/assign-driver', [\App\Http\Controllers\Api\RideMatchingController::class, 'assignDriver']);
@@ -188,8 +198,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/wallet/top-up', [\App\Http\Controllers\Api\WalletController::class, 'topUp']);
     Route::post('/ride-requests/{rideId}/pay-wallet', [\App\Http\Controllers\Api\WalletController::class, 'payForRide']);
 
-    // ── Promo Codes (Task 24) ──
-    Route::post('/promo/validate', [\App\Http\Controllers\Api\PromoCodeController::class, 'checkCode']);
 
     // ── Driver Earnings (Task 26) ──
     Route::get('/driver/earnings', [\App\Http\Controllers\Api\EarningsController::class, 'index']);
@@ -309,6 +317,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // ── Banners — public (Task 25) ──
 Route::get('/banners', [\App\Http\Controllers\Api\BannerController::class, 'index']);
+
+// ── Promo code validation — public (no login needed to check a code + fare) ──
+Route::post('/promo/validate', [\App\Http\Controllers\Api\PromoCodeController::class, 'checkCode']);
 
 // ── Public trip tracking — no auth (Task 50) ──
 Route::get('/public/track/{token}',          [\App\Http\Controllers\Api\TripTrackingController::class, 'publicTrack']);

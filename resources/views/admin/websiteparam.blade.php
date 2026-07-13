@@ -57,6 +57,19 @@
                                 </div>
 
                                 <div class="form-group ">
+                                    <label for="commission_rate" class="control-label">
+                                        Platform Commission (Driver Earnings)
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.01" min="0" max="100" name="commission_rate" class="form-control" value="{{ old('commission_rate') ?: $websiteParameter->commission_rate ?? '15.00' }}" id="commission_rate" placeholder="e.g. 15" autocomplete="off">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                    </div>
+                                    <small class="form-text text-muted">Platform's cut of each ride. Driver earns the rest, e.g. at 15% the driver keeps 85% of the fare.</small>
+                                </div>
+
+                                <div class="form-group ">
                                     <label for="google_search_console" class="control-label"> Google Search Console
                                         Code
                                     </label>

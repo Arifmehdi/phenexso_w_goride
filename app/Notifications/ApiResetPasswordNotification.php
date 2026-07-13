@@ -15,6 +15,12 @@ class ApiResetPasswordNotification extends Notification
     public static $createUrlCallback;
 
     /**
+     * Base URL for the reset link, captured from the incoming request by the
+     * controller so the same codebase works on any domain without env changes.
+     */
+    public static $resetBaseUrl;
+
+    /**
      * Create a new notification instance.
      *
      * @return void
@@ -44,23 +50,18 @@ class ApiResetPasswordNotification extends Notification
     public function toMail($notifiable)
     {
         if (static::$createUrlCallback) {
-            $url = call_user_func(static::$createUrlCallback, $notifiable, $this->token);
+            $frontendResetUrl = call_user_func(static::$createUrlCallback, $notifiable, $this->token);
         } else {
-            $url = url(route('password.reset', [
+            // Base URL priority: domain the request came in on (any domain works),
+            // then an explicit FRONTEND_URL override, then the current app root.
+            $baseUrl = static::$resetBaseUrl ?: env('FRONTEND_URL') ?: url('/');
+
+            $frontendResetUrl = rtrim($baseUrl, '/') . '/reset-password?' . http_build_query([
                 'token' => $this->token,
                 'email' => $notifiable->getEmailForPasswordReset(),
-            ], false)); // Use false for relative URL for API, if needed, or adjust
+                'guard' => 'web',
+            ]);
         }
-
-        // Build the reset URL: prefer FRONTEND_URL, fallback to APP_URL, then to request root
-        $baseUrl = env('FRONTEND_URL');
-        if (empty($baseUrl)) {
-            $baseUrl = env('APP_URL');
-        }
-        if (empty($baseUrl)) {
-            $baseUrl = url('/');
-        }
-        $frontendResetUrl = rtrim($baseUrl, '/') . '/reset-password?token=' . $this->token . '&email=' . $notifiable->getEmailForPasswordReset() . '&guard=web';
 
         return (new MailMessage)
                     ->subject('Reset Password Notification - GoRide')

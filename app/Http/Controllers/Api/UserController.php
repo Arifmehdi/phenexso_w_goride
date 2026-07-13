@@ -98,23 +98,49 @@ class UserController extends Controller
          */
         public function updateMyProfile(UpdateProfileRequest $request)
         {
-            $user = $request->user(); // Get the authenticated user
-    
-            // Handle image upload if present
+            // May be a User, Driver, or Corporate — separate tables with
+            // different columns, so resolve everything per-table below.
+            $user = $request->user();
+            $table = $user->getTable();
+
+            // Handle image upload if present. Drivers store their photo in
+            // profile_image (there is no image column on drivers — writing
+            // it would crash the save); skip entirely on tables without
+            // either column (e.g. corporates).
             if ($request->hasFile('image')) {
-                // Delete old image if exists
-                if ($user->image && Storage::disk('public')->exists($user->image)) {
-                    Storage::disk('public')->delete($user->image);
+                $imageColumn = \Schema::hasColumn($table, 'image')
+                    ? 'image'
+                    : (\Schema::hasColumn($table, 'profile_image') ? 'profile_image' : null);
+
+                if ($imageColumn !== null) {
+                    if ($user->{$imageColumn} && Storage::disk('public')->exists($user->{$imageColumn})) {
+                        Storage::disk('public')->delete($user->{$imageColumn});
+                    }
+                    $user->{$imageColumn} = $request->file('image')->store('images/profile', 'public');
                 }
-                $imagePath = $request->file('image')->store('images/profile', 'public');
-                $user->image = $imagePath;
             }
-    
-            // Update other user data
-            $user->fill($request->except(['password', 'image'])); // Exclude password and image as they are handled separately
+
+            // Update other user data — role must never be mass-updated here.
+            $user->fill($request->except(['password', 'image', 'role']));
             $user->save();
-    
-            return new UserResource($user);
+
+            // Flat user payload under BOTH keys: the app reads 'user'; the
+            // old resource shape exposed 'data', kept for any other callers.
+            // Photo columns hold a storage-relative path — convert to a full
+            // URL or NetworkImage on the app side can't load it. Built from
+            // the request host (not asset()/APP_URL, which is misconfigured
+            // in this project's .env).
+            $payload = $user->fresh()->toArray();
+            foreach (['image', 'profile_image'] as $col) {
+                if (!empty($payload[$col]) && !str_starts_with($payload[$col], 'http')) {
+                    $payload[$col] = $request->root() . '/storage/' . ltrim($payload[$col], '/');
+                }
+            }
+            return response()->json([
+                'success' => true,
+                'user'    => $payload,
+                'data'    => $payload,
+            ]);
         }
 
     /**

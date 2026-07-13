@@ -32,6 +32,13 @@ service cloud.firestore {
     // Active trips — rider + assigned driver exchange live trip state
     match /active_trips/{tripId} {
       allow read, write: if request.auth != null;
+
+      // Per-trip rider<->driver chat lives in a subcollection. Firestore rules
+      // do NOT cascade from the parent document, so the messages subcollection
+      // must be granted explicitly or chat reads/writes are DENIED.
+      match /messages/{messageId} {
+        allow read, write: if request.auth != null;
+      }
     }
 
     // Driver live locations — drivers write their own, riders read to track
