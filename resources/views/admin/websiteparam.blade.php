@@ -70,6 +70,28 @@
                                 </div>
 
                                 <div class="form-group ">
+                                    <label for="matching_radius_km" class="control-label">
+                                        Driver Search Radius (Ride Matching)
+                                    </label>
+                                    @php
+                                        $radiusOptions = [3,5,8,10,12,15,20,25,30,40,50,60,75,100];
+                                        $selectedRadius = (int) (old('matching_radius_km') ?: ($websiteParameter->matching_radius_km ?? 10));
+                                    @endphp
+                                    <select name="matching_radius_km" class="form-control" id="matching_radius_km">
+                                        @foreach($radiusOptions as $km)
+                                            <option value="{{ $km }}" {{ $selectedRadius == $km ? 'selected' : '' }}>{{ $km }} km</option>
+                                        @endforeach
+                                        @if(!in_array($selectedRadius, $radiusOptions))
+                                            <option value="{{ $selectedRadius }}" selected>{{ $selectedRadius }} km</option>
+                                        @endif
+                                    </select>
+                                    <small class="form-text text-muted">
+                                        Only drivers within this distance get the ride call.
+                                        <strong>Ideal: 5–10 km for cities, 10–15 km for suburbs/highways.</strong>
+                                    </small>
+                                </div>
+
+                                <div class="form-group ">
                                     <label for="google_search_console" class="control-label"> Google Search Console
                                         Code
                                     </label>

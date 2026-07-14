@@ -9,7 +9,10 @@
 <div class="form-group">
     <label>Image {!! $b ? '' : '<span class="text-danger">*</span>' !!}</label>
     <input type="file" name="image" class="form-control-file" accept="image/*">
-    <small class="form-text text-muted">Upload an image (max 4MB), or paste a URL below.</small>
+    <small class="form-text text-muted">
+        For good result use <strong>4727 x 2000</strong> px.
+        Upload an image (max 10MB), or paste a URL below.
+    </small>
     @if($b && $b->image_url)
         <img src="{{ $b->image_url }}" alt="" style="max-height:60px;margin-top:6px;border-radius:6px;">
     @endif

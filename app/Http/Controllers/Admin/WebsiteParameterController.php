@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\WebsiteParameter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
 class WebsiteParameterController extends Controller
@@ -21,6 +22,7 @@ class WebsiteParameterController extends Controller
         $request->validate([
             'per_km_rate' => 'nullable|numeric|min:0',
             'commission_rate' => 'nullable|numeric|min:0|max:100',
+            'matching_radius_km' => 'nullable|integer|min:1|max:100',
             'shipping_cahrge' => 'nullable|numeric|min:0',
         ]);
 
@@ -30,6 +32,11 @@ class WebsiteParameterController extends Controller
         $wp->shipping_charge = $request->shipping_cahrge;
         $wp->per_km_rate = $request->per_km_rate ?? 0;
         $wp->commission_rate = $request->commission_rate ?? 15;
+        // Only write this if the column exists — a server that hasn't run the
+        // migration yet won't 500 on save; the value is simply skipped.
+        if (Schema::hasColumn('website_parameters', 'matching_radius_km')) {
+            $wp->matching_radius_km = $request->matching_radius_km ?? 10;
+        }
         $wp->google_search_console = $request->google_search_console;
         $wp->google_analytics_code = $request->google_analytics_code;
         $wp->facebook_pixel_code = $request->facebook_pixel_code;

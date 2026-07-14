@@ -46,6 +46,7 @@ class FcmService
 
         try {
             $response = Http::withToken($accessToken)
+                ->connectTimeout(3)->timeout(6)
                 ->post("https://fcm.googleapis.com/v1/projects/{$this->projectId}/messages:send", [
                     'message' => [
                         'token' => $token,
@@ -92,6 +93,7 @@ class FcmService
 
         try {
             $response = Http::withToken($accessToken)
+                ->connectTimeout(3)->timeout(6)
                 ->post("https://fcm.googleapis.com/v1/projects/{$this->projectId}/messages:send", [
                     'message' => [
                         'token'   => $token,
@@ -135,30 +137,36 @@ class FcmService
     private function getAccessToken(): ?string
     {
         return Cache::remember('fcm_v1_access_token', 3300, function () {
-            $now = time();
-            $header = $this->b64(json_encode(['alg' => 'RS256', 'typ' => 'JWT']));
-            $claim  = $this->b64(json_encode([
-                'iss'   => $this->credentials['client_email'],
-                'scope' => 'https://www.googleapis.com/auth/firebase.messaging',
-                'aud'   => 'https://oauth2.googleapis.com/token',
-                'iat'   => $now,
-                'exp'   => $now + 3600,
-            ]));
-
-            $signature = '';
-            openssl_sign("$header.$claim", $signature, $this->credentials['private_key'], 'SHA256');
-            $jwt = "$header.$claim." . $this->b64($signature);
-
             try {
-                $res = Http::asForm()->post('https://oauth2.googleapis.com/token', [
-                    'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-                    'assertion'  => $jwt,
-                ]);
+                $now = time();
+                $header = $this->b64(json_encode(['alg' => 'RS256', 'typ' => 'JWT']));
+                $claim  = $this->b64(json_encode([
+                    'iss'   => $this->credentials['client_email'],
+                    'scope' => 'https://www.googleapis.com/auth/firebase.messaging',
+                    'aud'   => 'https://oauth2.googleapis.com/token',
+                    'iat'   => $now,
+                    'exp'   => $now + 3600,
+                ]));
+
+                // openssl_sign can fatal if openssl is disabled or the key is
+                // malformed (e.g. \n newlines mangled on upload) — guard it.
+                $signature = '';
+                if (!openssl_sign("$header.$claim", $signature, $this->credentials['private_key'], 'SHA256')) {
+                    Log::error('FCM: openssl_sign failed — check service-account private_key formatting.');
+                    return null;
+                }
+                $jwt = "$header.$claim." . $this->b64($signature);
+
+                $res = Http::asForm()->connectTimeout(3)->timeout(6)
+                    ->post('https://oauth2.googleapis.com/token', [
+                        'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+                        'assertion'  => $jwt,
+                    ]);
                 if ($res->successful()) {
                     return $res->json('access_token');
                 }
                 Log::error('FCM token error: ' . $res->body());
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 Log::error('FCM token exception: ' . $e->getMessage());
             }
             return null;

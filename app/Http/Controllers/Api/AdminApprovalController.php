@@ -63,6 +63,105 @@ class AdminApprovalController extends Controller
         ]);
     }
 
+    /**
+     * List ALL users (not just pending) for the app's admin User Management
+     * screen, optionally filtered by role and a name/email/mobile search.
+     */
+    public function users(Request $request)
+    {
+        $this->checkAdmin($request->user());
+
+        $role   = $request->query('role');    // driver | owner | corporate | user
+        $search = $request->query('search');
+
+        $query = User::query();
+        if ($role) {
+            $query->where('role', $role);
+        }
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('mobile', 'like', "%{$search}%");
+            });
+        }
+
+        $users = $query->orderByDesc('created_at')->paginate(30);
+
+        $data = collect($users->items())->map(fn ($u) => [
+            'id'            => $u->id,
+            'name'          => $u->name,
+            'email'         => $u->email,
+            'mobile'        => $u->mobile,
+            'role'          => $u->role,
+            'status'        => $u->status,
+            'is_approve'    => (bool) $u->is_approve,
+            'vehicle_type'  => $u->vehicle_type,
+            'company_name'  => $u->company_name,
+        ]);
+
+        return response()->json([
+            'success'    => true,
+            'users'      => $data,
+            'pagination' => [
+                'current_page' => $users->currentPage(),
+                'last_page'    => $users->lastPage(),
+                'total'        => $users->total(),
+            ],
+        ]);
+    }
+
+    /** Admin: list all vehicles with owner + status (Vehicle Management). */
+    public function vehicles(Request $request)
+    {
+        $this->checkAdmin($request->user());
+
+        $status = $request->query('status');
+        $query = \App\Models\Vehicle::with('owner:id,name,mobile');
+        if ($status) {
+            $query->where('status', $status);
+        }
+        $vehicles = $query->orderByDesc('id')->paginate(30);
+
+        $data = collect($vehicles->items())->map(fn ($v) => [
+            'id'           => $v->id,
+            'vehicle_type' => $v->vehicle_type,
+            'plate_number' => $v->plate_number,
+            'capacity'     => $v->capacity,
+            'status'       => $v->status,
+            'owner'        => $v->owner
+                ? ['id' => $v->owner->id, 'name' => $v->owner->name, 'mobile' => $v->owner->mobile]
+                : null,
+        ]);
+
+        return response()->json([
+            'success'    => true,
+            'vehicles'   => $data,
+            'pagination' => [
+                'current_page' => $vehicles->currentPage(),
+                'last_page'    => $vehicles->lastPage(),
+                'total'        => $vehicles->total(),
+            ],
+        ]);
+    }
+
+    /** Admin: set a vehicle's status (approved | rejected | pending). */
+    public function vehicleStatus(Request $request, $id)
+    {
+        $this->checkAdmin($request->user());
+        $request->validate(['status' => 'required|string|max:30']);
+
+        $v = \App\Models\Vehicle::findOrFail($id);
+        $v->status = $request->status;
+        $v->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Vehicle updated',
+            'vehicle' => ['id' => $v->id, 'status' => $v->status],
+        ]);
+    }
+
     public function approveReject(Request $request, $id)
     {
         $this->checkAdmin($request->user());

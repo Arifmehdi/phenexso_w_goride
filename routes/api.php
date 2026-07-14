@@ -100,6 +100,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ── Admin Approval Routes ──
     Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/admin/users', [App\Http\Controllers\Api\AdminApprovalController::class, 'users']);
+        Route::get('/admin/vehicles', [App\Http\Controllers\Api\AdminApprovalController::class, 'vehicles']);
+        Route::post('/admin/vehicles/{id}/status', [App\Http\Controllers\Api\AdminApprovalController::class, 'vehicleStatus']);
         Route::get('/admin/pending-approvals', [App\Http\Controllers\Api\AdminApprovalController::class, 'pendingApprovals']);
         Route::post('/admin/users/{id}/approve-reject', [App\Http\Controllers\Api\AdminApprovalController::class, 'approveReject']);
         Route::get('/admin/approval-stats', [App\Http\Controllers\Api\AdminApprovalController::class, 'stats']);
@@ -248,12 +251,48 @@ Route::middleware('auth:sanctum')->group(function () {
     // ══════════════════════════════════════════════════════════════════
 
     // ── Admin: dashboard, live map, reports ──
+    // ── System Settings (maintenance / registration / commission / per-km) ──
+    Route::get('/admin/settings', function () {
+        $wp = \App\Models\WebsiteParameter::first();
+        return response()->json(['success' => true, 'settings' => [
+            'maintenance_mode'   => (bool) ($wp->maintenance_mode ?? false),
+            'registration_open'  => (bool) ($wp->registration_open ?? true),
+            'commission_rate'    => (float) ($wp->commission_rate ?? 15),
+            'per_km_rate'        => (float) ($wp->per_km_rate ?? 20),
+            'matching_radius_km' => (int) ($wp->matching_radius_km ?? 10),
+        ]]);
+    });
+    Route::post('/admin/settings', function (\Illuminate\Http\Request $request) {
+        $u = auth()->user();
+        if (($u->role ?? null) !== 'admin' && !($u instanceof \App\Models\Admin)) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+        $wp = \App\Models\WebsiteParameter::first() ?: new \App\Models\WebsiteParameter();
+        if ($request->has('maintenance_mode'))  $wp->maintenance_mode  = $request->boolean('maintenance_mode');
+        if ($request->has('registration_open')) $wp->registration_open = $request->boolean('registration_open');
+        if ($request->filled('commission_rate')) $wp->commission_rate  = (float) $request->commission_rate;
+        if ($request->filled('per_km_rate'))     $wp->per_km_rate      = (float) $request->per_km_rate;
+        if ($request->filled('matching_radius_km')
+            && \Illuminate\Support\Facades\Schema::hasColumn('website_parameters', 'matching_radius_km')) {
+            $r = (int) $request->matching_radius_km;
+            $wp->matching_radius_km = max(1, min(100, $r)); // clamp 1–100 km
+        }
+        $wp->save();
+        return response()->json(['success' => true, 'message' => 'Settings saved']);
+    });
+
     Route::get('/admin/dashboard-stats',   [\App\Http\Controllers\Api\AdminDashboardController::class, 'dashboardStats']);
     Route::get('/admin/active-rides',      [\App\Http\Controllers\Api\AdminDashboardController::class, 'activeRides']);
     Route::get('/admin/reports/revenue',   [\App\Http\Controllers\Api\AdminDashboardController::class, 'revenueReport']);
     Route::get('/admin/reports/rides',     [\App\Http\Controllers\Api\AdminDashboardController::class, 'ridesReport']);
     Route::get('/admin/reports/drivers',   [\App\Http\Controllers\Api\AdminDashboardController::class, 'driversReport']);
     Route::post('/admin/notifications/broadcast', [\App\Http\Controllers\Api\AdminDashboardController::class, 'broadcastNotification']);
+
+    // ── Admin: home-screen banner management (shared with web admin) ──
+    Route::get('/admin/banners',           [\App\Http\Controllers\Api\BannerController::class, 'adminIndex']);
+    Route::post('/admin/banners',          [\App\Http\Controllers\Api\BannerController::class, 'store']);
+    Route::post('/admin/banners/{id}',     [\App\Http\Controllers\Api\BannerController::class, 'update']);
+    Route::delete('/admin/banners/{id}',   [\App\Http\Controllers\Api\BannerController::class, 'destroy']);
 
     // ── Support Tickets ──
     Route::post('/support-tickets',              [\App\Http\Controllers\Api\SupportTicketController::class, 'store']);

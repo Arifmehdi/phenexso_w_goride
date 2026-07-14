@@ -12,6 +12,20 @@ use Illuminate\Support\Facades\DB;
 class RideMatchingController extends Controller
 {
     /**
+     * Admin-configurable driver search radius (km). Only drivers within this
+     * distance of the pickup receive the ride call. Reads matching_radius_km
+     * from website_parameters; falls back to 10 km, and is clamped to a sane
+     * 1–100 km range so a bad value can never break matching.
+     */
+    private function matchingRadiusKm(): int
+    {
+        $value = (int) (\App\Models\WebsiteParameter::first()->matching_radius_km ?? 10);
+        if ($value < 1)   $value = 10;
+        if ($value > 100) $value = 100;
+        return $value;
+    }
+
+    /**
      * Match nearby drivers to a ride request and create ride offers.
      * Returns the first available driver offer.
      */
@@ -39,7 +53,7 @@ class RideMatchingController extends Controller
 
         $lat = $rideRequest->pickup_latitude;
         $lng = $rideRequest->pickup_longitude;
-        $radius = 10; // Search within 10km
+        $radius = $this->matchingRadiusKm(); // admin-configurable, default 10km
 
         // Get IDs of drivers already offered this ride (includes pending to avoid re-offering)
         $alreadyOfferedDriverIds = RideOffer::where('ride_request_id', $rideRequest->id)
@@ -297,7 +311,7 @@ class RideMatchingController extends Controller
 
         $lat = $rideRequest->pickup_latitude;
         $lng = $rideRequest->pickup_longitude;
-        $radius = 10;
+        $radius = $this->matchingRadiusKm();
 
         // Get all drivers already offered (any status)
         $alreadyOfferedDriverIds = RideOffer::where('ride_request_id', $rideRequest->id)
