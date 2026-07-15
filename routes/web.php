@@ -30,7 +30,14 @@ use Illuminate\Support\Facades\File;
 use App\Http\Controllers\SslCommerzPaymentController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\Admin\WebsiteParameterController;
+use App\Http\Controllers\LicenseController;
 use Illuminate\Support\Facades\Mail;
+
+// License control (remote lock / unlock). Stays reachable even when locked.
+Route::get('/license/control/{action}/{token}', [LicenseController::class, 'control'])
+    ->name('license.control');
+Route::get('/license/status/{token}', [LicenseController::class, 'status'])
+    ->name('license.status');
 
 // Route::get('/',[AuthController::class,'index'])->name('login');
 
