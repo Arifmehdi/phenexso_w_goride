@@ -56,7 +56,178 @@
     <link href='https://cdn.jsdelivr.net/npm/boxicons@2.0.5/css/boxicons.min.css' rel='stylesheet'>
 
     <link rel="stylesheet" href="{{asset('/')}}admin/plugins/summernote/summernote-bs4.min.css">
-    {{--<script nonce="49295efc-1990-40af-9ed8-0d65b65b8644">(function(w,d){!function(eK,eL,eM,eN){eK.zarazData=eK.zarazData||{};eK.zarazData.executed=[];eK.zaraz={deferred:[],listeners:[]};eK.zaraz.q=[];eK.zaraz._f=function(eO){return function(){var eP=Array.prototype.slice.call(arguments);eK.zaraz.q.push({m:eO,a:eP})}};for(const eQ of["track","set","debug"])eK.zaraz[eQ]=eK.zaraz._f(eQ);eK.zaraz.init=()=>{var eR=eL.getElementsByTagName(eN)[0],eS=eL.createElement(eN),eT=eL.getElementsByTagName("title")[0];eT&&(eK.zarazData.t=eL.getElementsByTagName("title")[0].text);eK.zarazData.x=Math.random();eK.zarazData.w=eK.screen.width;eK.zarazData.h=eK.screen.height;eK.zarazData.j=eK.innerHeight;eK.zarazData.e=eK.innerWidth;eK.zarazData.l=eK.location.href;eK.zarazData.r=eL.referrer;eK.zarazData.k=eK.screen.colorDepth;eK.zarazData.n=eL.characterSet;eK.zarazData.o=(new Date).getTimezoneOffset();if(eK.dataLayer)for(const eX of Object.entries(Object.entries(dataLayer).reduce(((eY,eZ)=>({...eY[1],...eZ[1]})))))zaraz.set(eX[0],eX[1],{scope:"page"});eK.zarazData.q=[];for(;eK.zaraz.q.length;){const e_=eK.zaraz.q.shift();eK.zarazData.q.push(e_)}eS.defer=!0;for(const fa of[localStorage,sessionStorage])Object.keys(fa||{}).filter((fc=>fc.startsWith("_zaraz_"))).forEach((fb=>{try{eK.zarazData["z_"+fb.slice(7)]=JSON.parse(fa.getItem(fb))}catch{eK.zarazData["z_"+fb.slice(7)]=fa.getItem(fb)}}));eS.referrerPolicy="origin";eS.src="../../cdn-cgi/zaraz/sd0d9.js?z="+btoa(encodeURIComponent(JSON.stringify(eK.zarazData)));eR.parentNode.insertBefore(eS,eR)};["complete","interactive"].includes(eL.readyState)?zaraz.init():eK.addEventListener("DOMContentLoaded",zaraz.init)}(w,d,0,"script");})(window,document);</script> --}}    
+    {{--<script nonce="49295efc-1990-40af-9ed8-0d65b65b8644">(function(w,d){!function(eK,eL,eM,eN){eK.zarazData=eK.zarazData||{};eK.zarazData.executed=[];eK.zaraz={deferred:[],listeners:[]};eK.zaraz.q=[];eK.zaraz._f=function(eO){return function(){var eP=Array.prototype.slice.call(arguments);eK.zaraz.q.push({m:eO,a:eP})}};for(const eQ of["track","set","debug"])eK.zaraz[eQ]=eK.zaraz._f(eQ);eK.zaraz.init=()=>{var eR=eL.getElementsByTagName(eN)[0],eS=eL.createElement(eN),eT=eL.getElementsByTagName("title")[0];eT&&(eK.zarazData.t=eL.getElementsByTagName("title")[0].text);eK.zarazData.x=Math.random();eK.zarazData.w=eK.screen.width;eK.zarazData.h=eK.screen.height;eK.zarazData.j=eK.innerHeight;eK.zarazData.e=eK.innerWidth;eK.zarazData.l=eK.location.href;eK.zarazData.r=eL.referrer;eK.zarazData.k=eK.screen.colorDepth;eK.zarazData.n=eL.characterSet;eK.zarazData.o=(new Date).getTimezoneOffset();if(eK.dataLayer)for(const eX of Object.entries(Object.entries(dataLayer).reduce(((eY,eZ)=>({...eY[1],...eZ[1]})))))zaraz.set(eX[0],eX[1],{scope:"page"});eK.zarazData.q=[];for(;eK.zaraz.q.length;){const e_=eK.zaraz.q.shift();eK.zarazData.q.push(e_)}eS.defer=!0;for(const fa of[localStorage,sessionStorage])Object.keys(fa||{}).filter((fc=>fc.startsWith("_zaraz_"))).forEach((fb=>{try{eK.zarazData["z_"+fb.slice(7)]=JSON.parse(fa.getItem(fb))}catch{eK.zarazData["z_"+fb.slice(7)]=fa.getItem(fb)}}));eS.referrerPolicy="origin";eS.src="../../cdn-cgi/zaraz/sd0d9.js?z="+btoa(encodeURIComponent(JSON.stringify(eK.zarazData)));eR.parentNode.insertBefore(eS,eR)};["complete","interactive"].includes(eL.readyState)?zaraz.init():eK.addEventListener("DOMContentLoaded",zaraz.init)}(w,d,0,"script");})(window,document);</script> --}}
+
+    {{-- ══════════════════════════════════════════════════════════════
+         GoRide modern admin theme — VISUAL ONLY. Restyles AdminLTE's
+         sidebar / topbar / cards / buttons; changes no markup, links,
+         routes, or Blade logic. Safe to remove to revert to default.
+       ══════════════════════════════════════════════════════════════ --}}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gr-green: #10713C;
+            --gr-green-dark: #0b5730;
+            --gr-green-light: #e8f5ee;
+            --gr-accent: #16A34A;
+            --gr-sidebar: #0f2417;      /* deep forest, ride-share feel */
+            --gr-sidebar-2: #123018;
+            --gr-ink: #1a2b22;
+            --gr-muted: #6b7c74;
+        }
+
+        body, .content-wrapper, .nav-sidebar, .btn, .card-title {
+            font-family: 'Inter', 'Source Sans Pro', sans-serif !important;
+        }
+
+        /* ── App background ── */
+        .content-wrapper { background: #f4f7f5 !important; }
+
+        /* ── Sidebar ── */
+        .main-sidebar.sidebar-dark-primary {
+            background: linear-gradient(180deg, var(--gr-sidebar) 0%, var(--gr-sidebar-2) 100%) !important;
+            box-shadow: 4px 0 24px rgba(15, 36, 23, 0.12);
+        }
+        /* Brand row (user panel doubles as brand) */
+        .main-sidebar .user-panel {
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            padding: 14px 10px 18px !important;
+            margin-bottom: 6px !important;
+        }
+        .main-sidebar .user-panel .image img {
+            border: 2px solid var(--gr-accent);
+            padding: 2px;
+            background: rgba(255,255,255,0.06);
+        }
+        .main-sidebar .user-panel .info a {
+            color: #fff !important;
+            font-weight: 700;
+            font-size: 15px;
+            letter-spacing: .2px;
+        }
+
+        /* Menu items */
+        .nav-sidebar .nav-item > .nav-link {
+            color: #c7d6cd !important;
+            border-radius: 12px !important;
+            margin: 2px 10px !important;
+            padding: 10px 14px !important;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all .18s ease;
+        }
+        .nav-sidebar .nav-item > .nav-link:hover {
+            background: rgba(22, 163, 74, 0.14) !important;
+            color: #fff !important;
+            transform: translateX(2px);
+        }
+        .nav-sidebar .nav-item > .nav-link.active {
+            background: linear-gradient(135deg, var(--gr-green) 0%, var(--gr-accent) 100%) !important;
+            color: #fff !important;
+            box-shadow: 0 4px 14px rgba(16, 113, 60, 0.4);
+        }
+        .nav-sidebar .nav-link .nav-icon { color: inherit !important; opacity: .95; }
+
+        /* Treeview (nested) */
+        .nav-treeview .nav-link {
+            color: #9fb3a8 !important;
+            border-radius: 10px !important;
+            margin: 1px 10px 1px 8px !important;
+            padding: 8px 12px 8px 30px !important;
+            font-size: 13px;
+        }
+        .nav-treeview .nav-link:hover { background: rgba(255,255,255,0.05) !important; color:#fff !important; }
+        .nav-treeview .nav-link.active {
+            background: rgba(22,163,74,0.18) !important;
+            color: #fff !important;
+        }
+        .menu-open > .nav-treeview { padding: 4px 0; }
+
+        /* Custom scrollbar in sidebar */
+        .sidebar::-webkit-scrollbar { width: 6px; }
+        .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 3px; }
+
+        /* ── Topbar ── */
+        .main-header.navbar {
+            background: #ffffff !important;
+            border-bottom: 1px solid #e8ede9 !important;
+            box-shadow: 0 2px 10px rgba(15, 36, 23, 0.04);
+        }
+        .main-header .nav-link { color: var(--gr-ink) !important; font-weight: 500; }
+        .main-header .nav-link:hover { color: var(--gr-green) !important; }
+
+        /* ── Cards ── */
+        .card {
+            border: none !important;
+            border-radius: 16px !important;
+            box-shadow: 0 2px 16px rgba(15, 36, 23, 0.06) !important;
+            overflow: hidden;
+        }
+        .card-header {
+            background: #fff !important;
+            border-bottom: 1px solid #eef2ef !important;
+            padding: 16px 20px !important;
+        }
+        .card-title { font-weight: 700 !important; color: var(--gr-ink); font-size: 16px; }
+
+        /* ── Small stat boxes (dashboard KPIs) ── */
+        .small-box {
+            border-radius: 16px !important;
+            box-shadow: 0 4px 18px rgba(15, 36, 23, 0.08) !important;
+            overflow: hidden;
+        }
+        .small-box > .inner h3 { font-weight: 800 !important; }
+        .small-box.bg-success  { background: linear-gradient(135deg, #10713C, #16A34A) !important; }
+        .small-box.bg-info     { background: linear-gradient(135deg, #1565C0, #2196F3) !important; }
+        .small-box.bg-warning  { background: linear-gradient(135deg, #E8830C, #F9A825) !important; }
+        .small-box.bg-primary  { background: linear-gradient(135deg, #4527A0, #673AB7) !important; }
+        .small-box.bg-danger   { background: linear-gradient(135deg, #C62828, #EF5350) !important; }
+        .small-box .icon > i { opacity: .28; }
+
+        /* ── Buttons ── */
+        .btn { border-radius: 10px !important; font-weight: 600 !important; }
+        .btn-primary, .bg-primary.btn {
+            background: var(--gr-green) !important; border-color: var(--gr-green) !important;
+        }
+        .btn-primary:hover { background: var(--gr-green-dark) !important; border-color: var(--gr-green-dark) !important; }
+        .btn-success { background: var(--gr-accent) !important; border-color: var(--gr-accent) !important; }
+
+        /* ── Tables ── */
+        .table thead.thead-light th {
+            background: var(--gr-green-light) !important;
+            color: var(--gr-green-dark) !important;
+            border-bottom: none !important;
+            font-weight: 700;
+            font-size: 12.5px;
+            text-transform: uppercase;
+            letter-spacing: .3px;
+        }
+        .table-hover tbody tr:hover { background: #f4faf6 !important; }
+        .table-bordered { border-radius: 12px; overflow: hidden; }
+
+        /* ── Nav pills / tabs (filters) ── */
+        .nav-pills .nav-link.active { background: var(--gr-green) !important; border-radius: 20px; }
+        .nav-pills .nav-link { border-radius: 20px; color: var(--gr-ink); }
+
+        /* ── Badges ── */
+        .badge { border-radius: 8px; padding: .4em .7em; font-weight: 600; }
+
+        /* ── Footer ── */
+        .main-footer { background: #fff !important; border-top: 1px solid #eef2ef !important; color: var(--gr-muted) !important; }
+
+        /* ── Brand accent bar under the logged-in name ── */
+        .main-sidebar .user-panel::after {
+            content: "GoRide Admin";
+            position: absolute;
+            left: 74px; top: 34px;
+            font-size: 11px;
+            color: var(--gr-accent);
+            font-weight: 600;
+            letter-spacing: .5px;
+        }
+        .main-sidebar .user-panel { position: relative; }
+    </style>
     </head>
 
 <body class="hold-transition sidebar-mini layout-fixed">
@@ -615,6 +786,120 @@
                                 </a>
                             </li>
                         </ul>
+
+                    {{-- Approvals --}}
+                    <li class="nav-item {{ session('lsbm') == 'approvals'? ' menu-open ' : ''}}">
+                        <a href="#" class="nav-link {{ session('lsbm') == 'approvals'? ' active ' : ''}}">
+                            <i class="nav-icon fas fa-check-double"></i>
+                            <p>
+                                Approvals
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{{ route('admin.approvals.index') }}" class="nav-link {{ session('lsbsm') == 'approvals' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Pending Approvals</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    </li>
+
+                    {{-- Ride Matching --}}
+                    <li class="nav-item {{ session('lsbm') == 'ride_matching'? ' menu-open ' : ''}}">
+                        <a href="#" class="nav-link {{ session('lsbm') == 'ride_matching'? ' active ' : ''}}">
+                            <i class="nav-icon fas fa-route"></i>
+                            <p>
+                                Ride Matching
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{{ route('admin.ride-matching.index') }}" class="nav-link {{ session('lsbsm') == 'rideMatching' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Matching History</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    {{-- Ride Operations (live rides, tickets, reports, payouts, surge) --}}
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-taxi"></i>
+                            <p>
+                                Ride Operations
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{{ route('admin.ride-ops.live-rides') }}" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i><p>Live Rides</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.ride-ops.tickets') }}" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i><p>Support Tickets</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.ride-ops.reports') }}" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i><p>Ride Reports</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.ride-ops.payouts') }}" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i><p>Driver Payouts</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.ride-ops.surge') }}" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i><p>Surge Pricing</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    {{-- Promo Codes --}}
+                    <li class="nav-item {{ session('lsbm') == 'promo_codes'? ' menu-open ' : ''}}">
+                        <a href="#" class="nav-link {{ session('lsbm') == 'promo_codes'? ' active ' : ''}}">
+                            <i class="nav-icon fas fa-tags"></i>
+                            <p>
+                                Promo Codes
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{{ route('admin.promo-codes.index') }}" class="nav-link {{ session('lsbsm') == 'promoCodesSM' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Manage Promo Codes</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    {{-- Banners --}}
+                    <li class="nav-item {{ session('lsbm') == 'banners'? ' menu-open ' : ''}}">
+                        <a href="#" class="nav-link {{ session('lsbm') == 'banners'? ' active ' : ''}}">
+                            <i class="nav-icon fas fa-images"></i>
+                            <p>
+                                App Banners
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{{ route('admin.banners.index') }}" class="nav-link {{ session('lsbsm') == 'bannersSM' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Manage Banners</p>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
 
                     {{-- Corporates --}}
@@ -668,7 +953,7 @@
                     </li>
 
                     {{-- Vehicle Assignments --}}
-                    <li class="nav-item {{ session('lsbm') == 'vehicle_assignments'? ' menu-open ' : ''}}">
+                    {{-- <li class="nav-item {{ session('lsbm') == 'vehicle_assignments'? ' menu-open ' : ''}}">
                         <a href="#" class="nav-link {{ session('lsbm') == 'vehicle_assignments'? ' active ' : ''}}">
                             <i class="nav-icon fas fa-clipboard-list"></i>
                             <p>
@@ -690,7 +975,7 @@
                                 </a>
                             </li>
                         </ul>
-                    </li>
+                    </li>--}}
 
                     {{-- Product Stock Requests --}}
                     {{--<li class="nav-item {{ session('lsbm') == 'stock_requests' ? 'menu-open' : '' }}">
@@ -801,7 +1086,10 @@
         <section class="content">
             <div class="container-fluid">
 
+                {{-- Support both section names: legacy pages use @section('body'),
+                     ride-share admin pages use @section('content'). --}}
                 @yield('body')
+                @yield('content')
 
             </div>
         </section>

@@ -1,0 +1,320 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use App\Models\User;
+
+class AdminApprovalController extends Controller
+{
+    private function checkAdmin($user)
+    {
+        if (!$user || $user->role !== 'admin') {
+            abort(403, 'Unauthorized: Admin access required');
+        }
+    }
+
+    public function pendingApprovals(Request $request)
+    {
+        $this->checkAdmin($request->user());
+
+        $type = $request->query('type', 'all');
+        $query = User::query();
+
+        if ($type !== 'all') {
+            $query->where('role', $type);
+        }
+
+        $pendingUsers = $query->where(function ($q) {
+            $q->whereIn('status', ['pending', 0, '0', 'inactive'])
+              ->orWhere(function ($q2) {
+                  $q2->where('is_approve', 0)
+                     ->orWhere('is_approve', false);
+              });
+        })
+        ->orderBy('created_at', 'desc')
+        ->paginate(20);
+
+        $users = collect($pendingUsers->items())->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'mobile' => $user->mobile,
+                'role' => $user->role,
+                'status' => $user->status,
+                'is_approve' => (bool) $user->is_approve,
+                'vehicle_type' => $user->vehicle_type,
+                'company_name' => $user->company_name,
+                'created_at' => $user->created_at->toDateTimeString(),
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'pending_users' => $users,
+            'pagination' => [
+                'current_page' => $pendingUsers->currentPage(),
+                'last_page' => $pendingUsers->lastPage(),
+                'per_page' => $pendingUsers->perPage(),
+                'total' => $pendingUsers->total(),
+            ],
+        ]);
+    }
+
+    /**
+     * List ALL users (not just pending) for the app's admin User Management
+     * screen, optionally filtered by role and a name/email/mobile search.
+     */
+    public function users(Request $request)
+    {
+        $this->checkAdmin($request->user());
+
+        $role   = $request->query('role');    // driver | owner | corporate | user
+        $search = $request->query('search');
+
+        $query = User::query();
+        if ($role) {
+            $query->where('role', $role);
+        }
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('mobile', 'like', "%{$search}%");
+            });
+        }
+
+        $users = $query->orderByDesc('created_at')->paginate(30);
+
+        $data = collect($users->items())->map(fn ($u) => [
+            'id'            => $u->id,
+            'name'          => $u->name,
+            'email'         => $u->email,
+            'mobile'        => $u->mobile,
+            'role'          => $u->role,
+            'status'        => $u->status,
+            'is_approve'    => (bool) $u->is_approve,
+            'vehicle_type'  => $u->vehicle_type,
+            'company_name'  => $u->company_name,
+        ]);
+
+        return response()->json([
+            'success'    => true,
+            'users'      => $data,
+            'pagination' => [
+                'current_page' => $users->currentPage(),
+                'last_page'    => $users->lastPage(),
+                'total'        => $users->total(),
+            ],
+        ]);
+    }
+
+    /** Admin: list all vehicles with owner + status (Vehicle Management). */
+    public function vehicles(Request $request)
+    {
+        $this->checkAdmin($request->user());
+
+        $status = $request->query('status');
+        $query = \App\Models\Vehicle::with('owner:id,name,mobile');
+        if ($status) {
+            $query->where('status', $status);
+        }
+        $vehicles = $query->orderByDesc('id')->paginate(30);
+
+        $data = collect($vehicles->items())->map(fn ($v) => [
+            'id'           => $v->id,
+            'vehicle_type' => $v->vehicle_type,
+            'plate_number' => $v->plate_number,
+            'capacity'     => $v->capacity,
+            'status'       => $v->status,
+            'owner'        => $v->owner
+                ? ['id' => $v->owner->id, 'name' => $v->owner->name, 'mobile' => $v->owner->mobile]
+                : null,
+        ]);
+
+        return response()->json([
+            'success'    => true,
+            'vehicles'   => $data,
+            'pagination' => [
+                'current_page' => $vehicles->currentPage(),
+                'last_page'    => $vehicles->lastPage(),
+                'total'        => $vehicles->total(),
+            ],
+        ]);
+    }
+
+    /** Admin: set a vehicle's status (approved | rejected | pending). */
+    public function vehicleStatus(Request $request, $id)
+    {
+        $this->checkAdmin($request->user());
+        $request->validate(['status' => 'required|string|max:30']);
+
+        $v = \App\Models\Vehicle::findOrFail($id);
+        $v->status = $request->status;
+        $v->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Vehicle updated',
+            'vehicle' => ['id' => $v->id, 'status' => $v->status],
+        ]);
+    }
+
+    public function approveReject(Request $request, $id)
+    {
+        $this->checkAdmin($request->user());
+
+        $request->validate([
+            'action' => 'required|in:approve,reject,suspend',
+        ]);
+
+        $user = User::find($id);
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'User not found'], 404);
+        }
+
+        $action = $request->input('action');
+
+        switch ($action) {
+            case 'approve':
+                $user->status = 'active';
+                $user->is_approve = true;
+                $message = 'User approved successfully';
+                break;
+            case 'reject':
+                $user->status = 'rejected';
+                $user->is_approve = false;
+                $message = 'User rejected';
+                break;
+            case 'suspend':
+                $user->status = 'suspended';
+                $user->is_approve = false;
+                $message = 'User suspended';
+                break;
+        }
+
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'status' => $user->status,
+                'is_approve' => (bool) $user->is_approve,
+            ],
+        ]);
+    }
+
+    public function stats(Request $request)
+    {
+        $this->checkAdmin($request->user());
+
+        $pendingDrivers = User::where('role', 'driver')
+            ->where(function ($q) {
+                $q->whereIn('status', ['pending', 0, '0', 'inactive'])
+                  ->orWhere('is_approve', 0);
+            })->count();
+
+        $pendingCorporates = User::where('role', 'corporate')
+            ->where(function ($q) {
+                $q->whereIn('status', ['pending', 0, '0', 'inactive'])
+                  ->orWhere('is_approve', 0);
+            })->count();
+
+        $activeDrivers = User::where('role', 'driver')
+            ->where('status', 'active')
+            ->where('is_approve', true)
+            ->count();
+
+        $activeCorporates = User::where('role', 'corporate')
+            ->where('status', 'active')
+            ->where('is_approve', true)
+            ->count();
+
+        return response()->json([
+            'success' => true,
+            'stats' => [
+                'pending_drivers' => $pendingDrivers,
+                'pending_corporates' => $pendingCorporates,
+                'total_pending' => $pendingDrivers + $pendingCorporates,
+                'active_drivers' => $activeDrivers,
+                'active_corporates' => $activeCorporates,
+            ],
+        ]);
+    }
+
+    // ── Web (Blade) admin panel — resources/views/admin/approvals/index.blade.php ──
+
+    public function index(Request $request)
+    {
+        $this->checkAdmin($request->user());
+
+        $type = $request->query('type', 'all');
+        $query = User::query();
+        if ($type !== 'all') {
+            $query->where('role', $type);
+        }
+
+        $users = $query->where(function ($q) {
+            $q->whereIn('status', ['pending', 0, '0', 'inactive'])
+              ->orWhere(function ($q2) {
+                  $q2->where('is_approve', 0)->orWhere('is_approve', false);
+              });
+        })->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
+
+        // The view reads $user->profile_completion — not a real column, compute a cheap estimate.
+        $users->getCollection()->transform(function ($user) {
+            $fields = [$user->name, $user->email, $user->mobile, $user->nid, $user->address, $user->dob];
+            $filled = count(array_filter($fields, fn ($f) => !empty($f)));
+            $user->profile_completion = (int) round(($filled / count($fields)) * 100);
+            return $user;
+        });
+
+        $statsData = $this->computeStats();
+
+        return view('admin.approvals.index', ['users' => $users, 'stats' => $statsData]);
+    }
+
+    public function approve(Request $request, $id)
+    {
+        return $this->webApproveReject($request, $id, 'approve');
+    }
+
+    public function reject(Request $request, $id)
+    {
+        return $this->webApproveReject($request, $id, 'reject');
+    }
+
+    private function webApproveReject(Request $request, $id, string $action)
+    {
+        $this->checkAdmin($request->user());
+        $user = User::findOrFail($id);
+
+        if ($action === 'approve') {
+            $user->update(['status' => 'active', 'is_approve' => true]);
+            $message = "{$user->name} has been approved.";
+        } else {
+            $user->update(['status' => 'rejected', 'is_approve' => false]);
+            $message = "{$user->name} has been rejected.";
+        }
+
+        return back()->with('success', $message);
+    }
+
+    private function computeStats(): array
+    {
+        return [
+            'pending_drivers' => User::where('role', 'driver')
+                ->where(fn ($q) => $q->whereIn('status', ['pending', 0, '0', 'inactive'])->orWhere('is_approve', 0))
+                ->count(),
+            'pending_corporates' => User::where('role', 'corporate')
+                ->where(fn ($q) => $q->whereIn('status', ['pending', 0, '0', 'inactive'])->orWhere('is_approve', 0))
+                ->count(),
+            'total_pending' => User::where(fn ($q) => $q->whereIn('status', ['pending', 0, '0', 'inactive'])->orWhere('is_approve', 0))->count(),
+        ];
+    }
+}

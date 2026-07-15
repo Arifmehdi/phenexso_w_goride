@@ -1,0 +1,197 @@
+================================================================================
+ PHASE 6 (ADMIN FEATURES) — FOUR-SIDE STATUS CHECK
+ Checked against actual code + routes on: 2026-07-12
+================================================================================
+ The four sides checked for every item:
+   [WEB]  Admin browser panel . http://localhost/goride/public/admin/...
+   [API]  Laravel API ......... http://localhost/goride/public/api/...
+   [APP]  Flutter app (rider/driver-facing screens)
+   [FADM] Flutter app's ADMIN area (login as admin in the app)
+
+ ✅ = real & working    ⚠️ = partial (limitation noted)    ❌ = missing/fake
+================================================================================
+
+ IMPORTANT CORRECTION TO THE OLD NOTES: items 44, 46, 50, 51 said "missing /
+ fake" — that was true for the FLUTTER ADMIN AREA, but the WEB admin panel
+ actually has real, working screens for all of them. The web panel is the
+ real admin tool today; the Flutter admin area is still mostly a visual demo.
+
+--------------------------------------------------------------------------------
+ 44. USER MANAGEMENT
+--------------------------------------------------------------------------------
+ [WEB]  ✅ Full CRUD: list, create, edit, delete, change password,
+         approve/unapprove toggle.
+         CHECK: log in as admin → http://localhost/goride/public/admin/users
+         Also approvals queue: /admin/approvals  (⚠️ its Approve/Reject
+         buttons still have no JavaScript — page loads real data, but the
+         buttons do nothing when clicked; backend routes work.)
+ [API]  ✅ GET /api/admin/pending-approvals, POST /api/admin/users/{id}/approve-reject,
+         GET /api/admin/approval-stats, full /api/users resource.
+ [APP]  — (not a user-facing feature)
+ [FADM] ❌ Mockup — 5 hardcoded users, dead buttons.
+         CHECK: app → login as admin → Admin panel → User Management.
+
+--------------------------------------------------------------------------------
+ 45. DRIVER MANAGEMENT
+--------------------------------------------------------------------------------
+ [WEB]  ✅ Driver list/edit + verification review + activate/deactivate toggle.
+         CHECK: /admin/drivers  and  /admin/drivers/{id}/verification
+ [API]  ✅ GET /api/admin/drivers/verification, POST /api/admin/drivers/{id}/verify,
+         document review: GET /api/admin/documents/pending,
+         POST /api/admin/documents/{id}/review.
+ [APP]  ✅ Driver side: upload documents, see verification status (works).
+ [FADM] ❌ No real driver-management screen (drivers appear inside the fake
+         User Management mockup).
+
+--------------------------------------------------------------------------------
+ 46. VEHICLE MANAGEMENT
+--------------------------------------------------------------------------------
+ [WEB]  ✅ Vehicles CRUD + driver-to-vehicle assignments.
+         CHECK: /admin/vehicles  and  /admin/vehicle-assignments
+ [API]  ⚠️ GET /api/vehicles returns only the LOGGED-IN driver's vehicles.
+         No admin vehicles CRUD API (web panel uses its own forms, so this
+         only matters if the Flutter admin screen ever gets built).
+ [APP]  ✅ Driver → My Vehicles (own vehicle info).
+ [FADM] ❌ Mockup — 3 hardcoded cars.
+
+--------------------------------------------------------------------------------
+ 47. LIVE RIDE MONITORING
+--------------------------------------------------------------------------------
+ [WEB]  ⚠️ Only a ride HISTORY viewer exists (/admin/ride-matching) — past
+         rides + offers, not a live map of ongoing rides.
+ [API]  ✅ GET /api/admin/active-rides — live feed of all ongoing rides with
+         rider/driver names + live driver GPS. Built & registered; tested.
+ [APP]  — n/a
+ [FADM] ❌ Nothing displays it.
+ => TO COMPLETE: a live map page (web or Flutter admin) that calls
+    /api/admin/active-rides every few seconds. Backend needs nothing.
+
+--------------------------------------------------------------------------------
+ 48. REVENUE DASHBOARD
+--------------------------------------------------------------------------------
+ [WEB]  ⚠️ /admin/dashboard shows real COUNTS (users, drivers, corporates,
+         admins) but its other cards are leftover e-commerce stats
+         (products/orders) — no ride revenue on the web dashboard.
+ [API]  ✅ GET /api/admin/dashboard-stats (today's rides/revenue/online
+         drivers/new users + weekly revenue) and
+         GET /api/admin/reports/revenue?from=&to=&group_by=day|week|month.
+ [APP]  ✅ Driver's own stats cards are real. ⚠️ Owner & Corporate dashboard
+         TOP summary cards are still hardcoded (their detail sections below
+         are real).
+ [FADM] ❌ Admin summary cards hardcoded ("Total Users: 1,250" etc.).
+
+--------------------------------------------------------------------------------
+ 49. SUPPORT TICKETS
+--------------------------------------------------------------------------------
+ [WEB]  ❌ No web ticket screen at all.
+ [API]  ✅ User side + admin side complete:
+         GET /api/admin/support-tickets (filter by status/priority),
+         PATCH /api/admin/support-tickets/{id}, replies via
+         POST /api/support-tickets/{id}/reply (admin replies mark
+         in_progress automatically).
+ [APP]  ✅ Fully working for rider/driver: sidebar → Help & Support →
+         create ticket, view thread, reply. CHECK: create one from the app,
+         confirm row lands in the support_tickets DB table.
+ [FADM] ❌ Mockup — 5 fake tickets, dead "Reply & Resolve".
+
+--------------------------------------------------------------------------------
+ 50. PROMO MANAGEMENT
+--------------------------------------------------------------------------------
+ [WEB]  ✅ REAL — create/edit/delete promo codes.
+         CHECK: /admin/promo-codes  → add a code (e.g. TEST10, 10%) →
+         then in the app apply TEST10 while booking → discount applies.
+ [API]  ✅ POST /api/promo/validate (used by the app at booking).
+ [APP]  ✅ Riders can apply codes at booking (works end-to-end).
+ [FADM] ❌ none (not needed if web is used).
+
+--------------------------------------------------------------------------------
+ 51. BANNER MANAGEMENT
+--------------------------------------------------------------------------------
+ [WEB]  ✅ REAL — upload/activate/expire home-screen banners.
+         CHECK: /admin/banners → add one → app home screen shows it
+         (GET /api/banners feeds the app's slider).
+ [API]  ✅ GET /api/banners (public).
+ [APP]  ✅ Home banner slider shows API banners (falls back to bundled
+         images when none exist).
+ [FADM] ❌ none (not needed if web is used).
+
+--------------------------------------------------------------------------------
+ 52. PRICING SETTINGS
+--------------------------------------------------------------------------------
+ [WEB]  ✅ Base per-km rate editable: /admin/websiteparam ("per_km_rate"
+         field). CHECK: change it → app fare estimate changes on next quote.
+         ❌ No web UI for SURGE zones.
+ [API]  ✅ GET /api/website-parameters (rate + live surge multiplier for a
+         lat/lng) and full surge admin API:
+         GET/POST /api/admin/surge, PATCH /api/admin/surge/{id}.
+ [APP]  ✅ Fare estimate uses the live rate + surge multiplier.
+ [FADM] ❌ none.
+ => TO COMPLETE: a surge-zone management page (web or Flutter admin).
+
+--------------------------------------------------------------------------------
+ 53. REPORTS & ANALYTICS
+--------------------------------------------------------------------------------
+ [WEB]  ❌ none for ride-share.
+ [API]  ✅ GET /api/admin/reports/revenue | /rides | /drivers  (date range
+         filters; drivers report = trips/earnings/rating per driver).
+ [APP]  — n/a
+ [FADM] ❌ Screen exists but shows 100% fake numbers, dead Export button.
+
+--------------------------------------------------------------------------------
+ 54. SYSTEM SETTINGS
+--------------------------------------------------------------------------------
+ [WEB]  ⚠️ /admin/websiteparam covers general site settings (title, logo,
+         contacts, per-km rate). No maintenance mode / registration toggle.
+ [API]  ⚠️ Commission rate is a server env setting (GORIDE_COMMISSION_RATE
+         in .env, default 15%) — no API/UI to change it.
+ [APP]  — n/a
+ [FADM] ❌ Toggles are local-only stubs; nothing saves.
+
+================================================================================
+ HOW TO CHECK EACH SIDE (step by step)
+================================================================================
+
+ A) WEB ADMIN — easiest, do this first
+    1. Start Laragon (Apache+MySQL running).
+    2. Browser: http://localhost/goride/public/login → log in with an
+       admin account.
+    3. Visit each page: /admin/dashboard, /admin/users, /admin/approvals,
+       /admin/drivers, /admin/vehicles, /admin/promo-codes, /admin/banners,
+       /admin/websiteparam, /admin/ride-matching.
+    (On your live server replace localhost/goride/public with your domain.)
+
+ B) API — for the endpoints that have no screen yet
+    1. Get a token:
+       curl -X POST http://localhost/goride/public/api/login \
+            -H "Accept: application/json" \
+            -d "login=ADMIN_EMAIL" -d "password=PASSWORD"
+       → copy the "token" from the reply.
+    2. Call any admin endpoint:
+       curl http://localhost/goride/public/api/admin/dashboard-stats \
+            -H "Accept: application/json" -H "Authorization: Bearer TOKEN"
+       Same pattern for /api/admin/active-rides, /api/admin/reports/revenue,
+       /api/admin/support-tickets, /api/admin/surge, /api/admin/payouts/pending.
+
+ C) FLUTTER APP (rider/driver side)
+    Run the app → book/complete rides, apply promo TEST10, check the home
+    banner, open Help & Support and create a ticket, check fare changes
+    after editing per_km_rate on the web panel.
+
+ D) FLUTTER ADMIN AREA
+    Log in as admin in the app → Admin panel. Expect: management screens
+    and summary numbers are still DEMO data (see ❌ items above) — that is
+    the accurate current state, not a bug in your test.
+
+================================================================================
+ WHAT'S ACTUALLY LEFT TO BUILD (short list)
+================================================================================
+ 1. Wire the Flutter admin screens to the already-finished APIs:
+    dashboard stats, reports, live rides map, support-ticket management,
+    user approvals. (APIs done — UI wiring only.)
+ 2. Approve/Reject button JavaScript on the web /admin/approvals page.
+ 3. Surge-zone management UI (API done).
+ 4. Live ride map page for the web panel (API done).
+ 5. Web support-ticket screen (optional if Flutter admin gets it).
+ 6. Real System Settings (maintenance mode, commission rate editor) —
+    needs a small backend settings table + endpoints first.
+================================================================================

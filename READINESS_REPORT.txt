@@ -1,0 +1,414 @@
+================================================================================
+ GORIDE — RIDE-SHARING READINESS REPORT (Uber / Pathao / InDrive / Obhai style)
+================================================================================
+ Date       : 2026-07-09
+ Backend    : D:\laragon\laragon\www\goride                  (Laravel 9 + MySQL)
+ Mobile app : D:\laragon\laragon\www\flutter\phenex_fluttter_goride   (Flutter)
+================================================================================
+
+
+--------------------------------------------------------------------------------
+ 1. OVERALL VERDICT
+--------------------------------------------------------------------------------
+ The CORE ride-sharing product is feature-complete and code-verified:
+ a passenger can register, book a ride, get matched to a nearby driver,
+ track the driver live on the map, chat/call, pay (cash / wallet / card),
+ and rate the driver. A driver can register, upload documents, go online,
+ receive ride calls, navigate to pickup, run the trip through all stages,
+ collect payment and see earnings/stats.
+
+ BUT the app will NOT run until you complete the 5 items in section 3
+ ("MUST DO BEFORE RUNNING"). Most important: MySQL was DOWN during this
+ entire audit, so nothing database-related could be live-tested, and the
+ FCM push-notification key file is missing (drivers will not receive ride
+ calls when the app is in the background until you add it).
+
+ IMPORTANT DISCOVERY: at some point your backend files were overwritten
+ with an OLDER copy (a backup restore?). That old copy contained 3 fatal
+ bugs that crash EVERY page/API of the Laravel site, and it erased all the
+ new_api.txt route registrations and 12 file edits. I found this during
+ the audit and RE-APPLIED EVERYTHING (details in section 2). If you restore
+ backups again, these fixes will be lost again — be careful.
+
+
+--------------------------------------------------------------------------------
+ 2. FIXED DURING THIS AUDIT (was broken when I checked today)
+--------------------------------------------------------------------------------
+ These were all working after my previous session, got reverted by the file
+ overwrite, and have now been re-applied and re-verified (php -l clean,
+ `php artisan route:list` resolves all 532 routes with no errors):
+
+ 2.1 FATAL — routes/api.php lines 61/104/105 referenced the class
+     "AppHttpControllersApiDriverRatingController" (backslashes stripped).
+     Laravel could not boot ANY route because of this. Fixed to
+     \App\Http\Controllers\Api\DriverRatingController::class.
+
+ 2.2 FATAL — routes/web.php approvals routes had the same stripped-class
+     bug with AdminApprovalController. Fixed.
+
+ 2.3 FATAL — PromoCodeController::validate() collided with the framework's
+     built-in validate() (different signature = PHP fatal on load).
+     Renamed to checkCode(); the URL /api/promo/validate is unchanged,
+     so the Flutter app needs no change.
+
+ 2.4 Re-added ALL new_api.txt route registrations (admin dashboard/reports,
+     support tickets, ShurjoPay, owner, corporate, pooling, referrals,
+     surge, payouts) — they had been erased from routes/api.php.
+
+ 2.5 Re-added: WalletController::creditWallet() (payouts + referral bonuses
+     depend on it), AuthController referral-code support, referral ৳50
+     bonus on first completed ride, model fillables (User referral fields,
+     RideRequest corporate fields, Vehicle owner_id), commission_rate
+     config, SSLCommerz IPN route + CSRF exemption, AdminApprovalController
+     web methods, surge multiplier in /api/website-parameters.
+
+
+--------------------------------------------------------------------------------
+ 3. MUST DO BEFORE RUNNING  (in this order)
+--------------------------------------------------------------------------------
+ [1] START MYSQL. Open Laragon and press "Start All". MySQL has been
+     unreachable ("connection refused" on 127.0.0.1:3306) during the whole
+     audit. Nothing works without it.
+
+ [2] RUN MIGRATIONS. In a terminal:
+         cd D:\laragon\laragon\www\goride
+         php artisan migrate --force
+     This creates the new tables: support_tickets, support_ticket_replies,
+     surge_zones, driver_payouts, ride_pools, ride_pool_passengers, and adds
+     referral columns to users, owner_id to vehicles, corporate booking
+     fields to ride_requests. (You said you migrate manually — these three
+     files must be included: 2026_06_29_000001, _000002, _000003.)
+
+ [3] ADD THE FCM SERVICE-ACCOUNT FILE (push notifications).
+     Without it: drivers DO NOT get ride-call popups when the app is in
+     the background, and payment/trip FCM notices are silently skipped.
+     With the app OPEN it still works (Firestore listener), so you can
+     test without it, but real usage needs it.
+       - Firebase Console > Project "goride-498603" > Project settings
+         > Service accounts > Generate new private key
+       - Save the downloaded JSON as:
+         D:\laragon\laragon\www\goride\storage\app\firebase\service-account.json
+       (or set FIREBASE_CREDENTIALS=<full path> in .env)
+
+ [4] FIX APP_URL in goride\.env — it is currently:
+         APP_URL=http://northbengal.test/
+     This is used to build the "share my trip" public tracking links, so
+     shared links currently point to the wrong website. For local testing:
+         APP_URL=http://localhost/goride/public
+     For production: your real domain (e.g. https://qalamhr.islamibookbd.com).
+     Then run: php artisan config:clear
+
+ [5] POINT THE FLUTTER APP AT YOUR SERVER. In
+     lib\services\api_service.dart (line ~17):
+         currentEnv = EnvType.production    → uses https://qalamhr.islamibookbd.com/api/
+         currentEnv = EnvType.localEmulator → Android emulator hitting your PC's Laragon
+         currentEnv = EnvType.localWifi     → real phone on the same Wi-Fi
+                                              (set _localMachineIp to your PC's IP)
+     Then rebuild:  flutter run
+
+
+--------------------------------------------------------------------------------
+ 4. HOW TO TEST THE FULL PASSENGER + DRIVER FLOW (two phones/emulators)
+--------------------------------------------------------------------------------
+ You need two devices (or one emulator + one phone): one as PASSENGER,
+ one as DRIVER.
+
+ DRIVER side (device A):
+  1. Register with role "driver" (Join as Rider/Driver). Account is created
+     PENDING — the app takes you to the verification screens: upload NID,
+     driving licence, vehicle info, photo.
+  2. Approve the driver as admin: log into the Laravel admin panel
+     (http://localhost/goride/public) or call
+     POST /api/admin/users/{id}/approve-reject {"action":"approve"}.
+  3. Log in on the app → Driver Dashboard → toggle ONLINE (top-right).
+     The app starts sending GPS to Firestore + Laravel every few seconds.
+  4. Wait for a ride call.
+
+ PASSENGER side (device B):
+  1. Register (default role) — active immediately, no approval needed.
+     OTP NOTE: SMS is not connected; the OTP code is written to
+     goride\storage\logs\laravel.log — search for "OTP for".
+  2. Home > choose service (Car/Bike/CNG...) > set pickup & destination
+     (map picker or search box) > see the fare estimate > confirm.
+  3. The request is written to Firestore; every online driver within 5 km
+     gets the ride-call screen (popup + sound if app open; FCM push if
+     backgrounded and step 3.3 was done).
+
+ THE TRIP:
+  - Driver taps ACCEPT (first driver to accept wins — atomic claim).
+  - Driver screen: "Go to the passenger" navigation view — pickup address
+    card, NAVIGATE button (opens Google Maps turn-by-turn), passenger icon
+    marker on the map. Tap the ▲ arrow for full details (fare, chat, call,
+    cancel).
+  - Driver taps I'VE ARRIVED → passenger sees "Driver has arrived".
+  - Driver taps START TRIP → live tracking to destination for both sides.
+  - Driver taps COMPLETE TRIP.
+  - Passenger picks payment: Cash / Wallet / Card (SSLCommerz sandbox).
+  - Both sides get the rating screen (stars + tags + review).
+  - Trip appears in Ride History; a PDF receipt is available; driver
+    earnings/stats update.
+
+ EXTRAS you can also test: SOS button (passenger, during trip),
+ share-trip link (public live map page), in-app chat between driver and
+ passenger, wallet top-up, promo codes, saved addresses, support tickets
+ (sidebar > Help & Support).
+
+
+--------------------------------------------------------------------------------
+ 5. FEATURE READINESS MATRIX
+--------------------------------------------------------------------------------
+ Legend:  [READY]   = backend + app UI complete
+          [PARTIAL] = works with a limitation (noted)
+          [API-ONLY]= backend API done, no app screen yet
+
+ PASSENGER
+  [READY]   Registration/login (email or mobile + password, role-aware)
+  [PARTIAL] OTP verification — codes go to laravel.log, no SMS gateway yet
+  [READY]   Book ride: map pickup/destination, fare estimate, vehicle types
+  [READY]   Driver matching (Firestore 5-km broadcast, first-accept-wins,
+            auto-transfer to next driver on decline)
+  [READY]   Live tracking with driver icon, route line, live ETA
+  [READY]   In-app chat + phone call to driver
+  [READY]   Payments: cash, wallet, SSLCommerz card (sandbox)
+  [API-ONLY]bKash/Nagad via ShurjoPay — endpoints live, but the payment
+            sheet in the app currently offers Cash + Card only
+  [READY]   Promo codes, cancellation with reason + ৳50 late-cancel fee
+  [READY]   Rating driver, ride history, PDF receipt
+  [READY]   SOS emergency alert, share-trip live link
+  [READY]   Saved addresses, notifications, profile completion, wallet
+  [READY]   Support tickets (create/list/reply — sidebar > Help & Support)
+  [API-ONLY]Ride pooling (find shared rides) — no passenger UI yet
+  [API-ONLY]Referral program — bonus logic live; no screen showing your
+            code, and register screen has no referral-code input yet
+
+ DRIVER
+  [READY]   Registration with document upload + admin verification flow
+  [READY]   Online/offline toggle with continuous GPS sync
+  [READY]   Ride-call screen (sound, accept/decline, auto-timeout)
+  [PARTIAL] Background ride calls — needs the FCM key file (step 3.3)
+  [READY]   Pickup navigation view (screenshot design: "Go to the
+            passenger" bar, NAVIGATE to Google Maps, collapsed pickup
+            card, passenger map icon)
+  [READY]   Staged trip control: Arrived > Start > Complete
+  [READY]   Earnings dashboard (day/week/month), driver stats, wallet
+  [READY]   Rating passengers, trip history
+
+ OWNER (fleet)          — dashboard, fleet list w/ assigned drivers,
+                          earnings per driver  [READY, app + API]
+ CORPORATE              — dashboard, book for employee, monthly billing,
+                          PDF invoice  [READY API; app dashboard shows
+                          billing alert; booking UI is basic]
+ ADMIN (in-app + API)   — approvals, driver verification, documents review,
+                          SOS alerts, dashboard stats, live rides map feed,
+                          revenue/rides/drivers reports, broadcast
+                          notification, support-ticket management, surge
+                          zones, driver payouts + CSV export
+                          [API READY; the in-app admin screens cover
+                          approvals/tickets/reports partially — the rest is
+                          meant for the web admin panel]
+
+
+--------------------------------------------------------------------------------
+ 6. REMAINING GAPS (none block the core passenger/driver flow)
+--------------------------------------------------------------------------------
+ HIGH
+  H1. FCM service-account JSON missing  → background ride calls dead until
+      added (section 3.3).
+  H2. OTP has no SMS provider — codes only in laravel.log. Connect an SMS
+      gateway (e.g. SSLWireless, BulkSMS BD, Twilio) in
+      app/Http/Controllers/Api/OtpController.php where the TODO comment is.
+  H3. MySQL was down; the 3 new migrations are UNVERIFIED against your DB.
+
+ MEDIUM
+  M1. Wallet top-up credits money instantly without a real payment —
+      fine for testing, must be gated behind SSLCommerz/ShurjoPay in prod.
+  M2. bKash/Nagad button missing in the app's payment sheet (backend ready).
+  M3. APP_URL wrong → share-trip links broken until step 3.4.
+  M4. SSLCommerz + ShurjoPay are on SANDBOX credentials — swap to live
+      credentials in .env before launch (SSLCZ_* and SHURJOPAY_* keys).
+
+ LOW
+  L1. Referral & pooling have no app screens (APIs + service methods ready).
+  L2. Register screen lacks a "referral code" input field.
+  L3. Admin web approvals page: Approve/Reject buttons call JavaScript
+      functions that were never written in the Blade file
+      (resources/views/admin/approvals/index.blade.php) — backend routes
+      work, buttons do nothing in the browser.
+  L4. The backend also contains a legacy e-commerce module (products, cart,
+      orders, sellers) from the original project — harmless, ignorable.
+
+
+--------------------------------------------------------------------------------
+ 7. FULL API REFERENCE (ride-sharing endpoints, verified registered today)
+--------------------------------------------------------------------------------
+ Base URL: {your-server}/api        Auth: Bearer token (Laravel Sanctum)
+ Public = no token needed.
+
+ AUTH & ACCOUNT
+   POST /api/register                    Public. role: solo|user|driver|owner|corporate,
+                                         supports referral_code
+   POST /api/login                       Public. email/mobile + password (+role)
+   POST /api/logout
+   GET  /api/user                        Current profile
+   PATCH /api/user/profile               Update profile
+   PATCH /api/user/password              Change password
+   POST /api/forgot-password             Public
+   POST /api/reset-password              Public
+   POST /api/auth/send-otp               Public (code -> laravel.log for now)
+   POST /api/auth/verify-otp             Public
+   POST /api/auth/resend-otp
+   POST /api/user/fcm-token              Save device push token
+   GET  /api/user/profile-completion     Completion %
+   POST /api/user/complete-profile
+
+ RIDE BOOKING & MATCHING (passenger)
+   GET  /api/website-parameters          Public. per_km_rate, base_fare,
+                                         optional ?lat&lng -> surge_multiplier
+   POST /api/ride-requests               Create ride request
+   POST /api/ride-requests/match         Find + offer to nearby drivers
+   GET  /api/nearby-drivers              ?latitude&longitude&radius
+   GET  /api/active-ride                 Current ongoing ride
+   PATCH /api/ride-requests/{id}/status  accepted|arriving|in_progress|
+                                         completed|cancelled (+referral bonus
+                                         fires on first completed ride)
+   GET  /api/ride-requests/{id}/detail
+   GET  /api/ride-history                ?status&per_page
+   POST /api/update-location             Rider/driver GPS ping
+
+ DRIVER-SIDE MATCHING
+   POST /api/driver/toggle-online
+   POST /api/ride-offers/{offerId}/respond      accept|decline
+   POST /api/ride-requests/{rideId}/decline     Decline + transfer to next
+   GET  /api/ride-requests/{id}/offers
+   POST /api/ride-requests/{id}/assign-driver
+
+ PAYMENTS
+   POST /api/ride-requests/{id}/payment          Record cash/manual payment
+   POST /api/ride-requests/{rideId}/pay-wallet   Pay fare from wallet
+   POST /api/payment/shurjopay/initiate          bKash/Nagad -> checkout_url
+   POST /api/payment/shurjopay/callback          Verify + mark paid
+   POST /payment/sslcommerz/ipn                  (web route) card IPN webhook
+   GET  /api/ride-requests/{rideId}/receipt      PDF receipt
+
+ WALLET
+   GET  /api/wallet/balance
+   GET  /api/wallet/transactions
+   POST /api/wallet/top-up
+
+ PROMO
+   POST /api/promo/validate              {code, fare} -> discount, final_fare
+
+ RATINGS
+   POST /api/driver-ratings              Passenger rates driver (+tags)
+   GET  /api/driver-ratings/{driverId}   Public rating profile
+   GET  /api/driver-ratings/check/{rideRequestId}
+   POST /api/rider-ratings               Driver rates passenger
+
+ DRIVER PROFILE / DOCUMENTS / EARNINGS
+   GET  /api/driver/profile-status
+   POST /api/driver/profile/update       Multipart (NID, licence, photos)
+   POST /api/driver/upload-document
+   GET  /api/driver/my-documents
+   GET  /api/driver/stats
+   GET  /api/driver/earnings             ?period=today|week|month
+   GET  /api/vehicles
+
+ SAFETY & TRACKING
+   POST /api/sos/trigger                 Passenger/driver SOS
+   POST /api/sos/alerts/{alert}/resolve
+   GET|POST /api/ride-requests/{rideId}/tracking-token   Share-trip token
+   GET  /api/public/track/{token}        Public. Trip info for shared link
+   GET  /api/public/track/{token}/location Public. Live driver GPS
+   (web) GET /track/{token}              Public live-map web page
+
+ CHAT
+   GET/POST /api/chat/conversations, /api/chat/send, /api/chat/messages,
+   /api/chat/read, /api/chat/users/search, add/remove participants —
+   full in-app messaging suite.
+
+ SAVED ADDRESSES
+   CRUD /api/user/saved-addresses
+
+ NOTIFICATIONS & CONTENT
+   GET  /api/notifications               + read/{id}, read-all
+   GET  /api/banners                     Public home banners
+
+ SUPPORT TICKETS
+   POST /api/support-tickets             {subject, message, category}
+   GET  /api/support-tickets             My tickets
+   GET  /api/support-tickets/{id}        Ticket + reply thread
+   POST /api/support-tickets/{id}/reply
+
+ REFERRALS
+   GET  /api/referrals                   My code, link, count, earnings
+
+ RIDE POOLING
+   GET  /api/ride-requests/pool/available  ?pickup_lat&pickup_lng&dest_lat&dest_lng
+
+ OWNER (fleet owner)
+   GET  /api/owner/dashboard             cars, active, today trips, month earnings
+   GET  /api/owner/fleet                 vehicles + assigned driver + today trips
+   GET  /api/owner/earnings              ?period=today|week|month, per driver
+
+ CORPORATE
+   GET  /api/corporate/dashboard
+   POST /api/corporate/ride-request      Book for employee (name+mobile)
+   GET  /api/corporate/billing           ?month=YYYY-MM
+   GET  /api/corporate/billing/{month}/pdf   Invoice PDF download
+
+ ADMIN
+   GET  /api/admin/dashboard-stats       Today rides/revenue/drivers/users
+   GET  /api/admin/active-rides          Live rides feed (for map)
+   GET  /api/admin/reports/revenue       ?from&to&group_by=day|week|month
+   GET  /api/admin/reports/rides         ?from&to&ride_type&status
+   GET  /api/admin/reports/drivers       Per-driver trips/earnings/rating
+   POST /api/admin/notifications/broadcast  target: all_users|all_drivers|...
+   GET  /api/admin/pending-approvals     + POST users/{id}/approve-reject
+   GET  /api/admin/approval-stats
+   GET  /api/admin/drivers/verification  + {driver}/verification, {driver}/verify
+   GET  /api/admin/documents/pending     + POST documents/{id}/review
+   GET  /api/admin/sos/alerts
+   GET  /api/admin/support-tickets       + PATCH support-tickets/{id}
+   GET/POST /api/admin/surge             + PATCH surge/{zone}
+   GET  /api/admin/payouts/pending       Auto-computes driver dues (15%
+                                         commission, GORIDE_COMMISSION_RATE)
+   POST /api/admin/payouts/process       {payout_id} -> pay to driver wallet
+   GET  /api/admin/payouts/export        CSV download
+
+ (Also present but NOT ride-share related: products, cart, orders, sellers,
+  units, product-categories — legacy e-commerce module.)
+
+
+--------------------------------------------------------------------------------
+ 8. PAYMENT TESTING (sandbox)
+--------------------------------------------------------------------------------
+ SSLCommerz (card) — sandbox credentials already in .env
+   (SSLCZ_STORE_ID_TEST=mrnra68b585d38a347, TESTMODE=true).
+   In the sandbox checkout use any test card, e.g. VISA 4111 1111 1111 1111,
+   any future expiry, any CVV, OTP 111111.
+ ShurjoPay (bKash/Nagad) — config/shurjopay.php defaults to the public
+   sandbox (sp_sandbox / pyyk97hu&6u6). No .env entry needed for testing.
+   For live: set SHURJOPAY_BASE_URL, SHURJOPAY_USERNAME, SHURJOPAY_PASSWORD,
+   SHURJOPAY_PREFIX in .env.
+ Wallet — top up from the app (instantly credited in test mode), then pay
+   a ride with "Wallet".
+ Cash — driver confirms collection at trip end; recorded via
+   POST /ride-requests/{id}/payment.
+
+
+--------------------------------------------------------------------------------
+ 9. VERIFICATION EVIDENCE (what was actually checked today)
+--------------------------------------------------------------------------------
+ - php -l on all 12 re-applied files ......................... PASS (0 errors)
+ - php artisan route:list (full reflection of every route) ... PASS (532 routes)
+ - All 153 /api/* routes listed and cross-checked ............ PASS
+ - flutter analyze (whole project) ........................... PASS (0 errors,
+     only pre-existing style warnings)
+ - Google Maps key present (AndroidManifest + lib/map_key.dart) OK
+ - google-services.json present (project goride-498603) ....... OK
+ - MySQL connection ........................................... FAILED (server
+     down — start Laragon, then run migrations; nothing DB-side could be
+     runtime-tested in this audit)
+================================================================================
+ END OF REPORT
+================================================================================

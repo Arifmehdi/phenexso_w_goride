@@ -1,0 +1,84 @@
+================================================================================
+ GORIDE — WHAT'S MISSING (share this list to get it completed)
+================================================================================
+ Everything else in the app already works (passenger booking, driver
+ matching, live tracking, chat, payments, ratings, admin/owner/corporate
+ panels — all built and tested). Below is ONLY what's left, split into:
+   A) Things only YOU can provide (accounts/keys — no developer needed)
+   B) Small backend fixes (a developer needs a few hours)
+   C) Frontend features to build (backend is ready and waiting for these)
+================================================================================
+
+
+--------------------------------------------------------------------------------
+ A) THINGS ONLY YOU CAN PROVIDE (no coding — just accounts/keys)
+--------------------------------------------------------------------------------
+ 1. FIREBASE PUSH NOTIFICATION KEY
+    Without this: drivers do NOT get ride-call alerts when their phone
+    screen is off / app is in background.
+    Get it: Firebase Console -> project "goride-498603" -> Project
+    settings -> Service accounts -> Generate new private key.
+    Give the developer this JSON file.
+
+ 2. SMS GATEWAY ACCOUNT (for OTP verification)
+    Right now OTP codes are NOT sent by SMS — they only get written to a
+    log file. Fine for testing, NOT usable for real customers.
+    Pick one: SSLWireless, BulkSMS BD, Twilio, or similar. Give the
+    developer the API key/credentials once you sign up.
+
+ 3. LIVE PAYMENT CREDENTIALS (before real money is accepted)
+    - SSLCommerz LIVE store ID + password (currently only sandbox/test
+      keys are set — fine for testing, not for real transactions)
+    - ShurjoPay (bKash/Nagad) LIVE merchant credentials (currently using
+      the public sandbox)
+
+ 4. YOUR REAL DOMAIN NAME
+    The site's URL setting currently points to a leftover address from a
+    different project. Give the developer your actual domain (or confirm
+    localhost is fine for now) so shared trip links work correctly.
+
+
+--------------------------------------------------------------------------------
+ B) SMALL BACKEND FIXES (a developer needs ~1 day total)
+--------------------------------------------------------------------------------
+ 1. Run one missing database table (saved_addresses — "home/work" shortcut
+    feature will error without it).
+ 2. Delete one leftover unused file that's just clutter
+    (ProductController(14-March-2026).php).
+ 3. Fix the Approve/Reject buttons on the browser-based admin approvals
+    page — the buttons currently do nothing when clicked (the backend
+    logic works, only the button's on-click code was never written).
+ 4. Set the SMS/payment/domain values from section A once you have them.
+
+
+--------------------------------------------------------------------------------
+ C) FRONTEND FEATURES TO BUILD (backend APIs already done, waiting on app UI)
+--------------------------------------------------------------------------------
+ 1. bKash / Nagad PAY BUTTON
+    Passenger's "choose payment method" screen currently only shows
+    Cash and Card. Add a bKash/Nagad option (backend is 100% ready).
+
+ 2. REFERRAL SCREEN + SIGNUP FIELD
+    "Invite friends, earn ৳50" is fully working on the backend (every
+    user already gets a referral code) but there is no screen showing
+    it, and the registration screen has no box to enter a friend's code.
+
+ 3. "SHARED RIDES NEAR ME" SCREEN (ride pooling)
+    Optional/lower priority — lets passengers join a ride already going
+    the same direction to split the fare. Backend matching logic is done.
+
+ 4. (Optional cleanup) Remove or hide the unrelated e-commerce module
+    (shopping cart, products, orders) that came bundled in the original
+    template — it has nothing to do with ride-sharing and can confuse
+    new developers.
+
+
+--------------------------------------------------------------------------------
+ SUGGESTED ORDER TO GET IT DONE
+--------------------------------------------------------------------------------
+ Day 1  : You provide items in Section A (Firebase key + pick SMS provider)
+ Day 1-2: Developer does Section B (quick fixes) + wires SMS
+ Day 2-4: Developer builds Section C items 1 and 2 (payment button +
+          referral screen) — these matter most for a real launch
+ Later  : Section C items 3-4 (nice-to-have, not launch-blocking)
+================================================================================

@@ -15,6 +15,12 @@ class ApiResetPasswordNotification extends Notification
     public static $createUrlCallback;
 
     /**
+     * Base URL for the reset link, captured from the incoming request by the
+     * controller so the same codebase works on any domain without env changes.
+     */
+    public static $resetBaseUrl;
+
+    /**
      * Create a new notification instance.
      *
      * @return void
@@ -44,30 +50,26 @@ class ApiResetPasswordNotification extends Notification
     public function toMail($notifiable)
     {
         if (static::$createUrlCallback) {
-            $url = call_user_func(static::$createUrlCallback, $notifiable, $this->token);
+            $frontendResetUrl = call_user_func(static::$createUrlCallback, $notifiable, $this->token);
         } else {
-            $url = url(route('password.reset', [
+            // Base URL priority: domain the request came in on (any domain works),
+            // then an explicit FRONTEND_URL override, then the current app root.
+            $baseUrl = static::$resetBaseUrl ?: env('FRONTEND_URL') ?: url('/');
+
+            $frontendResetUrl = rtrim($baseUrl, '/') . '/reset-password?' . http_build_query([
                 'token' => $this->token,
                 'email' => $notifiable->getEmailForPasswordReset(),
-            ], false)); // Use false for relative URL for API, if needed, or adjust
+                'guard' => 'web',
+            ]);
         }
 
-        // For API, we might just want to send the token and email directly,
-        // or a URL that the client app can parse.
-        // Let's assume the client app expects a URL like:
-        // YOUR_APP_FRONTEND_URL/reset-password?token=XXX&email=YYY
-        // Or simply provide the token and email in the mail body.
-
-        $frontendResetUrl = env('FRONTEND_URL') . '/reset-password?token=' . $this->token . '&email=' . $notifiable->getEmailForPasswordReset();
-
-
         return (new MailMessage)
-                    ->subject('Reset Password Notification')
+                    ->subject('Reset Password Notification - GoRide')
                     ->line('You are receiving this email because we received a password reset request for your account.')
                     ->action('Reset Password', $frontendResetUrl)
                     ->line('This password reset link will expire in ' . config('auth.passwords.users.expire') . ' minutes.')
                     ->line('If you did not request a password reset, no further action is required.')
-                    ->line('Alternatively, you can use the following token and email in your application to reset your password:')
+                    ->line('You can also use the following token and email in the GoRide app to reset your password:')
                     ->line('Token: ' . $this->token)
                     ->line('Email: ' . $notifiable->getEmailForPasswordReset());
     }

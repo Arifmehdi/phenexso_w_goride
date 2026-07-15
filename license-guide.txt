@@ -1,0 +1,136 @@
+================================================================================
+ LICENSE & DOMAIN-LOCK GUIDE  (GoRide)
+================================================================================
+Last updated: 2026-07-15
+Files involved:
+  - app/Http/Controllers/LicenseController.php   (lock / unlock / status API)
+  - app/Http/Middleware/LicenseGate.php           (blocks app + domain tracking)
+  - app/Http/Kernel.php                           (registers LicenseGate)
+  - config/license.php                            (all settings, token + email)
+  - routes/web.php                                (exposes the endpoints)
+  - resources/views/license/locked.blade.php     (503 "app locked" screen)
+  - storage/app/license.lock                      (created when locked)
+  - storage/app/license_domain                    (baseline domain, self-learn)
+  - storage/app/license_domain_alerted            (last domain we alerted about)
+
+--------------------------------------------------------------------------------
+1. SET THE SECRET TOKEN  (.env)
+--------------------------------------------------------------------------------
+This token protects the remote lock/unlock endpoints. Treat it like a password
+and NEVER commit it.
+
+    LICENSE_CONTROL_TOKEN=your_secret_token_here
+
+Read in: config/license.php  ->  'control_token' => env('LICENSE_CONTROL_TOKEN')
+
+The token is compared with hash_equals() (timing-safe) in LicenseController.
+
+--------------------------------------------------------------------------------
+2. LOCK / UNLOCK THE APPLICATION  (remote control)
+--------------------------------------------------------------------------------
+Endpoints (always reachable, even while the app is locked, so you can't lock
+yourself out). Use a browser, curl, or Postman.
+
+LOCK (take the app down -> shows 503 "License Inactive" page):
+    GET /license/control/lock/{token}
+    GET /license/control/down/{token}     (alias)
+
+UNLOCK (bring the app back up):
+    GET /license/control/unlock/{token}
+    GET /license/control/up/{token}       (alias)
+
+CHECK STATUS (no change):
+    GET /license/status/{token}
+
+Example:
+    https://yourdomain.com/license/control/lock/your_secret_token_here
+    https://yourdomain.com/license/control/unlock/your_secret_token_here
+
+How it works:
+  - LicenseGate middleware runs on every web request.
+  - If storage/app/license.lock exists -> returns the 503 locked view.
+  - The /license/* routes bypass the lock check so you can always unlock.
+  - lock  -> creates storage/app/license.lock
+  - unlock-> deletes storage/app/license.lock
+
+--------------------------------------------------------------------------------
+3. DOMAIN-CHANGE TRACKING + AUTOMATIC ENCRYPTED EMAIL
+--------------------------------------------------------------------------------
+If the app is accessed from a DIFFERENT domain than the registered one, an
+alert email is sent automatically (no manual action needed). The mail body and
+subject are encrypted (ciphertext) so the viewer cannot read or understand it.
+
+Settings in config/license.php:
+    'domain_tracking' => env('LICENSE_DOMAIN_TRACKING', true),  // master on/off
+    'domain'          => env('LICENSE_DOMAIN'),                // optional fixed domain
+    'notify_email'    => 'eyJpdi...'                            // ENCRYPTED recipient
+
+Setup options:
+  A) SELF-LEARNING (default, no config needed):
+     The first domain the app runs on is saved to storage/app/license_domain.
+     Any later different domain triggers the alert, then becomes the new baseline.
+
+  B) PIN A FIXED LICENSED DOMAIN  (.env):
+     LICENSE_DOMAIN=goride.com
+     Any host other than goride.com triggers the alert every time it is used
+     (throttled to once per distinct host).
+
+Turn it off if needed:
+     LICENSE_DOMAIN_TRACKING=false
+
+--------------------------------------------------------------------------------
+4. THE ENCRYPTED EMAIL
+--------------------------------------------------------------------------------
+Recipient: mehediarif.du@gmail.com  (stored ENCRYPTED in config/license.php,
+           decrypted at send time with Crypt::decryptString -> APP_KEY).
+
+Subject : scrambled  "sys-<hash>"   (looks random, unreadable)
+Body    : ciphertext from Crypt::encryptString({ event, old, new, ip, url, time, app })
+
+So anyone who views the email sees only random text and cannot recover the
+real domain / IP / timestamp.
+
+To READ an alert (you, the owner, with the same APP_KEY):
+    php artisan tinker
+    >>> Crypt::decryptString($pasteCiphertextFromEmailBodyHere);
+
+Payload structure (after decrypt):
+    {
+      "event": "license_domain_change",
+      "old":   "previous-domain.com",
+      "new":   "new-domain.com",
+      "ip":    "1.2.3.4",
+      "url":   "https://new-domain.com/...",
+      "time":  "2026-07-15 12:00:00",
+      "app":   "GoRide"
+    }
+
+Throttling: only ONE email per distinct changed domain (tracked in
+storage/app/license_domain_alerted), so a busy site won't spam mail.
+
+--------------------------------------------------------------------------------
+5. RESET / MANAGE STATE
+--------------------------------------------------------------------------------
+After a legit domain move or deployment, clear the tracked files so the new
+domain becomes the trusted baseline:
+
+    delete storage/app/license_domain
+    delete storage/app/license_domain_alerted
+    delete storage/app/license.lock          (if you want the app unlocked)
+
+To re-encrypt a different recipient email:
+    php artisan tinker
+    >>> echo Crypt::encryptString('newemail@example.com');
+    -> paste the output into config/license.php 'notify_email'
+
+--------------------------------------------------------------------------------
+6. QUICK REFERENCE
+--------------------------------------------------------------------------------
+Lock app        : GET /license/control/lock/{LICENSE_CONTROL_TOKEN}
+Unlock app      : GET /license/control/unlock/{LICENSE_CONTROL_TOKEN}
+Check status    : GET /license/status/{LICENSE_CONTROL_TOKEN}
+Domain changed? : email auto-sent (encrypted) to mehediarif.du@gmail.com
+Read alert      : Crypt::decryptString(<email body>) in tinker
+Off switch      : LICENSE_DOMAIN_TRACKING=false
+================================================================================
+license/control/unlock/oKcWmwzxIdt1uYf65SpHBGgMPFXJ80OT

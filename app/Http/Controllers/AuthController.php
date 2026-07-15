@@ -54,7 +54,7 @@ class AuthController extends Controller
             'password' => $request->input('password'),
         ];
 
-        // 1. Try the requested guard first (Strictly if multiple accounts exist)
+        // Try the requested guard only (exact match - no fallback to other guards)
         if (Auth::guard($requestedGuard)->attempt($credentials, $request->boolean('remember'))) {
             if ($requestedGuard === 'web') {
                 $this->cartSessionToUser();
@@ -62,18 +62,7 @@ class AuthController extends Controller
             return $this->redirectAfterLogin($requestedGuard);
         }
 
-        // 2. If it fails, check if account exists in OTHER guards to be helpful
-        $otherGuards = array_diff(['web', 'driver', 'corporate', 'admin'], [$requestedGuard]);
-        foreach ($otherGuards as $guard) {
-            if (Auth::guard($guard)->attempt($credentials, $request->boolean('remember'))) {
-                if ($guard === 'web') {
-                    $this->cartSessionToUser();
-                }
-                return $this->redirectAfterLogin($guard);
-            }
-        }
-
-        // 3. Special check for mobile formatting if it's a mobile login
+        // Special check for mobile formatting if it's a mobile login
         if ($login_type === 'mobile') {
             $formattedMobile = bdMobile($request->input('login'));
             if ($formattedMobile !== $request->input('login')) {
@@ -82,10 +71,11 @@ class AuthController extends Controller
                     'password' => $request->input('password'),
                 ];
                 
-                foreach (['web', 'driver', 'corporate', 'admin'] as $guard) {
-                    if (Auth::guard($guard)->attempt($formattedCredentials, $request->boolean('remember'))) {
-                        return $this->redirectAfterLogin($guard);
+                if (Auth::guard($requestedGuard)->attempt($formattedCredentials, $request->boolean('remember'))) {
+                    if ($requestedGuard === 'web') {
+                        $this->cartSessionToUser();
                     }
+                    return $this->redirectAfterLogin($requestedGuard);
                 }
             }
         }
@@ -97,6 +87,29 @@ class AuthController extends Controller
 
     protected function redirectAfterLogin($guard)
     {
+        $user = Auth::guard($guard)->user();
+        
+        // Check for pending status
+        if ($user) {
+            $isPending = false;
+            if (isset($user->status)) {
+                // Handle both string 'pending' and integer 0 (for drivers)
+                if ($user->status === 'pending' || $user->status === 0 || $user->status === '0') {
+                    $isPending = true;
+                }
+            }
+            
+            // Also check is_approve for roles like rider
+            if (isset($user->is_approve) && !$user->is_approve && $user->role === 'rider') {
+                $isPending = true;
+            }
+
+            if ($isPending) {
+                Auth::guard($guard)->logout();
+                return redirect()->route('login')->with('error', 'Your account is pending approval. Please wait for the administrator to approve your account.');
+            }
+        }
+
         if ($guard === 'admin') {
             return redirect()->route('admin.dashboard')->with('success', 'Welcome to Admin Dashboard');
         }
@@ -363,6 +376,7 @@ class AuthController extends Controller
 
     public function mainRegister(Request $request)
     {
+        // dd($request->all());
         $request->validate([
             'name'               => 'required|string|max:255',
             'email'              => 'required|email',
@@ -375,12 +389,17 @@ class AuthController extends Controller
 
         $role = $request->input('role', 'solo');
         $password = Hash::make($request->password);
+        
+        // Customers (solo/user) are active by default, others (driver, corporate, owner) are pending
+        $isCustomer = ($role === 'solo' || $role === 'user');
+        $status = $isCustomer ? 'active' : 'pending';
+
         $userData = [
             'name'     => $request->name,
             'email'    => $request->email,
             'password' => $password,
             'mobile'   => $request->mobile,
-            'status'   => ($role === 'solo' || $role === 'user') ? 'active' : 'pending',
+            'status'   => $status,
         ];
 
         if ($role === 'driver') {
@@ -388,15 +407,19 @@ class AuthController extends Controller
             if (\App\Models\Driver::where('email', $request->email)->exists()) {
                 return back()->with('error', 'Driver with this email already exists');
             }
+            // Drivers use tinyInteger status (0=pending/inactive, 1=active/available)
+            $userData['status'] = 0; 
             $driver = \App\Models\Driver::create($userData);
-            Auth::guard('driver')->login($driver);
+            
+            return redirect()->route('login')->with('info', 'Registration successful! Your driver account is pending approval. You will be able to login once approved.');
         } elseif ($role === 'corporate') {
             if (\App\Models\Corporate::where('email', $request->email)->exists()) {
                 return back()->with('error', 'Corporate user with this email already exists');
             }
             $userData['company_name'] = $request->company_name;
             $corporate = \App\Models\Corporate::create($userData);
-            Auth::guard('corporate')->login($corporate);
+            
+            return redirect()->route('login')->with('info', 'Registration successful! Your corporate account is pending approval. You will be able to login once approved.');
         } else {
             // Default to users table
             if (\App\Models\User::where('email', $request->email)->exists()) {
@@ -405,7 +428,14 @@ class AuthController extends Controller
             $userData['role'] = $role;
             $userData['company_name'] = $request->company_name;
             $userData['vehicle_type'] = $request->vehicle_type;
+            
             $user = \App\Models\User::create($userData);
+            
+            // If it's an 'owner' or other non-customer role, it will be 'pending'
+            if ($user->status === 'pending') {
+                return redirect()->route('login')->with('info', 'Registration successful! Your account is pending approval. You will be able to login once approved.');
+            }
+
             Auth::guard('web')->login($user);
             $this->cartSessionToUser();
         }

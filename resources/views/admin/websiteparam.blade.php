@@ -34,10 +34,61 @@
                                 </div>
 
                                 <div class="form-group ">
-                                    <label for="google_search_console" class="control-label">
+                                    <label for="shipping_cahrge" class="control-label">
                                         Shipping Charge
                                     </label>
                                   <input type="text" name="shipping_cahrge" class="form-control" value="{{ old('shipping_cahrge') ?: $websiteParameter->shipping_cahrge ?? '' }}" id="shipping_cahrge" placeholder="Shipping Charge" autocomplete="off">
+                                </div>
+
+                                <div class="form-group ">
+                                    <label for="per_km_rate" class="control-label">
+                                        Per KM Rate (Fare Calculation)
+                                    </label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">৳</span>
+                                        </div>
+                                        <input type="number" step="0.01" min="0" name="per_km_rate" class="form-control" value="{{ old('per_km_rate') ?: $websiteParameter->per_km_rate ?? '20.00' }}" id="per_km_rate" placeholder="e.g. 20.00" autocomplete="off">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">/km</span>
+                                        </div>
+                                    </div>
+                                    <small class="form-text text-muted">This rate is used to calculate ride fares: Fare = Base Fare + (Distance × Per KM Rate)</small>
+                                </div>
+
+                                <div class="form-group ">
+                                    <label for="commission_rate" class="control-label">
+                                        Platform Commission (Driver Earnings)
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.01" min="0" max="100" name="commission_rate" class="form-control" value="{{ old('commission_rate') ?: $websiteParameter->commission_rate ?? '15.00' }}" id="commission_rate" placeholder="e.g. 15" autocomplete="off">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                    </div>
+                                    <small class="form-text text-muted">Platform's cut of each ride. Driver earns the rest, e.g. at 15% the driver keeps 85% of the fare.</small>
+                                </div>
+
+                                <div class="form-group ">
+                                    <label for="matching_radius_km" class="control-label">
+                                        Driver Search Radius (Ride Matching)
+                                    </label>
+                                    @php
+                                        $radiusOptions = [3,5,8,10,12,15,20,25,30,40,50,60,75,100];
+                                        $selectedRadius = (int) (old('matching_radius_km') ?: ($websiteParameter->matching_radius_km ?? 10));
+                                    @endphp
+                                    <select name="matching_radius_km" class="form-control" id="matching_radius_km">
+                                        @foreach($radiusOptions as $km)
+                                            <option value="{{ $km }}" {{ $selectedRadius == $km ? 'selected' : '' }}>{{ $km }} km</option>
+                                        @endforeach
+                                        @if(!in_array($selectedRadius, $radiusOptions))
+                                            <option value="{{ $selectedRadius }}" selected>{{ $selectedRadius }} km</option>
+                                        @endif
+                                    </select>
+                                    <small class="form-text text-muted">
+                                        Only drivers within this distance get the ride call.
+                                        <strong>Ideal: 5–10 km for cities, 10–15 km for suburbs/highways.</strong>
+                                    </small>
                                 </div>
 
                                 <div class="form-group ">
@@ -209,245 +260,6 @@
 
                     </div>
 
-                </div>
-                
-                <div class="row">
-                    <div class="col-sm-12">
-                        <div class="card card-widget">
-                            <div class="card-header with-border">
-                                <h3 class="card-title">Homepage Content</h3>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-sm-6">
-                                        <div class="form-group">
-                                            <label for="home_hero_badge" class="control-label">Hero Badge</label>
-                                            <input type="text" name="home_hero_badge" class="form-control" id="home_hero_badge" value="{{ old('home_hero_badge') ?: $websiteParameter->home_hero_badge ?? '' }}" placeholder="Quick, Secure, Reliable">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="home_hero_title" class="control-label">Hero Title</label>
-                                            <input type="text" name="home_hero_title" class="form-control" id="home_hero_title" value="{{ old('home_hero_title') ?: $websiteParameter->home_hero_title ?? '' }}" placeholder="Book your car in seconds">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="home_hero_span" class="control-label">Hero Title Span</label>
-                                            <input type="text" name="home_hero_span" class="form-control" id="home_hero_span" value="{{ old('home_hero_span') ?: $websiteParameter->home_hero_span ?? '' }}" placeholder="Any trip, anywhere">
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <div class="form-group">
-                                            <label for="home_hero_subtitle" class="control-label">Hero Subtitle</label>
-                                            <textarea name="home_hero_subtitle" class="form-control" rows="4" id="home_hero_subtitle" placeholder="Write the homepage hero subtitle.">{{ old('home_hero_subtitle') ?: $websiteParameter->home_hero_subtitle ?? '' }}</textarea>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="home_hero_cta_text" class="control-label">Hero CTA Text</label>
-                                            <input type="text" name="home_hero_cta_text" class="form-control" id="home_hero_cta_text" value="{{ old('home_hero_cta_text') ?: $websiteParameter->home_hero_cta_text ?? '' }}" placeholder="Book Now">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="home_hero_cta_link" class="control-label">Hero CTA Link</label>
-                                            <input type="text" name="home_hero_cta_link" class="form-control" id="home_hero_cta_link" value="{{ old('home_hero_cta_link') ?: $websiteParameter->home_hero_cta_link ?? '' }}" placeholder="{{ url('/') }}">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-sm-3">
-                                        <div class="form-group">
-                                            <label for="home_stats_customers" class="control-label">Stat Customers</label>
-                                            <input type="text" name="home_stats_customers" class="form-control" id="home_stats_customers" value="{{ old('home_stats_customers') ?: $websiteParameter->home_stats_customers ?? '' }}" placeholder="5000+">
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-3">
-                                        <div class="form-group">
-                                            <label for="home_stats_fleet" class="control-label">Stat Fleet</label>
-                                            <input type="text" name="home_stats_fleet" class="form-control" id="home_stats_fleet" value="{{ old('home_stats_fleet') ?: $websiteParameter->home_stats_fleet ?? '' }}" placeholder="1200+">
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-3">
-                                        <div class="form-group">
-                                            <label for="home_stats_districts" class="control-label">Stat Districts</label>
-                                            <input type="text" name="home_stats_districts" class="form-control" id="home_stats_districts" value="{{ old('home_stats_districts') ?: $websiteParameter->home_stats_districts ?? '' }}" placeholder="64">
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-3">
-                                        <div class="form-group">
-                                            <label for="home_stats_corporate" class="control-label">Stat Corporate</label>
-                                            <input type="text" name="home_stats_corporate" class="form-control" id="home_stats_corporate" value="{{ old('home_stats_corporate') ?: $websiteParameter->home_stats_corporate ?? '' }}" placeholder="150+">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-sm-12">
-                                        <div class="form-group">
-                                            <label for="why_section_title" class="control-label">Why Section Title</label>
-                                            <input type="text" name="why_section_title" class="form-control" id="why_section_title" value="{{ old('why_section_title') ?: $websiteParameter->why_section_title ?? '' }}" placeholder="Why Choose GoRide">
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-12">
-                                        <div class="form-group">
-                                            <label for="why_section_subtitle" class="control-label">Why Section Subtitle</label>
-                                            <textarea name="why_section_subtitle" class="form-control" rows="3" id="why_section_subtitle" placeholder="Write the why section subtitle.">{{ old('why_section_subtitle') ?: $websiteParameter->why_section_subtitle ?? '' }}</textarea>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-sm-12">
-                        <div class="card card-widget">
-                            <div class="card-header with-border">
-                                <h3 class="card-title">Pages Content</h3>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-sm-4">
-                                        <h4>Services Page</h4>
-                                        <div class="form-group">
-                                            <label for="services_page_title" class="control-label">Title</label>
-                                            <input type="text" name="services_page_title" class="form-control" id="services_page_title" value="{{ old('services_page_title') ?: $websiteParameter->services_page_title ?? '' }}" placeholder="Our Premium Services">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="services_page_subtitle" class="control-label">Subtitle</label>
-                                            <textarea name="services_page_subtitle" class="form-control" rows="3" id="services_page_subtitle" placeholder="Write the services subtitle.">{{ old('services_page_subtitle') ?: $websiteParameter->services_page_subtitle ?? '' }}</textarea>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="services_page_description" class="control-label">Description</label>
-                                            <textarea name="services_page_description" class="form-control" rows="4" id="services_page_description" placeholder="Write a description for the services page.">{{ old('services_page_description') ?: $websiteParameter->services_page_description ?? '' }}</textarea>
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-4">
-                                        <h4>Fleet Page</h4>
-                                        <div class="form-group">
-                                            <label for="fleet_page_title" class="control-label">Title</label>
-                                            <input type="text" name="fleet_page_title" class="form-control" id="fleet_page_title" value="{{ old('fleet_page_title') ?: $websiteParameter->fleet_page_title ?? '' }}" placeholder="Our Diverse Fleet">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="fleet_page_subtitle" class="control-label">Subtitle</label>
-                                            <textarea name="fleet_page_subtitle" class="form-control" rows="3" id="fleet_page_subtitle" placeholder="Write the fleet subtitle.">{{ old('fleet_page_subtitle') ?: $websiteParameter->fleet_page_subtitle ?? '' }}</textarea>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="fleet_page_description" class="control-label">Description</label>
-                                            <textarea name="fleet_page_description" class="form-control" rows="4" id="fleet_page_description" placeholder="Write a description for the fleet page.">{{ old('fleet_page_description') ?: $websiteParameter->fleet_page_description ?? '' }}</textarea>
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-4">
-                                        <h4>Tours Page</h4>
-                                        <div class="form-group">
-                                            <label for="tours_page_title" class="control-label">Title</label>
-                                            <input type="text" name="tours_page_title" class="form-control" id="tours_page_title" value="{{ old('tours_page_title') ?: $websiteParameter->tours_page_title ?? '' }}" placeholder="Explore Beautiful Bangladesh">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="tours_page_subtitle" class="control-label">Subtitle</label>
-                                            <textarea name="tours_page_subtitle" class="form-control" rows="3" id="tours_page_subtitle" placeholder="Write the tours subtitle.">{{ old('tours_page_subtitle') ?: $websiteParameter->tours_page_subtitle ?? '' }}</textarea>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="tours_page_description" class="control-label">Description</label>
-                                            <textarea name="tours_page_description" class="form-control" rows="4" id="tours_page_description" placeholder="Write a description for the tours page.">{{ old('tours_page_description') ?: $websiteParameter->tours_page_description ?? '' }}</textarea>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- about section Start -->
-
-                <div class="row">
-                    <div class="col-sm-12">
-                        <div class="card card-widget">
-                            <div class="card-header with-border">
-                                <h3 class="card-title">About Us</h3>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <!-- About Us English -->
-                                    <div class="col-sm-6">
-                                        <div class="form-group">
-                                            <label for="about_title" class="control-label">Who We Are Title</label>
-                                            <input type="text" name="about_title" class="form-control"  id="about_title" placeholder="About Title" value="{{ old('about_title') ?: $websiteParameter->about_title ?? '' }}">
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- About Us Bangla -->
-                                    <div class="col-sm-6">
-                                        <div class="form-group">
-                                            <label for="about_subtitle" class="control-label">Who We Are Sub-Title</label>
-                                            <textarea name="about_subtitle" class="form-control" rows="10" id="about_subtitle" placeholder="Write About Us in Bangla">{{ old('about_subtitle') ?: $websiteParameter->about_subtitle ?? '' }}</textarea>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-sm-12">
-                                        <div class="form-group">
-                                            <label for="about_page_title" class="control-label">About Page Heading</label>
-                                            <input type="text" name="about_page_title" class="form-control" id="about_page_title" placeholder="About GoRide Bangladesh" value="{{ old('about_page_title') ?: $websiteParameter->about_page_title ?? '' }}">
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-12">
-                                        <div class="form-group">
-                                            <label for="about_page_subtitle" class="control-label">About Page Subtitle</label>
-                                            <textarea name="about_page_subtitle" class="form-control" rows="3" id="about_page_subtitle" placeholder="Page subtitle">{{ old('about_page_subtitle') ?: $websiteParameter->about_page_subtitle ?? '' }}</textarea>
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-12">
-                                        <div class="form-group">
-                                            <label for="about_page_paragraph_1" class="control-label">About Page Paragraph 1</label>
-                                            <textarea name="about_page_paragraph_1" class="form-control" rows="3" id="about_page_paragraph_1" placeholder="Write paragraph 1">{{ old('about_page_paragraph_1') ?: $websiteParameter->about_page_paragraph_1 ?? '' }}</textarea>
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-12">
-                                        <div class="form-group">
-                                            <label for="about_page_paragraph_2" class="control-label">About Page Paragraph 2</label>
-                                            <textarea name="about_page_paragraph_2" class="form-control" rows="3" id="about_page_paragraph_2" placeholder="Write paragraph 2">{{ old('about_page_paragraph_2') ?: $websiteParameter->about_page_paragraph_2 ?? '' }}</textarea>
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-12">
-                                        <div class="form-group">
-                                            <label for="about_page_paragraph_3" class="control-label">About Page Paragraph 3</label>
-                                            <textarea name="about_page_paragraph_3" class="form-control" rows="3" id="about_page_paragraph_3" placeholder="Write paragraph 3">{{ old('about_page_paragraph_3') ?: $websiteParameter->about_page_paragraph_3 ?? '' }}</textarea>
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-12">
-                                        <div class="form-group">
-                                            <label class="control-label">About Page Highlights</label>
-                                            <input type="text" name="about_highlight_1" class="form-control mb-2" placeholder="Highlight 1" value="{{ old('about_highlight_1') ?: $websiteParameter->about_highlight_1 ?? '' }}">
-                                            <input type="text" name="about_highlight_2" class="form-control mb-2" placeholder="Highlight 2" value="{{ old('about_highlight_2') ?: $websiteParameter->about_highlight_2 ?? '' }}">
-                                            <input type="text" name="about_highlight_3" class="form-control mb-2" placeholder="Highlight 3" value="{{ old('about_highlight_3') ?: $websiteParameter->about_highlight_3 ?? '' }}">
-                                            <input type="text" name="about_highlight_4" class="form-control mb-2" placeholder="Highlight 4" value="{{ old('about_highlight_4') ?: $websiteParameter->about_highlight_4 ?? '' }}">
-                                            <input type="text" name="about_highlight_5" class="form-control" placeholder="Highlight 5" value="{{ old('about_highlight_5') ?: $websiteParameter->about_highlight_5 ?? '' }}">
-                                        </div>
-                                    </div>
-
-                                    <!-- Image Upload -->
-                                    <div class="col-sm-8">
-                                        <div class="form-group">
-                                            <label for="about_us_image" class="control-label">Upload Image</label>
-                                            <input type="file" name="about_us_image" class="form-control" id="about_us_image" onchange="previewAboutUsImage(event)">
-                                        </div>
-                                    </div>
-
-                                     <!-- Image Preview -->
-                                    <div class="col-sm-4">
-                                        <div class="w3-display-container" style="height:110px; width:100%; border:1px solid #ddd; border-radius:5px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
-                                            @if($websiteParameter->about_img)
-                                                <img 
-                                                    class="img-responsive about-preview" 
-                                                    src="{{ route('imagecache', ['template' => 'cpmd', 'filename' => $websiteParameter->about_img()]) }}" 
-                                                    alt="Preview Image" 
-                                                    id="showAboutUsImage"
-                                                >
-                                            @else
-                                                <div class="bg-light d-flex align-items-center justify-content-center" style="height:110px; width:100%;">
-                                                    <span class="text-muted">No Image</span>
-                                                </div>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- about section end  -->

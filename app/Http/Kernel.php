@@ -18,6 +18,7 @@ class Kernel extends HttpKernel
         \App\Http\Middleware\TrustProxies::class,
         \Illuminate\Http\Middleware\HandleCors::class,
         \App\Http\Middleware\PreventRequestsDuringMaintenance::class,
+        \App\Http\Middleware\LicenseGate::class,
         \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
         \App\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
@@ -73,6 +74,7 @@ class Kernel extends HttpKernel
         'userRole' => \App\Http\Middleware\UserRoleMiddleware::class,
         'retailer' => \App\Http\Middleware\RetailerMiddleware::class,
         'locale' => \App\Http\Middleware\LocaleMiddleware::class,
+        'active' => \App\Http\Middleware\EnsureAccountIsActive::class,
 
     ];
 }

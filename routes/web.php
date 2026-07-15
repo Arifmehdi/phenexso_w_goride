@@ -30,7 +30,14 @@ use Illuminate\Support\Facades\File;
 use App\Http\Controllers\SslCommerzPaymentController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\Admin\WebsiteParameterController;
+use App\Http\Controllers\LicenseController;
 use Illuminate\Support\Facades\Mail;
+
+// License control (remote lock / unlock). Stays reachable even when locked.
+Route::get('/license/control/{action}/{token}', [LicenseController::class, 'control'])
+    ->name('license.control');
+Route::get('/license/status/{token}', [LicenseController::class, 'status'])
+    ->name('license.status');
 
 // Route::get('/',[AuthController::class,'index'])->name('login');
 
@@ -225,9 +232,14 @@ Route::get('/health-card',[AuthController::class,'healthCard'])->name('health.re
 Route::post('/register',[AuthController::class,'register'])->name('register');
 Route::post('/main-register',[AuthController::class,'mainRegister'])->name('main.register');
 
-Route::middleware(['auth:web,admin,driver,corporate'])->group(function() {
+Route::middleware(['auth:web,admin,driver,corporate', 'active'])->group(function() {
     Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard.index');
-    
+
+    // Web user notifications (customer / owner / corporate)
+    Route::get('/dashboard/notifications', [App\Http\Controllers\Goride\NotificationController::class, 'index'])->name('user.notifications');
+    Route::post('/dashboard/notifications/{id}/read', [App\Http\Controllers\Goride\NotificationController::class, 'markRead'])->name('user.notifications.read');
+    Route::post('/dashboard/notifications/read-all', [App\Http\Controllers\Goride\NotificationController::class, 'markAllRead'])->name('user.notifications.read-all');
+
     // Corporate Dashboard Routes
     Route::prefix('dashboard/corporate')->middleware('auth:corporate')->name('corporate.')->group(function() {
         Route::get('/', [App\Http\Controllers\DashboardController::class, 'corporateDashboard'])->name('dashboard');
@@ -245,8 +257,10 @@ Route::middleware(['auth:web,admin,driver,corporate'])->group(function() {
         Route::get('/history', [App\Http\Controllers\DashboardController::class, 'ownerHistory'])->name('history');
         Route::get('/earnings', [App\Http\Controllers\DashboardController::class, 'ownerEarnings'])->name('earnings');
         Route::get('/profile', [App\Http\Controllers\DashboardController::class, 'ownerProfile'])->name('profile');
-        Route::get('/documents', [App\Http\Controllers\DashboardController::class, 'ownerDocuments'])->name('documents');
-    });
+         Route::get('/documents', [App\Http\Controllers\DashboardController::class, 'ownerDocuments'])->name('documents');
+         Route::get('/chat', [App\Http\Controllers\ChatController::class, 'webIndex'])->name('chat.index');
+         Route::get('/chat/{conversation}', [App\Http\Controllers\ChatController::class, 'webShow'])->name('chat.show');
+     });
 
     // User (Solo) Specific Routes
     Route::prefix('dashboard/user')->middleware('auth:web')->name('user.')->group(function() {
@@ -263,17 +277,21 @@ Route::post('password/email', [App\Http\Controllers\Auth\ForgotPasswordControlle
 Route::get('password/reset/{token}', [App\Http\Controllers\Auth\ResetPasswordController::class, 'showResetForm'])->name('password.reset');
 Route::post('password/reset', [App\Http\Controllers\Auth\ResetPasswordController::class, 'reset'])->name('password.update');
 
-// Password Reset Frontend Bridge
+// Password Reset Frontend Bridge - renders the actual reset form
 Route::get('/reset-password', function (Illuminate\Http\Request $request) {
     $token = $request->input('token');
     $email = $request->input('email');
-    $frontendUrl = env('FRONTEND_URL');
 
-    if (!$frontendUrl) {
-        return "FRONTEND_URL is not configured in .env file. Please set it to your frontend application's base URL.";
+    if (!$token || !$email) {
+        return redirect()->route('password.request')
+            ->withErrors(['email' => 'Invalid password reset link. Please request a new one.']);
     }
 
-    return redirect()->to($frontendUrl . '/reset-password?token=' . $token . '&email=' . $email);
+    return view('goride.auth.passwords.reset', [
+        'token' => $token,
+        'email' => $email,
+        'guard' => $request->input('guard', 'web'),
+    ]);
 })->name('password.reset.web');
 
 
@@ -393,6 +411,18 @@ Route::middleware(['auth:admin,web', 'userRole:admin'])->prefix('admin')->group(
    
     Route::get('websiteparam',[WebsiteParameterController::class,'websiteparam'])->name('websiteparam');
     Route::post('websiteparam/update/{id}',[WebsiteParameterController::class,'update'])->name('websiteparam.update');
+
+    // Promo code management (feeds the app's /api/promo/validate)
+    Route::get('promo-codes', [\App\Http\Controllers\Admin\PromoCodeController::class, 'index'])->name('admin.promo-codes.index');
+    Route::post('promo-codes', [\App\Http\Controllers\Admin\PromoCodeController::class, 'store'])->name('admin.promo-codes.store');
+    Route::post('promo-codes/{id}/update', [\App\Http\Controllers\Admin\PromoCodeController::class, 'update'])->name('admin.promo-codes.update');
+    Route::delete('promo-codes/{id}', [\App\Http\Controllers\Admin\PromoCodeController::class, 'destroy'])->name('admin.promo-codes.destroy');
+
+    // Ride home-screen banner management (feeds the app's /api/banners)
+    Route::get('banners', [\App\Http\Controllers\Admin\BannerController::class, 'index'])->name('admin.banners.index');
+    Route::post('banners', [\App\Http\Controllers\Admin\BannerController::class, 'store'])->name('admin.banners.store');
+    Route::post('banners/{id}/update', [\App\Http\Controllers\Admin\BannerController::class, 'update'])->name('admin.banners.update');
+    Route::delete('banners/{id}', [\App\Http\Controllers\Admin\BannerController::class, 'destroy'])->name('admin.banners.destroy');
 
     Route::resource('page_contents', PageContentController::class)->names([
         'index' => 'admin.page_contents.index',
@@ -683,11 +713,41 @@ Route::middleware(['auth:admin,web', 'userRole:admin'])->prefix('admin')->group(
     // Vehicle Admin Routes
     Route::resource('vehicles', \App\Http\Controllers\Admin\VehicleController::class)->names('admin.vehicles');
 
+    // Notification broadcast (admin)
+    Route::get('notifications', [\App\Http\Controllers\Admin\NotificationController::class, 'index'])->name('admin.notifications.index');
+    Route::post('notifications/send', [\App\Http\Controllers\Admin\NotificationController::class, 'send'])->name('admin.notifications.send');
+    Route::delete('notifications/{notification}', [\App\Http\Controllers\Admin\NotificationController::class, 'destroy'])->name('admin.notifications.destroy');
+
     // Driver Admin Routes
+    Route::post('drivers/{driver}/toggle-status', [\App\Http\Controllers\Admin\DriverController::class, 'toggleStatus'])->name('admin.drivers.toggle-status');
+    Route::get('drivers/{driver}/verification', [\App\Http\Controllers\Admin\DriverController::class, 'verification'])->name('admin.drivers.verification');
     Route::resource('drivers', \App\Http\Controllers\Admin\DriverController::class)->names('admin.drivers');
 
     // Vehicle Assignment Admin Routes
     Route::resource('vehicle-assignments', \App\Http\Controllers\Admin\VehicleAssignmentController::class)->names('admin.vehicle_assignments');
+
+    // Approvals Management
+    Route::get('/approvals', [\App\Http\Controllers\Api\AdminApprovalController::class, 'index'])->name('admin.approvals.index');
+    Route::post('/users/{id}/approve', [\App\Http\Controllers\Api\AdminApprovalController::class, 'approve'])->name('admin.approvals.approve');
+    Route::post('/users/{id}/reject', [\App\Http\Controllers\Api\AdminApprovalController::class, 'reject'])->name('admin.approvals.reject');
+
+    // Ride Matching History (Admin View)
+    Route::get('/ride-matching', [\App\Http\Controllers\Admin\RideMatchingController::class, 'index'])->name('admin.ride-matching.index');
+    Route::get('/ride-matching/{id}', [\App\Http\Controllers\Admin\RideMatchingController::class, 'show'])->name('admin.ride-matching.show');
+
+    // Ride-share operations: live rides, tickets, reports, surge
+    Route::get('/live-rides', [\App\Http\Controllers\Admin\RideOpsController::class, 'liveRides'])->name('admin.ride-ops.live-rides');
+    Route::get('/support-tickets', [\App\Http\Controllers\Admin\RideOpsController::class, 'tickets'])->name('admin.ride-ops.tickets');
+    Route::get('/support-tickets/{id}', [\App\Http\Controllers\Admin\RideOpsController::class, 'ticketShow'])->name('admin.ride-ops.tickets.show');
+    Route::post('/support-tickets/{id}/reply', [\App\Http\Controllers\Admin\RideOpsController::class, 'ticketReply'])->name('admin.ride-ops.tickets.reply');
+    Route::post('/support-tickets/{id}/status', [\App\Http\Controllers\Admin\RideOpsController::class, 'ticketStatus'])->name('admin.ride-ops.tickets.status');
+    Route::get('/ride-reports', [\App\Http\Controllers\Admin\RideOpsController::class, 'reports'])->name('admin.ride-ops.reports');
+    Route::get('/payouts', [\App\Http\Controllers\Admin\RideOpsController::class, 'payouts'])->name('admin.ride-ops.payouts');
+    Route::post('/payouts/process', [\App\Http\Controllers\Admin\RideOpsController::class, 'payoutProcess'])->name('admin.ride-ops.payouts.process');
+    Route::get('/payouts/export', [\App\Http\Controllers\Admin\RideOpsController::class, 'payoutsExport'])->name('admin.ride-ops.payouts.export');
+    Route::get('/surge', [\App\Http\Controllers\Admin\RideOpsController::class, 'surgeIndex'])->name('admin.ride-ops.surge');
+    Route::post('/surge', [\App\Http\Controllers\Admin\RideOpsController::class, 'surgeStore'])->name('admin.ride-ops.surge.store');
+    Route::post('/surge/{id}/toggle', [\App\Http\Controllers\Admin\RideOpsController::class, 'surgeToggle'])->name('admin.ride-ops.surge.toggle');
 
     // Admin and Corporate management
     Route::resource('admins', AdminController::class)->names('admin.admins');
@@ -698,3 +758,32 @@ Route::middleware(['auth:admin,web', 'userRole:admin'])->prefix('admin')->group(
 Route::middleware(['auth', 'retailer'])->prefix('retailer')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\Retailer\RetailerController::class, 'index'])->name('retailer.dashboard');
 });
+
+// ── Public trip tracking page — no auth required (Task 50) ──
+Route::get('/track/{token}', function (string $token) {
+    $record = \App\Models\TripTrackingToken::where('token', $token)
+        ->where('expires_at', '>', now())->first();
+
+    if (!$record) {
+        return view('track.show', ['expired' => true, 'ride' => null, 'token' => $token]);
+    }
+
+    $ride = \App\Models\RideRequest::with(['user:id,name', 'driver:id,name,average_rating'])
+        ->find($record->ride_request_id);
+
+    $rideData = $ride ? [
+        'status'              => $ride->status,
+        'pickup_address'      => $ride->pickup_address,
+        'destination_address' => $ride->destination_address,
+        'rider_name'          => $ride->user?->name,
+        'driver_name'         => $ride->driver?->name,
+        'driver_rating'       => $ride->driver?->average_rating,
+        'fare'                => $ride->fare,
+        'firebase_trip_id'    => $ride->firebase_trip_id,
+    ] : null;
+
+    return view('track.show', ['expired' => false, 'ride' => $rideData, 'token' => $token]);
+})->name('trip.track');
+
+// ── SSLCommerz IPN for ride payments — server-to-server, CSRF-exempt ──
+Route::post('/payment/sslcommerz/ipn', [\App\Http\Controllers\Api\RidePaymentController::class, 'sslcommerzIpn']);

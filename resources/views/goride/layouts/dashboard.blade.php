@@ -22,6 +22,14 @@
             <div class="nav-right">
                 @php $user = currentUser(); @endphp
                 @if($user)
+                    @php $unread = unreadNotificationCount(); @endphp
+                    <a href="{{ route('user.notifications') }}" title="Notifications"
+                       style="position:relative; margin-right:18px; color:var(--text-color); font-size:20px; text-decoration:none;">
+                        <i class="fas fa-bell"></i>
+                        @if($unread > 0)
+                            <span style="position:absolute; top:-8px; right:-10px; background:#ED1C24; color:#fff; font-size:10px; font-weight:700; min-width:17px; height:17px; line-height:17px; text-align:center; border-radius:9px; padding:0 4px;">{{ $unread > 99 ? '99+' : $unread }}</span>
+                        @endif
+                    </a>
                     <span style="font-weight: 600; color: var(--text-color);">
                         @if($user->role === 'corporate')
                             <i class="fas fa-building" style="margin-right: 8px; color: var(--primary-color);"></i>

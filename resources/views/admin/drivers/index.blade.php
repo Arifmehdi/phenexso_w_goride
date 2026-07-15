@@ -55,6 +55,61 @@
                     }
                 });
             });
+
+            // Approve / disapprove switch (delegated so it works after AJAX search)
+            $(document).on('change', '.driver-approve-switch', function() {
+                var $sw     = $(this);
+                var approve = $sw.is(':checked');
+                var url     = $sw.data('url');
+                var name    = $sw.data('name');
+                var $label  = $sw.siblings('label').find('.switch-label-text');
+
+                Swal.fire({
+                    title: approve ? 'Approve this rider?' : 'Set rider inactive?',
+                    text: approve
+                        ? name + ' will be able to receive ride requests and go online.'
+                        : name + ' will be blocked from going online until approved again.',
+                    icon: approve ? 'question' : 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: approve ? '#10713C' : '#ED1C24',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: approve ? 'Yes, approve' : 'Yes, set inactive'
+                }).then(function(result) {
+                    if (!result.isConfirmed) {
+                        // Revert the toggle if cancelled
+                        $sw.prop('checked', !approve);
+                        return;
+                    }
+
+                    $.ajax({
+                        url: url,
+                        method: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            approve: approve ? 1 : 0
+                        },
+                        success: function(res) {
+                            if (res.success) {
+                                $label.text(approve ? 'Approved' : 'Inactive');
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: approve ? 'Approved' : 'Set Inactive',
+                                    text: res.message,
+                                    timer: 2200,
+                                    showConfirmButton: false
+                                });
+                            } else {
+                                $sw.prop('checked', !approve);
+                                Swal.fire('Error', res.message || 'Could not update status.', 'error');
+                            }
+                        },
+                        error: function() {
+                            $sw.prop('checked', !approve);
+                            Swal.fire('Error', 'Something went wrong. Please try again.', 'error');
+                        }
+                    });
+                });
+            });
         });
     </script>
 @endpush

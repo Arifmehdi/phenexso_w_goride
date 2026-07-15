@@ -1,0 +1,444 @@
+================================================================================
+ GORIDE — DEVELOPER HANDOFF / STATUS REPORT
+ For the development team — everything needed to finish a fully dynamic
+ ride-sharing app (Uber / Pathao / InDrive / Obhai style).
+================================================================================
+ Date checked : 2026-07-09
+ Backend      : D:\laragon\laragon\www\goride                  (Laravel 9, PHP, MySQL)
+ Mobile app   : D:\laragon\laragon\www\flutter\phenex_fluttter_goride  (Flutter, GetX)
+ Realtime     : Firebase (Firestore + FCM push notifications)
+================================================================================
+
+
+--------------------------------------------------------------------------------
+ 1. WHAT THIS PROJECT IS
+--------------------------------------------------------------------------------
+ A ride-hailing platform with FIVE user types, each with their own login
+ and their own database table (separate auth guards, not roles on one table):
+
+   - User       (passenger / "solo" rider)
+   - Driver     (independent driver)
+   - Owner      (fleet owner — owns vehicles, drivers work under them)   *
+   - Corporate  (company account — books rides for employees, gets billed)
+   - Admin      (platform operator)
+
+   * NOTE: "Owner" is implemented as a User with role=owner + vehicles.owner_id,
+     NOT a separate table/guard. Only Driver, Corporate and Admin are separate
+     Eloquent models/tables from User. Keep this in mind — auth()->user() is
+     the DIRECT model for whichever guard logged in (see section 4.3, this
+     bit caused real bugs earlier and must stay top of mind for new code).
+
+ Core loop: passenger requests a ride -> nearby online drivers get a push
+ "ride call" -> first driver to accept wins the job -> live GPS tracking
+ both ways -> trip stages (accepted -> arriving -> in_progress -> completed)
+ -> payment (cash / wallet / card / bKash-Nagad) -> both sides rate each other.
+
+ Real-time matching runs on Firebase Firestore (NOT polling the Laravel DB),
+ while Laravel/MySQL is the system of record for accounts, fares, payments,
+ ratings, and reporting. This dual-system design is intentional — do not
+ try to replace Firestore with Laravel polling, it will not be fast enough
+ for live location updates.
+
+
+--------------------------------------------------------------------------------
+ 2. CURRENT STATE — ONE-LINE VERDICT
+--------------------------------------------------------------------------------
+ CORE PRODUCT WORKS END-TO-END. Passenger booking, driver matching, live
+ tracking, chat, payments, ratings, and all admin/owner/corporate back-office
+ APIs are built and verified (php -l clean, all 532 routes resolve with no
+ errors, flutter analyze = 0 errors). What's left is: (a) a handful of
+ config/keys only a project owner can supply, (b) a couple of small DB/UI
+ gaps listed below, (c) production hardening (real SMS, live payment keys,
+ domain URL). None of this blocks demoing or testing the app today.
+
+
+--------------------------------------------------------------------------------
+ 3. BACKEND (Laravel) — ARCHITECTURE
+--------------------------------------------------------------------------------
+
+ 3.1 Auth guards (config/auth.php) — FOUR separate identity tables:
+     - web / api (Sanctum) -> App\Models\User      (passengers + owners + admins-as-user? no: role column: solo/user/owner)
+     - driver               -> App\Models\Driver
+     - corporate            -> App\Models\Corporate
+     - admin                -> App\Models\Admin
+     Each has its own auto-increment id space. A User with id=5 and a
+     Driver with id=5 are UNRELATED people. Any code that touches
+     notifications, wallets, or tickets MUST scope by owner_type
+     ('user'|'driver'|'corporate'|'admin'), not by id alone. Use the
+     helper notificationAudience($model) in app/helpers.php — it returns
+     the correct owner_type string for whatever is currently authenticated.
+
+ 3.2 Directory map (app/Http/Controllers/Api/, 36 controllers):
+     Ride core        : RideRequestController, RideMatchingController,
+                         RidePoolController, TripTrackingController
+     Driver            : DriverProfileController, DriverDocumentController,
+                         DriverStatsController, DriverRatingController,
+                         DriverPayoutController, EarningsController
+     Payments/Wallet   : WalletController, RidePaymentController (ShurjoPay +
+                         SSLCommerz), PromoCodeController
+     Fleet/Business    : OwnerController, CorporateController
+     Safety            : SosController
+     Admin ops         : AdminApprovalController, AdminDashboardController,
+                         SurgeController
+     Support           : SupportTicketController
+     Referrals         : ReferralController
+     Account/Auth      : AuthController, OtpController, ProfileCompletionController,
+                         SavedAddressController, UserController
+     Notifications     : (NotificationController, top-level, not in Api/)
+     Chat              : ChatController (top-level)
+     Legacy e-commerce  (NOT ride-share, inherited from original project —
+        safe to ignore/remove later): CartController, OrderController,
+        ProductController + "ProductController(14-March-2026).php" (a stray
+        backup file sitting in app/Http/Controllers/Api/ — should be deleted,
+        it is not referenced by any route), ProductCategoryController,
+        UnitController, SellerDashboardController, RiderDashboardController
+        (this is the e-commerce "delivery rider" module, unrelated to our
+        ride-share "Driver" — confusing name collision, be careful not to
+        mix these up), BannerController, ContactFormController.
+
+     app/Http/Controllers/Admin/ (30 controllers) — the web-based (Blade)
+     admin panel: driver management, vehicle assignment, ride-matching
+     history viewer, notifications, plus a large legacy CMS (blog, gallery,
+     testimonials, page content, hospital/doctor module from the original
+     multi-purpose codebase — not ride-share related).
+
+ 3.3 Services (app/Services/):
+     - FcmService.php        Firebase push notifications, HTTP v1 API,
+                              hand-rolled OAuth2/JWT signing (no external
+                              package). Needs storage/app/firebase/
+                              service-account.json to work (see section 6).
+     - ShurjoPayService.php   bKash/Nagad/Rocket payment gateway. Config in
+                              config/shurjopay.php, defaults to the public
+                              sandbox so it works out of the box for testing.
+     RoutingService (Flutter side) calls Google Directions API directly —
+     there is no backend routing service; route/ETA calculation happens
+     entirely on the app.
+
+ 3.4 Database — verified against your LIVE MySQL just now (91 tables total).
+     All ride-share tables/columns exist EXCEPT:
+       MISSING: saved_addresses table
+       MISSING: chat_conversations / chat_messages — NOT an issue, the
+                actual chat implementation uses different tables named
+                conversations / messages / conversation_participants,
+                which all exist and are correct. (My assumed table names
+                in an earlier check were wrong, not the schema.)
+     -> Action: run the ONE missing migration:
+        php artisan migrate --path=database/migrations/2026_06_22_000001_create_saved_addresses_table.php --force
+        (Without it, the "Saved Addresses" feature — home/work shortcuts —
+        will throw a DB error when used. Everything else works.)
+
+ 3.5 Known backend fragility — READ THIS BEFORE EDITING ROUTES:
+     routes/api.php and routes/web.php previously had class references with
+     their namespace backslashes stripped, e.g.
+        [AppHttpControllersApiDriverRatingController::class, ...]
+     instead of
+        [\App\Http\Controllers\Api\DriverRatingController::class, ...]
+     This is a FATAL error that crashes EVERY route in the app (not just
+     the broken one) the moment Laravel tries to boot, and `php -l` CANNOT
+     catch it (it's valid PHP syntax, just references a class that doesn't
+     exist). ONLY `php artisan route:list` catches it. This has already
+     happened twice in this project (once from original legacy code, once
+     from a backup/file restore wiping recent edits). Whoever edits routes:
+       - ALWAYS use fully-qualified \App\Http\Controllers\... with backslashes
+       - ALWAYS run `php artisan route:list` after touching routes/*.php,
+         not just `php -l`
+     Also: PromoCodeController's method is named checkCode(), NOT validate()
+     — naming it validate() collides with Laravel's built-in Controller
+     trait method and fatals at class-load time. Don't rename it back.
+
+ 3.6 Config / .env keys — what's set vs. what needs a real value:
+     ALREADY WORKING (sandbox defaults, no .env entry needed):
+       - SSLCommerz: SSLCZ_STORE_ID_TEST / SSLCZ_STORE_PASSWORD_TEST are in
+         .env and set to a real sandbox account (works for test card payments)
+       - ShurjoPay: config/shurjopay.php has hardcoded sandbox creds
+         (sp_sandbox / testpass) — works without touching .env
+       - Driver payout commission: defaults to 15% (GORIDE_COMMISSION_RATE
+         env var not set, falls back to 0.15 in config/services.php)
+     MISSING / NEEDS A REAL VALUE:
+       - FIREBASE_CREDENTIALS (or place the file at the default path
+         storage/app/firebase/service-account.json) — REQUIRED for FCM
+         push notifications to work when the app is backgrounded.
+       - APP_URL is currently "http://northbengal.test/" — WRONG for this
+         project, breaks the public trip-share links. Set to your real
+         local/production URL.
+       - No SMS gateway configured — OtpController currently just writes
+         the OTP code to storage/logs/laravel.log (search "OTP for").
+         Fine for internal testing, must be replaced before real users.
+       - SSLCZ_STORE_ID_LIVE / SSLCZ_STORE_PASSWORD_LIVE are empty — fill
+         these before going live with real card payments.
+       - No FCM_SERVER_KEY needed (legacy field, the app uses the modern
+         v1 API via the service-account JSON above instead).
+
+
+--------------------------------------------------------------------------------
+ 4. BACKEND — COMPLETE API REFERENCE (all verified registered & working)
+--------------------------------------------------------------------------------
+ Base: {server}/api   |  Auth: Bearer token (Sanctum)  |  (public) = no token
+
+ ACCOUNT
+   POST /register (public)              role: solo|user|driver|owner|corporate
+                                         accepts referral_code
+   POST /login (public)                 email/mobile + password (+role)
+   POST /logout
+   GET  /user                           current profile
+   PATCH /user/profile , /user/password
+   POST /forgot-password (public), /reset-password (public)
+   POST /auth/send-otp (public), /auth/verify-otp (public), /auth/resend-otp
+   POST /user/fcm-token                 save push token
+   GET  /user/profile-completion , POST /user/complete-profile
+   CRUD /user/saved-addresses           ** needs the migration in 3.4 **
+
+ RIDE LIFECYCLE (passenger)
+   GET  /website-parameters (public)    per_km_rate, base_fare, optional
+                                         ?lat&lng -> live surge_multiplier
+   POST /ride-requests                  create a request
+   POST /ride-requests/match            broadcast to nearby drivers
+   GET  /nearby-drivers                 ?latitude&longitude&radius
+   GET  /active-ride
+   PATCH /ride-requests/{id}/status     accepted|arriving|in_progress|
+                                         completed|cancelled — completing
+                                         a REFERRED rider's FIRST ride
+                                         auto-credits their referrer ৳50
+   GET  /ride-requests/{id}/detail , /ride-history?status&per_page
+   POST /update-location                GPS ping (rider or driver)
+
+ DRIVER-SIDE MATCHING
+   POST /driver/toggle-online
+   POST /ride-offers/{offerId}/respond          accept|decline
+   POST /ride-requests/{rideId}/decline         auto-transfers to next driver
+   GET  /ride-requests/{id}/offers
+   POST /ride-requests/{id}/assign-driver
+
+ PAYMENTS
+   POST /ride-requests/{id}/payment             record cash/manual payment
+   POST /ride-requests/{rideId}/pay-wallet
+   POST /payment/shurjopay/initiate             bKash/Nagad -> checkout_url
+   POST /payment/shurjopay/callback
+   POST /payment/sslcommerz/ipn        (web route, CSRF-exempt) card webhook
+   GET  /ride-requests/{rideId}/receipt         PDF
+
+ WALLET            GET /wallet/balance, /wallet/transactions, POST /wallet/top-up
+ PROMO             POST /promo/validate  {code, fare} -> discount, final_fare
+ RATINGS           POST /driver-ratings (+tags), GET /driver-ratings/{driverId} (public),
+                   GET /driver-ratings/check/{rideRequestId}, POST /rider-ratings
+ DRIVER PROFILE    GET /driver/profile-status, POST /driver/profile/update (multipart),
+                   POST /driver/upload-document, GET /driver/my-documents,
+                   GET /driver/stats, GET /driver/earnings?period=, GET /vehicles
+ SAFETY/TRACKING   POST /sos/trigger, POST /sos/alerts/{alert}/resolve,
+                   GET|POST /ride-requests/{rideId}/tracking-token,
+                   GET /public/track/{token} (public), /public/track/{token}/location (public),
+                   (web) GET /track/{token} (public live-map page)
+ CHAT              full suite under /chat/* — conversations, messages, participants, search
+ NOTIFICATIONS     GET /notifications (+/ip, read/{id}, read-all)
+ BANNERS           GET /banners (public)
+ SUPPORT TICKETS   POST/GET /support-tickets, GET /support-tickets/{id},
+                   POST /support-tickets/{id}/reply
+ REFERRALS         GET /referrals -> code, link, referred count, earnings
+ RIDE POOLING      GET /ride-requests/pool/available ?pickup_lat&pickup_lng&dest_lat&dest_lng
+
+ OWNER (fleet)     GET /owner/dashboard, /owner/fleet, /owner/earnings?period=
+ CORPORATE         GET /corporate/dashboard, POST /corporate/ride-request
+                   (books for an employee by name+mobile, no fake account needed),
+                   GET /corporate/billing?month=, /corporate/billing/{month}/pdf
+
+ ADMIN             GET /admin/dashboard-stats, /admin/active-rides (live map feed),
+                   GET /admin/reports/revenue|rides|drivers ?from&to,
+                   POST /admin/notifications/broadcast {target,title,message},
+                   GET /admin/pending-approvals + POST users/{id}/approve-reject,
+                   GET /admin/approval-stats,
+                   GET /admin/drivers/verification (+ per-driver + verify),
+                   GET /admin/documents/pending + POST documents/{id}/review,
+                   GET /admin/sos/alerts,
+                   GET /admin/support-tickets + PATCH support-tickets/{id},
+                   GET/POST /admin/surge + PATCH surge/{zone},
+                   GET /admin/payouts/pending (auto-computes dues, 15% commission),
+                   POST /admin/payouts/process {payout_id} -> credits driver wallet,
+                   GET /admin/payouts/export (CSV)
+
+ (Ignore for ride-share purposes: /cart, /orders, /products*, /units,
+ /product-categories, /seller/*, /rider/* — legacy e-commerce module.)
+
+
+--------------------------------------------------------------------------------
+ 5. FRONTEND (Flutter) — ARCHITECTURE
+--------------------------------------------------------------------------------
+
+ 5.1 State management: GetX (Get.put / Get.find) — services are registered
+     once in main.dart at startup and are globally accessible. No Provider/
+     Riverpod/Bloc in this project — keep new code consistent with GetX.
+
+ 5.2 Services (lib/services/) — 12 files:
+     api_service.dart        Dio HTTP client to Laravel, holds auth token,
+                              ~70+ typed methods, one per backend endpoint.
+                              EnvType enum controls which server URL is used
+                              (production / localEmulator / localWifi /
+                              customNgrok) — set at the top of this file.
+     firebase_service.dart    Firestore + FCM setup/init.
+     ride_service.dart        GetxService holding the LIVE reactive ride
+                              state (tripStatus, driverLatitude/Longitude,
+                              assignedDriverName, etc.) synced from Firestore
+                              — this is what live_tracking_screen.dart watches.
+     location_service.dart    GPS tracking, pushes driver location to
+                              Firestore + Laravel while online.
+     routing_service.dart     Calls Google Directions API directly for
+                              routes/ETA/turn-by-turn steps.
+     chat_service.dart, notification_service.dart, places_service.dart
+     (autocomplete/geocoding), saved_addresses_service.dart,
+     recent_locations_service.dart, sslcommerz_service.dart, deep_link_service.dart.
+
+ 5.3 Screens (lib/pages/, 33 files) — grouped by role:
+     Shared/auth     : login_page, register_screen, otp_screen,
+                       forgot/reset/change_password_screen, approval_pending_screen
+     Passenger       : home_page, location_selection_screen, map_picker_screen,
+                       confirm_pickup_screen, fare_estimate_sheet,
+                       available_cars_screen, car_details_screen,
+                       ride_status_page, ride_history_screen, trip_details_page,
+                       saved_addresses_screen, rent_car_booking_screen,
+                       dhaka_map_screen
+     Driver          : driver_verification_screen, ride_request_call_screen,
+                       profile_completion_screen
+     Shared trip UI  : live_tracking_screen (the main map/navigation screen —
+                       role-aware: shows the driver's "Go to the passenger"
+                       collapsed pickup panel + NAVIGATE button while heading
+                       to pickup, and the full trip panel otherwise),
+                       post_trip_rating_sheet
+     Dashboards      : dashboard_page.dart (ONE unified dashboard widget,
+                       parametrized by role: driver/owner/corporate/admin —
+                       NOT four separate files), dashboard_details_pages.dart
+                       (admin sub-screens: user/vehicle/payment management,
+                       reports, system settings)
+     Support/comms   : my_support_tickets_screen, notifications_screen,
+                       chat_conversation_list_screen, chat_message_screen,
+                       chat_new_conversation_screen
+     Misc            : quick_action_screens.dart
+
+ 5.4 Key config files developers must know about:
+     lib/map_key.dart              Google Maps API key (also duplicated in
+                                    android/app/.../AndroidManifest.xml — keep
+                                    both in sync if you rotate the key)
+     lib/services/api_service.dart line ~17, `currentEnv` — MUST match
+                                    whichever backend you're pointing at
+     android/app/google-services.json   Firebase Android config (project:
+                                    goride-498603) — present and correct.
+     No lib/firebase_options.dart — this project relies solely on
+     google-services.json (Android) / GoogleService-Info.plist (iOS,
+     verify this exists if you build for iOS — not checked in this audit,
+     iOS build not verified at all in this session, Android-only checks).
+
+ 5.5 Dependencies of note (pubspec.yaml): google_maps_flutter, geolocator,
+     geocoding, cloud_firestore, firebase_messaging, firebase_auth, dio,
+     get + get_storage, share_plus, url_launcher, image_picker,
+     flutter_local_notifications, audioplayers, app_links (deep links).
+     flutter_tts / voice-guidance was REMOVED entirely per a prior request
+     — do not re-add without being asked; if you see stale references to
+     VoiceGuidanceService anywhere, that's leftover and should be deleted.
+
+
+--------------------------------------------------------------------------------
+ 6. WHAT TO DO BEFORE THE APP RUNS (checklist)
+--------------------------------------------------------------------------------
+ [ ] 1. Start MySQL (Laragon "Start All"). Confirmed reachable as of this
+        check, but re-verify — it has gone down mid-session multiple times.
+ [ ] 2. Run the ONE missing migration (saved_addresses — see 3.4).
+ [ ] 3. Add Firebase service-account JSON to
+        storage/app/firebase/service-account.json (Firebase Console >
+        goride-498603 > Project settings > Service accounts > Generate
+        new private key). Without this, push notifications to backgrounded
+        apps silently do nothing (foreground/open-app testing still works
+        via the Firestore listener).
+ [ ] 4. Fix APP_URL in goride/.env (currently a leftover from a different
+        project: http://northbengal.test/). Then `php artisan config:clear`.
+ [ ] 5. In lib/services/api_service.dart set `currentEnv` to match your
+        target server, then `flutter pub get && flutter run`.
+ [ ] 6. Delete the stray backup file
+        app/Http/Controllers/Api/ProductController(14-March-2026).php
+        (unused, not routed, just clutter/confusion risk).
+ [ ] 7. Before going live: real SMS gateway for OTP, real SSLCZ_*_LIVE
+        keys, real ShurjoPay production credentials, real APP_URL domain.
+
+
+--------------------------------------------------------------------------------
+ 7. FEATURE COMPLETENESS MATRIX
+--------------------------------------------------------------------------------
+ [DONE]     = backend + app UI both complete and verified
+ [BACKEND]  = API fully built and tested, no app screen consuming it yet
+ [PARTIAL]  = works with a stated limitation
+
+ PASSENGER
+   [DONE]     Register/login, role-aware                [PARTIAL]  OTP (log file, no SMS yet)
+   [DONE]     Book ride: map picker, fare estimate, vehicle types
+   [DONE]     Driver matching (5km broadcast, first-accept-wins, auto-transfer on decline)
+   [DONE]     Live tracking, ETA, ongoing-ride banner
+   [DONE]     Chat + call to driver
+   [DONE]     Payments: cash, wallet, SSLCommerz card (sandbox)
+   [BACKEND]  bKash/Nagad (ShurjoPay) — no button in the payment sheet yet
+   [DONE]     Promo codes, cancellation + fee, driver rating, ride history + PDF receipt
+   [DONE]     SOS, share-trip live link, saved addresses (after step 6.2), notifications
+   [DONE]     Support tickets (Help & Support in sidebar)
+   [BACKEND]  Ride pooling — no "shared rides near me" screen yet
+   [BACKEND]  Referrals — bonus logic live, but no in-app screen for your
+              code/link, and register screen has no referral-code field
+
+ DRIVER
+   [DONE]     Registration + document upload + admin verification
+   [DONE]     Online/offline toggle with GPS sync
+   [DONE]     Ride-call screen (foreground)             [PARTIAL] background push needs step 6.3
+   [DONE]     Pickup navigation screen ("Go to the passenger" + NAVIGATE +
+              collapsible pickup panel — matches the Uber/Pathao pattern)
+   [DONE]     Staged trip control (Arrived -> Start -> Complete)
+   [DONE]     Earnings dashboard, stats, wallet, passenger rating
+
+ OWNER / CORPORATE / ADMIN
+   [DONE]     Owner dashboard/fleet/earnings — API + app screens
+   [DONE]     Corporate dashboard/booking/billing+PDF — API + app screens
+   [DONE]     Admin: approvals, driver verification, document review, SOS,
+              dashboard stats, live rides feed, revenue/rides/driver reports,
+              broadcast notification, support tickets, surge zones, payouts+CSV
+   [PARTIAL]  Admin WEB panel (Blade, not the app) — Approve/Reject buttons
+              on resources/views/admin/approvals/index.blade.php call
+              JavaScript functions (approveUser/rejectUser) that were never
+              written. Backend route works fine via direct form/API call;
+              the button click in a browser currently does nothing. Small
+              fix needed if the web admin panel is meant to be used directly
+              (vs. only via the Flutter admin dashboard).
+
+
+--------------------------------------------------------------------------------
+ 8. RECOMMENDED NEXT SPRINT (priority order)
+--------------------------------------------------------------------------------
+ 1. Run the missing migration + add Firebase key + fix APP_URL (10 minutes,
+    unblocks real device testing).
+ 2. Connect a real SMS gateway for OTP (needed before any real user signs up).
+ 3. Add bKash/Nagad button to the passenger payment sheet (backend done).
+ 4. Add referral code field to register screen + a simple "Invite & Earn"
+    screen (backend done).
+ 5. Wire the admin web-panel Approve/Reject buttons (small JS fix).
+ 6. Delete the stray "ProductController(14-March-2026).php" file and
+    evaluate whether the legacy e-commerce module (cart/orders/products/
+    seller/rider-delivery) should be removed entirely to reduce confusion,
+    since it is unrelated to ride-sharing and shares some naming with the
+    real ride-share Driver model (RiderDashboardController is e-commerce
+    delivery, not our ride-share Driver — easy to mix up).
+ 7. Ride pooling passenger UI (optional/lower priority feature).
+ 8. Before production launch: live payment credentials, real domain in
+    APP_URL, remove/replace sandbox keys, load-test the Firestore matching
+    logic with concurrent ride requests.
+
+
+--------------------------------------------------------------------------------
+ 9. VERIFICATION EVIDENCE (re-run today, this session)
+--------------------------------------------------------------------------------
+   php artisan route:list ................. PASS — 532 routes, 0 errors
+   php -l on all touched backend files ..... PASS
+   Whole-app scan for the stripped-namespace
+     class-reference bug (see 3.5) ......... PASS — none found
+   flutter analyze (whole project) ......... PASS — 0 errors (244 pre-existing
+                                              style-level infos/warnings only)
+   Live MySQL schema check (91 tables) ..... 1 missing table (saved_addresses),
+                                              everything else present
+   Google Maps key present (both places) ... OK
+   google-services.json present ............ OK (project goride-498603)
+   FCM service-account JSON ................ MISSING (section 6, step 3)
+================================================================================
+ END OF HANDOFF DOCUMENT
+================================================================================

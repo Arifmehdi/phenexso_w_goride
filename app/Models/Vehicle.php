@@ -14,6 +14,7 @@ class Vehicle extends Model
         'plate_number',
         'capacity',
         'status',
+        'owner_id',
     ];
 
     public function orders()
@@ -24,6 +25,11 @@ class Vehicle extends Model
     public function drivers()
     {
         return $this->hasMany(User::class, 'vehicle_id');
+    }
+
+    public function owner()
+    {
+        return $this->belongsTo(User::class, 'owner_id');
     }
 
 }

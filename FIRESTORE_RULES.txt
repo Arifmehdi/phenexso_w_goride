@@ -1,0 +1,78 @@
+================================================================================
+  GORIDE — CORRECT FIREBASE RULES
+================================================================================
+
+IMPORTANT: Your app uses CLOUD FIRESTORE, not Realtime Database.
+Do NOT edit the Realtime Database rules (the ...firebasedatabase.app one that
+shows "null"). The app never uses it.
+
+────────────────────────────────────────────────────────────────────────────
+  WHERE TO PUT THESE RULES
+────────────────────────────────────────────────────────────────────────────
+  1. Open Firebase Console → your project (goride-498603)
+  2. Left menu → Build → "Firestore Database"   (NOT "Realtime Database")
+  3. Click the "Rules" tab at the top
+  4. Replace everything with the rules below
+  5. Click "Publish"
+
+────────────────────────────────────────────────────────────────────────────
+  THE RULES  (copy everything between the lines)
+────────────────────────────────────────────────────────────────────────────
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Live ride requests — any signed-in app user (driver/rider) can read/write
+    match /ride_requests/{requestId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Active trips — rider + assigned driver exchange live trip state
+    match /active_trips/{tripId} {
+      allow read, write: if request.auth != null;
+
+      // Per-trip rider<->driver chat lives in a subcollection. Firestore rules
+      // do NOT cascade from the parent document, so the messages subcollection
+      // must be granted explicitly or chat reads/writes are DENIED.
+      match /messages/{messageId} {
+        allow read, write: if request.auth != null;
+      }
+    }
+
+    // Driver live locations — drivers write their own, riders read to track
+    match /driver_locations/{driverId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+
+────────────────────────────────────────────────────────────────────────────
+  WHY "request.auth != null" WORKS
+────────────────────────────────────────────────────────────────────────────
+  The app already signs in to Firebase Anonymously on startup
+  (FirebaseAuth.signInAnonymously in firebase_service.dart).
+  So every device has a valid auth token, and these rules pass —
+  while still blocking random outsiders who are not signed in.
+
+  REQUIREMENT: Anonymous sign-in must be ENABLED:
+    Firebase Console → Build → Authentication → Sign-in method
+      → Anonymous → Enable → Save
+
+────────────────────────────────────────────────────────────────────────────
+  QUICK DEV OPTION (testing only — lock down before launch)
+────────────────────────────────────────────────────────────────────────────
+  If you just want it working immediately without anonymous auth:
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
+
+  ^ This allows everyone. Fine for local testing, NOT safe for production.
+================================================================================

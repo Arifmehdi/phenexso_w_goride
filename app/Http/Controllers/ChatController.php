@@ -1,5 +1,5 @@
 <?php
-// app/Http/Controllers/ChatController.php
+
 namespace App\Http\Controllers;
 
 use App\Models\Conversation;
@@ -12,17 +12,14 @@ use Illuminate\Support\Facades\Validator;
 
 class ChatController extends Controller
 {
-    // Get user's conversations
     public function getConversations(Request $request)
     {
         $user = Auth::user();
-        
+
         $conversations = Conversation::whereHas('participants', function ($query) use ($user) {
             $query->where('user_id', $user->id);
         })
-        ->with(['latestMessage', 'participants.user' => function ($query) use ($user) {
-            $query->where('id', '!=', $user->id);
-        }])
+        ->with(['latestMessage', 'participants.user'])
         ->withCount(['messages as unread_count' => function ($query) use ($user) {
             $query->where('sender_id', '!=', $user->id)
                 ->whereDoesntHave('reads', function ($q) use ($user) {
@@ -32,13 +29,19 @@ class ChatController extends Controller
         ->orderBy('last_message_at', 'desc')
         ->paginate($request->get('per_page', 20));
 
+        // Append other_user so Flutter can identify the other party
+        $conversations->getCollection()->transform(function ($conv) use ($user) {
+            $otherParticipant = $conv->participants->firstWhere('user_id', '!=', $user->id);
+            $conv->other_user = $otherParticipant?->user;
+            return $conv;
+        });
+
         return response()->json([
             'success' => true,
             'conversations' => $conversations
         ]);
     }
 
-    // Create new conversation
     public function createConversation(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -54,7 +57,6 @@ class ChatController extends Controller
 
         $user = Auth::user();
 
-        // For private chat, check if conversation already exists
         if ($request->type === 'private') {
             $existingConversation = $this->findPrivateConversation($user->id, $request->participants[0]);
             if ($existingConversation) {
@@ -75,13 +77,11 @@ class ChatController extends Controller
                 'last_message_at' => now()
             ]);
 
-            // Add creator as participant
             $conversation->participants()->create([
                 'user_id' => $user->id,
                 'is_admin' => true
             ]);
 
-            // Add other participants
             foreach ($request->participants as $participantId) {
                 $conversation->participants()->create([
                     'user_id' => $participantId,
@@ -102,13 +102,78 @@ class ChatController extends Controller
         }
     }
 
-    // Get or create private conversation with a user
+    public function getConversation(Conversation $conversation)
+    {
+        $user = Auth::user();
+
+        if (!$conversation->participants()->where('user_id', $user->id)->exists()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $conversation->load(['participants.user', 'latestMessage']);
+        $otherParticipant = $conversation->participants->firstWhere('user_id', '!=', $user->id);
+        $conversation->other_user = $otherParticipant?->user;
+
+        return response()->json([
+            'success' => true,
+            'conversation' => $conversation
+        ]);
+    }
+
+    public function addParticipant(Request $request, Conversation $conversation)
+    {
+        $user = Auth::user();
+
+        if (!$conversation->participants()->where('user_id', $user->id)->where('is_admin', true)->exists()) {
+            return response()->json(['error' => 'Only admins can add participants'], 403);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users,id'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        if ($conversation->participants()->where('user_id', $request->user_id)->exists()) {
+            return response()->json(['error' => 'User is already a participant'], 422);
+        }
+
+        $conversation->participants()->create([
+            'user_id' => $request->user_id,
+            'is_admin' => false
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'conversation' => $conversation->load('participants.user')
+        ]);
+    }
+
+    public function removeParticipant(Conversation $conversation, User $user)
+    {
+        $currentUser = Auth::user();
+
+        if (!$conversation->participants()->where('user_id', $currentUser->id)->where('is_admin', true)->exists()) {
+            return response()->json(['error' => 'Only admins can remove participants'], 403);
+        }
+
+        if ($conversation->created_by === $user->id) {
+            return response()->json(['error' => 'Cannot remove the conversation creator'], 422);
+        }
+
+        $conversation->participants()->where('user_id', $user->id)->delete();
+
+        return response()->json(['success' => true]);
+    }
+
     public function getOrCreatePrivateConversation(User $otherUser)
     {
         $user = Auth::user();
-        
+
         $conversation = $this->findPrivateConversation($user->id, $otherUser->id);
-        
+
         if (!$conversation) {
             $conversation = Conversation::create([
                 'type' => 'private',
@@ -122,33 +187,20 @@ class ChatController extends Controller
             ]);
         }
 
+        $conversation->load(['participants.user', 'latestMessage']);
+        $otherParticipant = $conversation->participants->firstWhere('user_id', '!=', $user->id);
+        $conversation->other_user = $otherParticipant?->user;
+
         return response()->json([
             'success' => true,
-            'conversation' => $conversation->load(['participants.user', 'messages.sender'])
+            'conversation' => $conversation
         ]);
     }
 
-    private function findPrivateConversation($userId1, $userId2)
-    {
-        return Conversation::where('type', 'private')
-            ->whereHas('participants', function ($query) use ($userId1) {
-                $query->where('user_id', $userId1);
-            })
-            ->whereHas('participants', function ($query) use ($userId2) {
-                $query->where('user_id', $userId2);
-            })
-            ->with(['participants.user', 'messages' => function ($query) {
-                $query->orderBy('created_at', 'desc')->limit(50);
-            }])
-            ->first();
-    }
-
-    // Get messages in conversation
     public function getMessages(Conversation $conversation, Request $request)
     {
         $user = Auth::user();
-        
-        // Check if user is participant
+
         if (!$conversation->participants()->where('user_id', $user->id)->exists()) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
@@ -158,7 +210,6 @@ class ChatController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate($request->get('per_page', 50));
 
-        // Mark messages as read
         $this->markConversationMessagesAsRead($conversation, $user->id);
 
         return response()->json([
@@ -168,14 +219,13 @@ class ChatController extends Controller
         ]);
     }
 
-    // Send message
     public function sendMessage(Conversation $conversation, Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'message' => 'required_without:file|string',
+            'message' => 'required_without:file|nullable|string',
             'message_type' => 'required|in:text,image,file,location',
-            'file' => 'nullable|file|max:10240', // 10MB max
-            'thumbnail' => 'nullable|image|max:2048', // 2MB max
+            'file' => 'nullable|file|max:10240',
+            'thumbnail' => 'nullable|image|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -183,8 +233,7 @@ class ChatController extends Controller
         }
 
         $user = Auth::user();
-        
-        // Check if user is participant
+
         if (!$conversation->participants()->where('user_id', $user->id)->exists()) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
@@ -199,14 +248,12 @@ class ChatController extends Controller
                 'is_read' => false
             ];
 
-            // Handle file upload
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
                 $path = $file->store('chat/files', 'public');
                 $messageData['file_url'] = asset('storage/' . $path);
-                
-                // Generate thumbnail for images
-                if (in_array($file->getMimeType(), ['image/jpeg', 'image/png', 'image/gif'])) {
+
+                if (in_array($file->getMimeType(), ['image/jpeg', 'image/png', 'image/gif', 'image/webp'])) {
                     $thumbnail = $this->generateThumbnail($file);
                     if ($thumbnail) {
                         $messageData['thumbnail_url'] = $thumbnail;
@@ -216,10 +263,8 @@ class ChatController extends Controller
 
             $message = Message::create($messageData);
 
-            // Update conversation last message timestamp
             $conversation->update(['last_message_at' => now()]);
 
-            // Mark sender's message as read immediately
             $message->reads()->create([
                 'user_id' => $user->id,
                 'read_at' => now()
@@ -227,14 +272,12 @@ class ChatController extends Controller
 
             DB::commit();
 
-            // Broadcast event for real-time (if using WebSockets)
-            // try {
-            //      // Attempt to broadcast, but don't crash if it fails
-            //      broadcast(new \App\Events\NewMessage($message))->toOthers();
-            //  } catch (\Exception $broadcastError) {
-            //      // Log the error but continue, the user still gets their message saved
-            //      \Log::error("Broadcast failed: " . $broadcastError->getMessage());
-            // }
+            try {
+                broadcast(new \App\Events\NewMessage($message))->toOthers();
+            } catch (\Exception $broadcastError) {
+                \Log::error("Broadcast failed: " . $broadcastError->getMessage());
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => $message->load('sender')
@@ -242,35 +285,28 @@ class ChatController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['error' => 'Failed to send message'], 500);
+            return response()->json(['error' => 'Failed to send message: ' . $e->getMessage()], 500);
         }
     }
 
-    // Mark message as read
-    // public function markAsRead(Message $message)
-    // {
-    //     $user = Auth::user();
-        
-    //     // Check if user is participant in conversation
-    //     if (!$message->conversation->participants()->where('user_id', $user->id)->exists()) {
-    //         return response()->json(['error' => 'Unauthorized'], 403);
-    //     }
+    public function deleteMessage(Message $message)
+    {
+        $user = Auth::user();
 
-    //     $message->reads()->firstOrCreate([
-    //         'user_id' => $user->id
-    //     ], [
-    //         'read_at' => now()
-    //     ]);
+        if ($message->sender_id !== $user->id) {
+            return response()->json(['error' => 'You can only delete your own messages'], 403);
+        }
 
-    //     return response()->json(['success' => true]);
-    // }
+        $message->delete();
 
-    // Search users for chat
+        return response()->json(['success' => true]);
+    }
+
     public function searchUsers(Request $request)
     {
         $user = Auth::user();
         $search = $request->get('search', '');
-        
+
         $users = User::where('id', '!=', $user->id)
             ->when($search, function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
@@ -283,6 +319,132 @@ class ChatController extends Controller
             ->get();
 
         return response()->json(['success' => true, 'users' => $users]);
+    }
+
+    public function send(Request $request)
+    {
+        $request->validate([
+            'conversation_id' => 'required|integer|exists:conversations,id',
+            'message' => 'nullable|string',
+            'message_type' => 'required|in:text,image,file,location',
+        ]);
+
+        $user = Auth::user();
+
+        $conversation = Conversation::findOrFail($request->conversation_id);
+
+        if (!$conversation->participants()->where('user_id', $user->id)->exists()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $messageData = [
+            'conversation_id' => $request->conversation_id,
+            'sender_id' => $user->id,
+            'message' => $request->message,
+            'message_type' => $request->message_type,
+            'is_read' => false
+        ];
+
+        if ($request->filled('file_url')) {
+            $messageData['file_url'] = $request->file_url;
+        }
+        if ($request->filled('thumbnail_url')) {
+            $messageData['thumbnail_url'] = $request->thumbnail_url;
+        }
+
+        $message = Message::create($messageData);
+
+        $conversation->update(['last_message_at' => now()]);
+
+        $message->reads()->create([
+            'user_id' => $user->id,
+            'read_at' => now()
+        ]);
+
+        try {
+            broadcast(new \App\Events\NewMessage($message))->toOthers();
+        } catch (\Exception $broadcastError) {
+            \Log::error("Broadcast failed: " . $broadcastError->getMessage());
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $message->load('sender')
+        ], 201);
+    }
+
+    public function messages(Request $request)
+    {
+        $request->validate([
+            'conversation_id' => 'required|integer|exists:conversations,id',
+            'after_id' => 'nullable|integer',
+        ]);
+
+        $user = Auth::user();
+
+        $conversation = Conversation::findOrFail($request->conversation_id);
+
+        if (!$conversation->participants()->where('user_id', $user->id)->exists()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $query = Message::where('conversation_id', $request->conversation_id)
+            ->with('sender');
+
+        if ($request->filled('after_id')) {
+            $query->where('id', '>', $request->after_id);
+        }
+
+        return response()->json([
+            'success' => true,
+            'messages' => $query->orderBy('id', 'asc')->get()
+        ]);
+    }
+
+    public function markAsRead(Request $request)
+    {
+        $request->validate([
+            'conversation_id' => 'required|integer|exists:conversations,id',
+        ]);
+
+        $user = Auth::user();
+
+        Message::where('conversation_id', $request->conversation_id)
+            ->where('sender_id', '!=', $user->id)
+            ->where('is_read', 0)
+            ->update([
+                'is_read' => 1,
+                'read_at' => now(),
+            ]);
+
+        return response()->json(['success' => true, 'status' => 'ok']);
+    }
+
+    public function webIndex(Request $request)
+    {
+        return view('goride.chat.index');
+    }
+
+    public function webShow(Conversation $conversation, Request $request)
+    {
+        $user = Auth::user();
+        if (!$conversation->participants()->where('user_id', $user->id)->exists()) {
+            abort(403);
+        }
+        return view('goride.chat.show', compact('conversation'));
+    }
+
+    private function findPrivateConversation($userId1, $userId2)
+    {
+        return Conversation::where('type', 'private')
+            ->whereHas('participants', function ($query) use ($userId1) {
+                $query->where('user_id', $userId1);
+            })
+            ->whereHas('participants', function ($query) use ($userId2) {
+                $query->where('user_id', $userId2);
+            })
+            ->with(['participants.user', 'latestMessage'])
+            ->first();
     }
 
     private function markConversationMessagesAsRead($conversation, $userId)
@@ -309,65 +471,13 @@ class ChatController extends Controller
             $image->resize(200, 200, function ($constraint) {
                 $constraint->aspectRatio();
             });
-            
+
             $thumbnailPath = 'chat/thumbnails/' . uniqid() . '.jpg';
-            Storage::disk('public')->put($thumbnailPath, $image->encode('jpg', 80));
-            
+            \Illuminate\Support\Facades\Storage::disk('public')->put($thumbnailPath, $image->encode('jpg', 80));
+
             return asset('storage/' . $thumbnailPath);
         } catch (\Exception $e) {
             return null;
         }
     }
-
-    public function send(Request $request)
-    {
-
-        $request->validate([
-            'conversation_id' => 'required|integer',
-            'message' => 'nullable|string',
-            'message_type' => 'required|in:text,image,file,location',
-        ]);
-
-        $message = Message::create([
-            'conversation_id' => $request->conversation_id,
-            'sender_id' => auth()->id(),
-            'message' => $request->message,
-            'message_type' => $request->message_type,
-            'file_url' => $request->file_url,
-            'thumbnail_url' => $request->thumbnail_url,
-        ]);
-
-        // Dispatch the Newmessage event after creating the message
-        event(new \App\Events\NewMessage($message));
-
-        return response()->json($message, 201);
-    }
-
-    public function messages(Request $request)
-    {
-        $request->validate([
-            'conversation_id' => 'required|integer',
-            'after_id' => 'nullable|integer',
-        ]);
-
-        return Message::where('conversation_id', $request->conversation_id)
-            ->where('id', '>', $request->after_id ?? 0)
-            ->orderBy('id', 'asc')
-            ->get();
-    }
-
-    public function markAsRead(Request $request)
-    {
-        Message::where('conversation_id', $request->conversation_id)
-            ->where('sender_id', '!=', auth()->id())
-            ->where('is_read', 0)
-            ->update([
-                'is_read' => 1,
-                'read_at' => now(),
-            ]);
-
-        return response()->json(['status' => 'ok']);
-    }
-
-
 }

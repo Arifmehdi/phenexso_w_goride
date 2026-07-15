@@ -1,0 +1,35 @@
+Feature                                         API Link                                     
+------------------------------------              -------------------------------------------- 
+  1. Live Ride Monitoring                  GET /api/admin/active-rides
+ 2. Dashboard Statistics                 GET /api/admin/dashboard-stats             
+ 3. Revenue Report                          GET /api/admin/reports/revenue             
+ 4. Ride Report                                 GET /api/admin/reports/rides               
+ 5. Driver Earnings Report              GET /api/admin/reports/drivers           
+ 6. Create Support Ticket               POST /api/support-tickets                  
+ 7. View My Tickets                         GET /api/support-tickets                   
+ 8. Ticket Details                              GET /api/support-tickets/{id}           
+ 9. Reply to Ticket                             POST /api/support-tickets/{id}/reply       
+ 10. Update Ticket Status (Admin)   PATCH /api/admin/support-tickets/{id}      
+ 11. Driver Document Review            POST /api/admin/documents/{id}/review      
+12. Broadcast Notification               POST /api/admin/notifications/broadcast    
+13. SOS Emergency Alert                 POST /api/sos/trigger                      
+14.  Generate Trip Share Link           GET /api/ride-requests/{id}/tracking-token 
+ 15. Initiate bKash/Nagad Payment         POST /api/16. payment/shurjopay/initiate       
+17.  Payment Callback                     POST /api/payment/shurjopay/callback       
+ 18. SSLCommerz Payment Confirmation       POST /payment/sslcommerz/ipn               
+ 19. Owner Dashboard                      GET /api/owner/dashboard                   
+ 20. Owner Fleet List                      GET /api/owner/fleet                       
+21.  Owner Earnings                       GET /api/owner/earnings                    
+22.  Corporate Dashboard             GET /api/corporate/dashboard               
+23.  Corporate Ride Booking          POST /api/corporate/ride-request           
+ 24. Corporate Billing                       GET /api/corporate/billing                 
+ Corporate Invoice PDF             GET /api/corporate/billing/{month}/pdf     
+ 25. Create Ride Request                  POST /api/ride-requests                    
+ 26. Find Available Pool Rides          GET /api/ride-requests/pool/available      
+ 27. User Referrals                              GET /api/referrals                     
+ 28. User Registration (Referral Support) POST /api/auth/register                  
+ 29. Website Parameters                   GET /api/website-parameters                
+30.  Surge Pricing Management        POST /api/admin/surge                      
+31.  Pending Driver Payouts               GET /api/admin/payouts/pending             
+32.  Process Driver Payout                POST /api/admin/payouts/process            
+ 33. Export Driver Payouts                GET /api/admin/payouts/export

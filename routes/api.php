@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\ContactFormController; // Import ContactFormControl
 use App\Http\Controllers\Api\SellerDashboardController; // Import SellerDashboardController
 use App\Http\Controllers\Api\RiderDashboardController; // Import RiderDashboardController
 use App\Http\Controllers\NotificationController; // Import RiderDashboardController
+use App\Http\Controllers\Api\RideMatchingController; // Import RideMatchingController
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -56,11 +57,91 @@ Route::get('/notifications', [NotificationController::class, 'index']);
 Route::get('/notifications/ip', [NotificationController::class, 'ipNotifications']);
 Route::post('/notifications/read/{id}', [NotificationController::class, 'markAsRead']);
 
+// Public API - Get driver ratings
+Route::get('/driver-ratings/{driverId}', [\App\Http\Controllers\Api\DriverRatingController::class, 'driverRatings']);
+
+// Public API - Get website parameters (per_km_rate for fare calculation)
+// Optional ?lat=&lng= includes the active surge multiplier for that point.
+Route::get('/website-parameters', function (\Illuminate\Http\Request $request) {
+    $param = \App\Models\WebsiteParameter::first();
+    $surgeMultiplier = 1.0;
+    if ($request->filled('lat') && $request->filled('lng')) {
+        $surgeMultiplier = \App\Models\SurgeZone::multiplierFor(
+            (float) $request->lat, (float) $request->lng
+        );
+    }
+    return response()->json([
+        'success' => true,
+        'data' => [
+            'per_km_rate' => (float) ($param?->per_km_rate ?? 20.00),
+            'base_fare' => 50.00,
+            'currency' => 'BDT',
+            'surge_multiplier' => $surgeMultiplier,
+        ]
+    ]);
+});
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [ApiAuthController::class, 'logout']);
+
+    // ── FCM Token ──
+    // auth()->user() returns the correct model automatically:
+    //   rider/corporate/admin → User (users.fcm_token)
+    //   driver               → Driver (drivers.fcm_token)
+    Route::post('/user/fcm-token', function (\Illuminate\Http\Request $request) {
+        $request->validate(['fcm_token' => 'required|string']);
+        auth()->user()->update(['fcm_token' => $request->fcm_token]);
+        return response()->json(['success' => true]);
+    });
+
+    // ── Profile Completion ──
+    Route::get('/user/profile-completion', [App\Http\Controllers\Api\ProfileCompletionController::class, 'completion']);
+    Route::post('/user/complete-profile', [App\Http\Controllers\Api\ProfileCompletionController::class, 'updateProfile']);
+
+    // ── Admin Approval Routes ──
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/admin/users', [App\Http\Controllers\Api\AdminApprovalController::class, 'users']);
+        Route::get('/admin/vehicles', [App\Http\Controllers\Api\AdminApprovalController::class, 'vehicles']);
+        Route::post('/admin/vehicles/{id}/status', [App\Http\Controllers\Api\AdminApprovalController::class, 'vehicleStatus']);
+        Route::get('/admin/pending-approvals', [App\Http\Controllers\Api\AdminApprovalController::class, 'pendingApprovals']);
+        Route::post('/admin/users/{id}/approve-reject', [App\Http\Controllers\Api\AdminApprovalController::class, 'approveReject']);
+        Route::get('/admin/approval-stats', [App\Http\Controllers\Api\AdminApprovalController::class, 'stats']);
+    });
     Route::get('/user', [ApiAuthController::class, 'me']);
     // 
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
+
+    // ── Driver Ratings ──
+    Route::post('/driver-ratings', [\App\Http\Controllers\Api\DriverRatingController::class, 'store']);
+    Route::get('/driver-ratings/check/{rideRequestId}', [\App\Http\Controllers\Api\DriverRatingController::class, 'checkRating']);
+
+    // ── Ride Matching & History System ──
+    Route::post('/ride-requests/match', [\App\Http\Controllers\Api\RideMatchingController::class, 'matchAndOffer']);
+    Route::post('/ride-requests/{rideId}/decline', [\App\Http\Controllers\Api\RideMatchingController::class, 'declineAndTransfer']);
+    Route::post('/ride-offers/{offerId}/respond', [\App\Http\Controllers\Api\RideMatchingController::class, 'respondToOffer']);
+    Route::get('/ride-requests/{id}/offers', [\App\Http\Controllers\Api\RideMatchingController::class, 'rideOffers']);
+    Route::get('/ride-requests/{id}/detail', [\App\Http\Controllers\Api\RideMatchingController::class, 'rideDetail']);
+    Route::get('/ride-history', [\App\Http\Controllers\Api\RideMatchingController::class, 'rideHistory']);
+    Route::get('/rider/stats', [\App\Http\Controllers\Api\RideMatchingController::class, 'riderStats']);
+
+    // Resolve the Laravel ride id from a Firestore trip id. Lets the app sync
+    // status/payment even when the numeric id wasn't captured during the
+    // real-time (Firestore) accept handshake — the fix for rides stuck 'pending'.
+    Route::get('/trips/{firebaseTripId}/resolve', function ($firebaseTripId) {
+        $ride = \App\Models\RideRequest::where('firebase_trip_id', $firebaseTripId)
+            ->latest('id')->first();
+        return response()->json(['success' => (bool) $ride, 'ride_id' => $ride?->id]);
+    });
+    Route::post('/ride-requests/{id}/payment', [\App\Http\Controllers\Api\RideMatchingController::class, 'updatePayment']);
+    Route::post('/driver/toggle-online', [\App\Http\Controllers\Api\RideMatchingController::class, 'toggleOnline']);
+    Route::post('/ride-requests/{id}/assign-driver', [\App\Http\Controllers\Api\RideMatchingController::class, 'assignDriver']);
+
+    // Original Ride Request Routes
+    Route::post('/ride-requests', [\App\Http\Controllers\Api\RideRequestController::class, 'store']);
+    Route::patch('/ride-requests/{id}/status', [\App\Http\Controllers\Api\RideRequestController::class, 'updateStatus']);
+    Route::post('/update-location', [\App\Http\Controllers\Api\RideRequestController::class, 'updateLocation']);
+    Route::get('/nearby-drivers', [\App\Http\Controllers\Api\RideRequestController::class, 'nearbyDrivers']);
+    Route::get('/active-ride', [\App\Http\Controllers\Api\RideRequestController::class, 'activeRide']);
 
     Route::apiResource('products', ProductController::class)->except(['index', 'show']);
     Route::post('products/bulk-store', [ProductController::class, 'bulkStore']);
@@ -71,6 +152,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('users', UserController::class); // New Route for User management
     Route::patch('/user/profile', [UserController::class, 'updateMyProfile']);
     Route::patch('/user/password', [UserController::class, 'changePassword']);
+
+    // ── Saved Addresses ──
+    Route::apiResource('/user/saved-addresses', \App\Http\Controllers\Api\SavedAddressController::class);
 
     // Dashboard routes for Seller and Rider
     Route::get('/seller/dashboard', [SellerDashboardController::class, 'index']);
@@ -85,30 +169,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     // routes/api.php
-    Route::get('/test-relationships', function() {
-        $user = \App\Models\User::first();
-        
-        // Test 1: Check if user has conversations
-        $conversations = $user->conversations;
-        // dd('User conversations:', $conversations);
-        
-        // Test 2: Create a conversation
-        $conversation = \App\Models\Conversation::create([
-            'type' => 'private',
-            'created_by' => $user->id
-        ]);
-        
-        // Test 3: Add participants
-        $participant = \App\Models\User::where('id', '!=', $user->id)->first();
-        
-        $cp = \App\Models\ConversationParticipant::create([
-            'conversation_id' => $conversation->id,
-            'user_id' => $participant->id,
-            'is_admin' => false
-        ]);
-        
-        dd('Created participant:', $cp);
-    });
 
         // Chat Routes
     Route::prefix('chat')->group(function () {
@@ -134,7 +194,193 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('users/search', [ChatController::class, 'searchUsers']);
         Route::get('users/{user}/conversation', [ChatController::class, 'getOrCreatePrivateConversation']);
     });
+
+    // ── Wallet (Task 21-22) ──
+    Route::get('/wallet/balance', [\App\Http\Controllers\Api\WalletController::class, 'balance']);
+    Route::get('/wallet/transactions', [\App\Http\Controllers\Api\WalletController::class, 'transactions']);
+    Route::post('/wallet/top-up', [\App\Http\Controllers\Api\WalletController::class, 'topUp']);
+    Route::post('/ride-requests/{rideId}/pay-wallet', [\App\Http\Controllers\Api\WalletController::class, 'payForRide']);
+
+
+    // ── Driver Earnings (Task 26) ──
+    Route::get('/driver/earnings', [\App\Http\Controllers\Api\EarningsController::class, 'index']);
+
+    // ── Receipt PDF (Task 29) ──
+    Route::get('/ride-requests/{rideId}/receipt', [\App\Http\Controllers\Api\EarningsController::class, 'receiptPdf']);
+
+    // ── Driver Verification / Profile Completion ──
+    Route::get('/driver/profile-status', [\App\Http\Controllers\Api\DriverProfileController::class, 'status']);
+    Route::post('/driver/profile/update', [\App\Http\Controllers\Api\DriverProfileController::class, 'update']);
+    // Admin verification
+    Route::get('/admin/drivers/verification', [\App\Http\Controllers\Api\DriverProfileController::class, 'verificationList']);
+    Route::get('/admin/drivers/{driver}/verification', [\App\Http\Controllers\Api\DriverProfileController::class, 'adminShow']);
+    Route::post('/admin/drivers/{driver}/verify', [\App\Http\Controllers\Api\DriverProfileController::class, 'review']);
+
+    // ── Phase 6: Safety Features ──
+    Route::post('/sos/trigger',              [\App\Http\Controllers\Api\SosController::class, 'trigger']);
+    Route::post('/sos/alerts/{alert}/resolve', [\App\Http\Controllers\Api\SosController::class, 'resolve']);
+    Route::get('/admin/sos/alerts',          [\App\Http\Controllers\Api\SosController::class, 'index']);
+    Route::post('/ride-requests/{rideId}/tracking-token', [\App\Http\Controllers\Api\TripTrackingController::class, 'generateToken']);
+
+    // ── Phase 3: Driver Management ──
+    // Task 30: Document upload
+    Route::post('/driver/upload-document', [\App\Http\Controllers\Api\DriverDocumentController::class, 'upload']);
+    Route::get('/driver/my-documents', [\App\Http\Controllers\Api\DriverDocumentController::class, 'myDocuments']);
+    // Admin document review
+    Route::get('/admin/documents/pending', [\App\Http\Controllers\Api\DriverDocumentController::class, 'pending']);
+    Route::post('/admin/documents/{document}/review', [\App\Http\Controllers\Api\DriverDocumentController::class, 'review']);
+
+    // Task 32/33: Driver stats
+    Route::get('/driver/stats', [\App\Http\Controllers\Api\DriverStatsController::class, 'stats']);
+
+    // Task 31: Vehicle API
+    Route::get('/vehicles', function () {
+        $user = auth()->user();
+        $vehicles = \App\Models\Vehicle::whereHas('drivers', fn($q) => $q->where('user_id', $user->id))
+            ->orWhere('user_id', $user->id)->get();
+        return response()->json(['success' => true, 'vehicles' => $vehicles]);
+    });
+
+    // Task 35: OTP (public routes below, auth routes here for resend)
+    Route::post('/auth/resend-otp', [\App\Http\Controllers\Api\OtpController::class, 'send']);
+
+    // Task 36: Notifications already exist at /api/notifications
+
+    // ══════════════════════════════════════════════════════════════════
+    //  new_api.txt feature set
+    // ══════════════════════════════════════════════════════════════════
+
+    // ── Admin: dashboard, live map, reports ──
+    // ── System Settings (maintenance / registration / commission / per-km) ──
+    Route::get('/admin/settings', function () {
+        $wp = \App\Models\WebsiteParameter::first();
+        return response()->json(['success' => true, 'settings' => [
+            'maintenance_mode'   => (bool) ($wp->maintenance_mode ?? false),
+            'registration_open'  => (bool) ($wp->registration_open ?? true),
+            'commission_rate'    => (float) ($wp->commission_rate ?? 15),
+            'per_km_rate'        => (float) ($wp->per_km_rate ?? 20),
+            'matching_radius_km' => (int) ($wp->matching_radius_km ?? 10),
+        ]]);
+    });
+    Route::post('/admin/settings', function (\Illuminate\Http\Request $request) {
+        $u = auth()->user();
+        if (($u->role ?? null) !== 'admin' && !($u instanceof \App\Models\Admin)) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+        $wp = \App\Models\WebsiteParameter::first() ?: new \App\Models\WebsiteParameter();
+        if ($request->has('maintenance_mode'))  $wp->maintenance_mode  = $request->boolean('maintenance_mode');
+        if ($request->has('registration_open')) $wp->registration_open = $request->boolean('registration_open');
+        if ($request->filled('commission_rate')) $wp->commission_rate  = (float) $request->commission_rate;
+        if ($request->filled('per_km_rate'))     $wp->per_km_rate      = (float) $request->per_km_rate;
+        if ($request->filled('matching_radius_km')
+            && \Illuminate\Support\Facades\Schema::hasColumn('website_parameters', 'matching_radius_km')) {
+            $r = (int) $request->matching_radius_km;
+            $wp->matching_radius_km = max(1, min(100, $r)); // clamp 1–100 km
+        }
+        $wp->save();
+        return response()->json(['success' => true, 'message' => 'Settings saved']);
+    });
+
+    Route::get('/admin/dashboard-stats',   [\App\Http\Controllers\Api\AdminDashboardController::class, 'dashboardStats']);
+    Route::get('/admin/active-rides',      [\App\Http\Controllers\Api\AdminDashboardController::class, 'activeRides']);
+    Route::get('/admin/reports/revenue',   [\App\Http\Controllers\Api\AdminDashboardController::class, 'revenueReport']);
+    Route::get('/admin/reports/rides',     [\App\Http\Controllers\Api\AdminDashboardController::class, 'ridesReport']);
+    Route::get('/admin/reports/drivers',   [\App\Http\Controllers\Api\AdminDashboardController::class, 'driversReport']);
+    Route::post('/admin/notifications/broadcast', [\App\Http\Controllers\Api\AdminDashboardController::class, 'broadcastNotification']);
+
+    // ── Admin: home-screen banner management (shared with web admin) ──
+    Route::get('/admin/banners',           [\App\Http\Controllers\Api\BannerController::class, 'adminIndex']);
+    Route::post('/admin/banners',          [\App\Http\Controllers\Api\BannerController::class, 'store']);
+    Route::post('/admin/banners/{id}',     [\App\Http\Controllers\Api\BannerController::class, 'update']);
+    Route::delete('/admin/banners/{id}',   [\App\Http\Controllers\Api\BannerController::class, 'destroy']);
+
+    // ── Support Tickets ──
+    Route::post('/support-tickets',              [\App\Http\Controllers\Api\SupportTicketController::class, 'store']);
+    Route::get('/support-tickets',                [\App\Http\Controllers\Api\SupportTicketController::class, 'index']);
+    Route::get('/support-tickets/{ticket}',        [\App\Http\Controllers\Api\SupportTicketController::class, 'show']);
+    Route::post('/support-tickets/{ticket}/reply', [\App\Http\Controllers\Api\SupportTicketController::class, 'reply']);
+    Route::get('/admin/support-tickets',            [\App\Http\Controllers\Api\SupportTicketController::class, 'adminIndex']);
+    Route::patch('/admin/support-tickets/{ticket}', [\App\Http\Controllers\Api\SupportTicketController::class, 'adminUpdate']);
+
+    // ── Payments: ShurjoPay (bKash/Nagad) ──
+    Route::post('/payment/shurjopay/initiate', [\App\Http\Controllers\Api\RidePaymentController::class, 'shurjopayInitiate']);
+    Route::post('/payment/shurjopay/callback', [\App\Http\Controllers\Api\RidePaymentController::class, 'shurjopayCallback']);
+
+    // ── Trip share link — GET alias alongside the existing POST (token-creation) ──
+    Route::get('/ride-requests/{rideId}/tracking-token', [\App\Http\Controllers\Api\TripTrackingController::class, 'generateToken']);
+
+    // ── Owner ──
+    Route::get('/owner/dashboard', [\App\Http\Controllers\Api\OwnerController::class, 'dashboard']);
+    Route::get('/owner/fleet',     [\App\Http\Controllers\Api\OwnerController::class, 'fleet']);
+    Route::get('/owner/earnings',  [\App\Http\Controllers\Api\OwnerController::class, 'earnings']);
+
+    // ── Corporate ──
+    Route::get('/corporate/dashboard',              [\App\Http\Controllers\Api\CorporateController::class, 'dashboard']);
+    Route::post('/corporate/ride-request',          [\App\Http\Controllers\Api\CorporateController::class, 'createRideRequest']);
+    Route::get('/corporate/billing',                [\App\Http\Controllers\Api\CorporateController::class, 'billing']);
+    Route::get('/corporate/billing/{month}/pdf',    [\App\Http\Controllers\Api\CorporateController::class, 'billingPdf']);
+
+    // ── Ride Pooling ──
+    Route::get('/ride-requests/pool/available', [\App\Http\Controllers\Api\RidePoolController::class, 'available']);
+
+    // ── Referrals & Rewards ──
+    Route::get('/referrals', [\App\Http\Controllers\Api\ReferralController::class, 'stats']);
+    Route::get('/rewards',   [\App\Http\Controllers\Api\ReferralController::class, 'rewards']);
+
+    // ── Surge Pricing (admin) ──
+    Route::get('/admin/surge',        [\App\Http\Controllers\Api\SurgeController::class, 'index']);
+    Route::post('/admin/surge',       [\App\Http\Controllers\Api\SurgeController::class, 'store']);
+    Route::patch('/admin/surge/{zone}', [\App\Http\Controllers\Api\SurgeController::class, 'update']);
+
+    // ── Driver Payouts (admin) ──
+    Route::get('/admin/payouts/pending',  [\App\Http\Controllers\Api\DriverPayoutController::class, 'pending']);
+    Route::post('/admin/payouts/process', [\App\Http\Controllers\Api\DriverPayoutController::class, 'process']);
+    Route::get('/admin/payouts/export',   [\App\Http\Controllers\Api\DriverPayoutController::class, 'export']);
+
+    // (System settings, vehicles, user directory, and banner management
+    //  routes are registered earlier in this group — single source.)
+
+    // ── Rider Rating by Driver (Task 20) ──
+    Route::post('/rider-ratings', function (\Illuminate\Http\Request $request) {
+        $request->validate([
+            'ride_request_id' => 'required|integer',
+            'rider_id'        => 'required|integer',
+            'rating'          => 'required|integer|min:1|max:5',
+            'tags'            => 'nullable|array',
+        ]);
+        $driver = auth()->user();
+        \App\Models\RiderRating::updateOrCreate(
+            ['ride_request_id' => $request->ride_request_id, 'driver_id' => $driver->id],
+            ['rider_id' => $request->rider_id, 'rating' => $request->rating,
+             'review' => $request->review, 'tags' => $request->tags]
+        );
+        return response()->json(['success' => true]);
+    });
 });
+
+// ── Banners — public (Task 25) ──
+Route::get('/banners', [\App\Http\Controllers\Api\BannerController::class, 'index']);
+
+// ── Promo code validation — public (no login needed to check a code + fare) ──
+Route::post('/promo/validate', [\App\Http\Controllers\Api\PromoCodeController::class, 'checkCode']);
+
+// ── Public trip tracking — no auth (Task 50) ──
+Route::get('/public/track/{token}',          [\App\Http\Controllers\Api\TripTrackingController::class, 'publicTrack']);
+Route::get('/public/track/{token}/location', function (string $token) {
+    $record = \App\Models\TripTrackingToken::where('token', $token)
+        ->where('expires_at', '>', now())->first();
+    if (!$record) return response()->json(['error' => 'Expired'], 404);
+    $ride = \App\Models\RideRequest::find($record->ride_request_id);
+    $driver = $ride ? \App\Models\Driver::find($ride->driver_id) : null;
+    return response()->json([
+        'lat' => $driver?->latitude,
+        'lng' => $driver?->longitude,
+    ]);
+});
+
+// ── OTP — public (Task 35) ──
+Route::post('/auth/send-otp',   [\App\Http\Controllers\Api\OtpController::class, 'send']);
+Route::post('/auth/verify-otp', [\App\Http\Controllers\Api\OtpController::class, 'verify']);
 
 
 

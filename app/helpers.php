@@ -1,8 +1,77 @@
 <?php
 
 use App\Models\Cart;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
+
+if (!function_exists('notify')) {
+    /**
+     * Central notification helper — call from anywhere:
+     *   notify()->toDriver($driver, 'Approved', 'You can now go online');
+     *   notify()->toAllUsers('Eid Offer', '20% off all rides!');
+     *   notify()->toEveryone('Maintenance', 'App will be down at 2 AM');
+     */
+    function notify(): NotificationService
+    {
+        return app(NotificationService::class);
+    }
+}
+
+if (!function_exists('notificationAudience')) {
+    /**
+     * Map an authenticated model to its notification audience.
+     * Each entity lives in its own table, so the audience disambiguates
+     * the shared numeric id space (User #5 != Driver #5 != Corporate #5).
+     */
+    function notificationAudience($model): string
+    {
+        return match (true) {
+            $model instanceof \App\Models\Driver    => 'driver',
+            $model instanceof \App\Models\Corporate => 'corporate',
+            $model instanceof \App\Models\Admin     => 'admin',
+            default                                 => 'user', // App\Models\User (customer/passenger/owner)
+        };
+    }
+}
+
+if (!function_exists('notificationQueryFor')) {
+    /**
+     * Audience-aware notifications query for a given entity.
+     * Shows broadcasts for their audience (+ 'all') and their personal notifications.
+     */
+    function notificationQueryFor($user)
+    {
+        $audience = notificationAudience($user);
+
+        return \App\Models\Notification::where(function ($q) use ($user, $audience) {
+            // Broadcasts for this audience (or everyone)
+            $q->where(function ($qq) use ($audience) {
+                $qq->where('all_show', 1)->whereIn('recipient_type', ['all', $audience]);
+            });
+            // Personal notifications (must match BOTH id and audience)
+            if ($user) {
+                $q->orWhere(function ($qq) use ($user, $audience) {
+                    $qq->where('user_id', $user->id)->where('recipient_type', $audience);
+                });
+            }
+        });
+    }
+}
+
+if (!function_exists('unreadNotificationCount')) {
+    /** Unread personal notifications for the header bell badge. */
+    function unreadNotificationCount(): int
+    {
+        $user = currentUser();
+        if (!$user) return 0;
+        return \App\Models\Notification::where('user_id', $user->id)
+            ->where('recipient_type', notificationAudience($user))
+            ->where('is_read', 0)
+            ->count();
+    }
+}
+
 /**
  * Return sizes readable by humans
  */

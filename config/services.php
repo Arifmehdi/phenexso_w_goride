@@ -31,4 +31,16 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'fcm' => [
+        // Legacy (deprecated by Google) — kept for backward compatibility
+        'server_key' => env('FCM_SERVER_KEY', ''),
+        // Modern HTTP v1 API — path to the service-account JSON you downloaded
+        'credentials' => env('FIREBASE_CREDENTIALS', storage_path('app/firebase/service-account.json')),
+    ],
+
+    'goride' => [
+        // Platform commission taken from driver gross earnings (payouts)
+        'commission_rate' => (float) env('GORIDE_COMMISSION_RATE', 0.15),
+    ],
+
 ];
