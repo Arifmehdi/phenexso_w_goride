@@ -32,7 +32,6 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\Admin\WebsiteParameterController;
 use Illuminate\Support\Facades\Mail;
 
-
 // Route::get('/',[AuthController::class,'index'])->name('login');
 
 Route::get('image', function () {
@@ -62,6 +61,7 @@ Route::get('/clear', function () {
 Route::get('/debug-sentry', function () {
     throw new Exception('Sentry is working!');
 });
+
 
 // // SSLCOMMERZ Start
 // Route::get('/example1', [SslCommerzPaymentController::class, 'exampleEasyCheckout']);

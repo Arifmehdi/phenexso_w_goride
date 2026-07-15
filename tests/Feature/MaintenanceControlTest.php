@@ -39,4 +39,14 @@ class MaintenanceControlTest extends TestCase
 
         $response->assertStatus(403);
     }
+
+    public function test_it_is_not_registered_as_a_public_route(): void
+    {
+        $routes = app('router')->getRoutes()->getRoutesByMethod()['GET'] ?? [];
+        $hasPublicRoute = collect($routes)->contains(function ($route) {
+            return $route->uri() === '{secret}/maintenance/{action}' || $route->uri() === '/{secret}/maintenance/{action}';
+        });
+
+        $this->assertFalse($hasPublicRoute);
+    }
 }

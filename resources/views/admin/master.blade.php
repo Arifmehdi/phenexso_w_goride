@@ -975,7 +975,7 @@
                                 </a>
                             </li>
                         </ul>
-                    </li> --}}
+                    </li>--}}
 
                     {{-- Product Stock Requests --}}
                     {{--<li class="nav-item {{ session('lsbm') == 'stock_requests' ? 'menu-open' : '' }}">

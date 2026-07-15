@@ -7,21 +7,25 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Symfony\Component\HttpFoundation\Response;
 
-class HiddenMaintenanceMiddleware
+class MaintenanceMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $segments = $request->segments();
+        $path = trim($request->getPathInfo(), '/');
+        $segments = $path === '' ? [] : explode('/', $path);
 
-        if (count($segments) === 3 && $segments[1] === 'maintenance' && in_array($segments[2], ['enable', 'disable'], true)) {
-            $secret = $segments[0];
+        $action = $segments[count($segments) - 1] ?? null;
+        $previous = $segments[count($segments) - 2] ?? null;
+
+        if ($action !== null && in_array($action, ['enable', 'disable'], true) && $previous === 'maintenance') {
+            $secret = count($segments) >= 3 ? $segments[0] : config('maintenance.secret', 'goride-maintenance-secret');
             $expectedSecret = config('maintenance.secret', 'goride-maintenance-secret');
 
             if ($secret !== $expectedSecret) {
                 abort(403, 'Unauthorized');
             }
 
-            if ($segments[2] === 'enable') {
+            if ($action === 'enable') {
                 Artisan::call('down', ['--secret' => $secret]);
 
                 return response()->json([
