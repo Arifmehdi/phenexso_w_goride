@@ -30,8 +30,16 @@ class WalletController extends Controller
     public function balance()
     {
         $wallet = $this->wallet();
+        $balance = (float) $wallet->balance;
         // decimal:2 casts serialize as strings — force a real JSON number.
-        return response()->json(['success' => true, 'balance' => (float) $wallet->balance]);
+        return response()->json([
+            'success' => true,
+            'balance' => $balance,
+            // PayLater context for the app: how much credit is available and
+            // any outstanding due (negative balance shown positively).
+            'pay_later_limit' => (float) \App\Models\AppSetting::getValue('pay_later_limit', 0),
+            'due' => $balance < 0 ? -$balance : 0,
+        ]);
     }
 
     public function transactions()
@@ -86,8 +94,17 @@ class WalletController extends Controller
         $ownerType = notificationAudience($user);
         $wallet = $this->wallet();
 
-        if ($wallet->balance < $request->amount) {
-            return response()->json(['success' => false, 'message' => 'Insufficient wallet balance'], 422);
+        // PayLater: riders may ride now and settle later — the wallet can go
+        // negative down to the admin-set limit (0 = feature off). The due is
+        // recovered automatically by their next top-up.
+        $payLaterLimit = (float) \App\Models\AppSetting::getValue('pay_later_limit', 0);
+        if (($wallet->balance - $request->amount) < -$payLaterLimit) {
+            return response()->json([
+                'success' => false,
+                'message' => $payLaterLimit > 0
+                    ? "Insufficient balance — PayLater limit is ৳{$payLaterLimit}."
+                    : 'Insufficient wallet balance',
+            ], 422);
         }
 
         DB::transaction(function () use ($request, $rideId, $wallet, $user, $ownerType) {

@@ -33,7 +33,49 @@ class HomeController extends Controller
         $orders = Order::count();
         $products = Product::latest()->take(10)->get();
 
-        return view('admin.index',compact('users','drivers', 'corporates', 'admins', 'cat','products', 'orders', 'productcount'));
+        // ── Ride-share dashboard data ──
+        $rideModel = \App\Models\RideRequest::class;
+        $today = \Illuminate\Support\Carbon::today();
+        $monthStart = \Illuminate\Support\Carbon::now()->startOfMonth();
+
+        $ride = [
+            'today_rides'      => $rideModel::whereDate('created_at', $today)->count(),
+            'today_revenue'    => (float) $rideModel::where('status', 'completed')
+                                    ->whereDate('completed_at', $today)->sum('fare'),
+            'month_revenue'    => (float) $rideModel::where('status', 'completed')
+                                    ->where('completed_at', '>=', $monthStart)->sum('fare'),
+            'total_completed'  => $rideModel::where('status', 'completed')->count(),
+            'active_rides'     => $rideModel::whereIn('status', ['accepted', 'arriving', 'in_progress'])->count(),
+            'cancelled_today'  => $rideModel::where('status', 'cancelled')->whereDate('updated_at', $today)->count(),
+            'online_drivers'   => Driver::where('is_online', true)->count(),
+            'new_users_today'  => User::whereDate('created_at', $today)->count(),
+        ];
+
+        // Pending approvals (drivers/users awaiting activation)
+        $pendingApprovals = User::where(function ($q) {
+            $q->whereIn('status', ['pending', 0, '0', 'inactive'])->orWhere('is_approve', 0);
+        })->count();
+
+        // Rides per weekday (last 7 days) for the mini bar chart
+        $weekly = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $d = \Illuminate\Support\Carbon::today()->subDays($i);
+            $weekly[] = [
+                'label'   => $d->format('D'),
+                'rides'   => $rideModel::whereDate('created_at', $d)->count(),
+                'revenue' => (float) $rideModel::where('status', 'completed')->whereDate('completed_at', $d)->sum('fare'),
+            ];
+        }
+        $weeklyMax = max(1, collect($weekly)->max('rides'));
+
+        // Recent rides table
+        $recentRides = $rideModel::with(['user:id,name,mobile', 'driver:id,name'])
+            ->latest()->take(8)->get();
+
+        return view('admin.index', compact(
+            'users', 'drivers', 'corporates', 'admins', 'cat', 'products', 'orders', 'productcount',
+            'ride', 'pendingApprovals', 'weekly', 'weeklyMax', 'recentRides'
+        ));
     }
 
 

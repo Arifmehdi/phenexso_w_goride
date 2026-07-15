@@ -167,6 +167,20 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
+        // Admin kill-switch — System Settings > "Registration Open"
+        // (stored on website_parameters, same place the admin app saves it).
+        try {
+            $wp = \App\Models\WebsiteParameter::first();
+            if ($wp && isset($wp->registration_open) && !(bool) $wp->registration_open) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'New registrations are temporarily closed. Please try again later.',
+                ], 403);
+            }
+        } catch (\Throwable $e) {
+            // Settings unavailable — never block registration because of it.
+        }
+
         $validator = Validator::make($request->all(), [
             'name'         => 'required|string|max:255',
             'email'        => 'required|email',

@@ -32,6 +32,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\Admin\WebsiteParameterController;
 use Illuminate\Support\Facades\Mail;
 
+
 // Route::get('/',[AuthController::class,'index'])->name('login');
 
 Route::get('image', function () {
@@ -61,7 +62,6 @@ Route::get('/clear', function () {
 Route::get('/debug-sentry', function () {
     throw new Exception('Sentry is working!');
 });
-
 
 // // SSLCOMMERZ Start
 // Route::get('/example1', [SslCommerzPaymentController::class, 'exampleEasyCheckout']);
@@ -727,6 +727,20 @@ Route::middleware(['auth:admin,web', 'userRole:admin'])->prefix('admin')->group(
     // Ride Matching History (Admin View)
     Route::get('/ride-matching', [\App\Http\Controllers\Admin\RideMatchingController::class, 'index'])->name('admin.ride-matching.index');
     Route::get('/ride-matching/{id}', [\App\Http\Controllers\Admin\RideMatchingController::class, 'show'])->name('admin.ride-matching.show');
+
+    // Ride-share operations: live rides, tickets, reports, surge
+    Route::get('/live-rides', [\App\Http\Controllers\Admin\RideOpsController::class, 'liveRides'])->name('admin.ride-ops.live-rides');
+    Route::get('/support-tickets', [\App\Http\Controllers\Admin\RideOpsController::class, 'tickets'])->name('admin.ride-ops.tickets');
+    Route::get('/support-tickets/{id}', [\App\Http\Controllers\Admin\RideOpsController::class, 'ticketShow'])->name('admin.ride-ops.tickets.show');
+    Route::post('/support-tickets/{id}/reply', [\App\Http\Controllers\Admin\RideOpsController::class, 'ticketReply'])->name('admin.ride-ops.tickets.reply');
+    Route::post('/support-tickets/{id}/status', [\App\Http\Controllers\Admin\RideOpsController::class, 'ticketStatus'])->name('admin.ride-ops.tickets.status');
+    Route::get('/ride-reports', [\App\Http\Controllers\Admin\RideOpsController::class, 'reports'])->name('admin.ride-ops.reports');
+    Route::get('/payouts', [\App\Http\Controllers\Admin\RideOpsController::class, 'payouts'])->name('admin.ride-ops.payouts');
+    Route::post('/payouts/process', [\App\Http\Controllers\Admin\RideOpsController::class, 'payoutProcess'])->name('admin.ride-ops.payouts.process');
+    Route::get('/payouts/export', [\App\Http\Controllers\Admin\RideOpsController::class, 'payoutsExport'])->name('admin.ride-ops.payouts.export');
+    Route::get('/surge', [\App\Http\Controllers\Admin\RideOpsController::class, 'surgeIndex'])->name('admin.ride-ops.surge');
+    Route::post('/surge', [\App\Http\Controllers\Admin\RideOpsController::class, 'surgeStore'])->name('admin.ride-ops.surge.store');
+    Route::post('/surge/{id}/toggle', [\App\Http\Controllers\Admin\RideOpsController::class, 'surgeToggle'])->name('admin.ride-ops.surge.toggle');
 
     // Admin and Corporate management
     Route::resource('admins', AdminController::class)->names('admin.admins');

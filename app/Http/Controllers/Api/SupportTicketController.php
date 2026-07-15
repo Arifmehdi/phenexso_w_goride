@@ -123,6 +123,10 @@ class SupportTicketController extends Controller
     private function authorizeAccess(SupportTicket $ticket): void
     {
         $user = auth()->user();
+        // Admins may open any ticket (needed by the admin management screen).
+        if ($user instanceof \App\Models\Admin) {
+            return;
+        }
         if ($ticket->user_id !== $user->id || $ticket->owner_type !== notificationAudience($user)) {
             abort(403, 'Unauthorized');
         }

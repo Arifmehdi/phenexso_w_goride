@@ -16,6 +16,7 @@ return [
     */
 
     'name' => env('APP_NAME', 'Laravel'),
+    'maintenance_secret' => env('MAINTENANCE_SECRET', 'goride-maintenance-secret'),
 
     /*
     |--------------------------------------------------------------------------

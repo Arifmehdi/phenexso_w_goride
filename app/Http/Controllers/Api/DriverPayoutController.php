@@ -20,7 +20,12 @@ class DriverPayoutController extends Controller
      */
     public function pending()
     {
-        $commissionRate = (float) config('services.goride.commission_rate', 0.15);
+        // Admin-editable via System Settings (stored as a PERCENT on
+        // website_parameters); .env fraction is the fallback.
+        $wpCommission = \App\Models\WebsiteParameter::first()->commission_rate ?? null;
+        $commissionRate = $wpCommission !== null
+            ? ((float) $wpCommission) / 100
+            : (float) config('services.goride.commission_rate', 0.15);
 
         $driverIds = RideRequest::where('status', 'completed')->whereNotNull('driver_id')
             ->distinct()->pluck('driver_id');

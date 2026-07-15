@@ -162,4 +162,42 @@
         @else
             <div class="text-center py-5">
                 <i class="fas fa-check-circle fa-4x text-success"></i>
-                <h4 clas
+                <h4 class="mt-3">All caught up!</h4>
+                <p class="text-muted">There are no pending approval requests right now.</p>
+            </div>
+        @endif
+    </div>
+</div>
+
+<script>
+    // Approve/Reject post back to the named routes with CSRF via a
+    // dynamically-built form (full page reload shows the flash message).
+    function submitApproval(url, confirmText) {
+        if (!confirm(confirmText)) return;
+        var form = document.createElement('form');
+        form.method = 'POST';
+        form.action = url;
+        var token = document.createElement('input');
+        token.type = 'hidden';
+        token.name = '_token';
+        token.value = '{{ csrf_token() }}';
+        form.appendChild(token);
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    function approveUser(id, name) {
+        submitApproval(
+            '{{ url('admin/users') }}/' + id + '/approve',
+            'Approve "' + name + '"? They will be able to log in and use the platform.'
+        );
+    }
+
+    function rejectUser(id, name) {
+        submitApproval(
+            '{{ url('admin/users') }}/' + id + '/reject',
+            'Reject "' + name + '"? They will not be able to use the platform.'
+        );
+    }
+</script>
+@endsection

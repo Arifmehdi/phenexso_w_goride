@@ -323,8 +323,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // ── Ride Pooling ──
     Route::get('/ride-requests/pool/available', [\App\Http\Controllers\Api\RidePoolController::class, 'available']);
 
-    // ── Referrals ──
+    // ── Referrals & Rewards ──
     Route::get('/referrals', [\App\Http\Controllers\Api\ReferralController::class, 'stats']);
+    Route::get('/rewards',   [\App\Http\Controllers\Api\ReferralController::class, 'rewards']);
 
     // ── Surge Pricing (admin) ──
     Route::get('/admin/surge',        [\App\Http\Controllers\Api\SurgeController::class, 'index']);
@@ -335,6 +336,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/admin/payouts/pending',  [\App\Http\Controllers\Api\DriverPayoutController::class, 'pending']);
     Route::post('/admin/payouts/process', [\App\Http\Controllers\Api\DriverPayoutController::class, 'process']);
     Route::get('/admin/payouts/export',   [\App\Http\Controllers\Api\DriverPayoutController::class, 'export']);
+
+    // (System settings, vehicles, user directory, and banner management
+    //  routes are registered earlier in this group — single source.)
 
     // ── Rider Rating by Driver (Task 20) ──
     Route::post('/rider-ratings', function (\Illuminate\Http\Request $request) {

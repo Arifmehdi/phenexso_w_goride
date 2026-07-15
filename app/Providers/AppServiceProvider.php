@@ -37,13 +37,6 @@ class AppServiceProvider extends ServiceProvider
         //     app()->setLocale(session('locale'));
         // }
 
-        if (!function_exists('calculateDiscountPercentage')) {
-            function calculateDiscountPercentage($originalPrice, $discountPrice) {
-                if ($originalPrice <= 0) return 0;
-                return round((($originalPrice - $discountPrice) / $originalPrice) * 100);
-            }
-        }
-
         // Share basic data with all views
         View::composer('*', function ($view) {
             View::share('headerMenus', Menu::whereActive(true)->where('type','header_menu')->orderBy('drag_id')->latest()->get());
