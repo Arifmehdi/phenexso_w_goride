@@ -219,6 +219,19 @@ class AuthController extends Controller
                 return response()->json(['success' => false, 'message' => 'Driver with this email already exists'], 400);
             }
             $userData['status'] = 0; // Drivers use tinyInteger status
+            // Drivers get their own referral code too, and may sign up with
+            // someone else's (a rider's or another driver's).
+            $userData['referral_code'] = $this->generateReferralCode();
+            if ($request->filled('referral_code')) {
+                $code = strtoupper($request->referral_code);
+                if ($referrer = User::where('referral_code', $code)->first()) {
+                    $userData['referred_by'] = $referrer->id;
+                    $userData['referred_by_type'] = 'user';
+                } elseif ($referrer = \App\Models\Driver::where('referral_code', $code)->first()) {
+                    $userData['referred_by'] = $referrer->id;
+                    $userData['referred_by_type'] = 'driver';
+                }
+            }
             $user = \App\Models\Driver::create($userData);
         } elseif ($role === 'corporate') {
             if (\App\Models\Corporate::where('email', $request->email)->exists()) {
@@ -240,9 +253,15 @@ class AuthController extends Controller
             // signed up with someone's code, record who referred them.
             $userData['referral_code'] = $this->generateReferralCode();
             if ($request->filled('referral_code')) {
-                $referrer = User::where('referral_code', strtoupper($request->referral_code))->first();
-                if ($referrer) {
+                // A code may belong to a rider or a driver — check both, and
+                // record WHICH, so the bonus lands in the right wallet.
+                $code = strtoupper($request->referral_code);
+                if ($referrer = User::where('referral_code', $code)->first()) {
                     $userData['referred_by'] = $referrer->id;
+                    $userData['referred_by_type'] = 'user';
+                } elseif ($referrer = \App\Models\Driver::where('referral_code', $code)->first()) {
+                    $userData['referred_by'] = $referrer->id;
+                    $userData['referred_by_type'] = 'driver';
                 }
             }
             $user = User::create($userData);
@@ -280,12 +299,19 @@ class AuthController extends Controller
         ], 201);
     }
 
-    /** Unique short referral code, e.g. GR3F9A2C. */
+    /**
+     * Unique short referral code, e.g. GR3F9A2C. Must be unique across BOTH
+     * users and drivers, since either can own a code and codes are looked up
+     * in both tables when someone signs up.
+     */
     private function generateReferralCode(): string
     {
         do {
             $code = 'GR' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 6));
-        } while (User::where('referral_code', $code)->exists());
+        } while (
+            User::where('referral_code', $code)->exists()
+            || \App\Models\Driver::where('referral_code', $code)->exists()
+        );
         return $code;
     }
 

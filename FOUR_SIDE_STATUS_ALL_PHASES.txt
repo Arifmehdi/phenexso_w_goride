@@ -1,0 +1,279 @@
+================================================================================
+ GORIDE — FOUR-SIDE STATUS REPORT  (PHASES 1–7, items 01–61)
+ Generated: 2026-07-23
+ Codebases:  Backend  D:\laragon\laragon\www\goride   (Laravel 9 + MySQL)
+             Flutter  D:\laragon\laragon\www\flutter\phenex_fluttter_goride
+ Goal: run GoRide as a full ride-share app (Uber / Pathao / Obhai / inDrive).
+================================================================================
+
+ THE 4 SURFACES ("edges") every feature is checked against:
+   [WEB]  = Browser Admin panel   (Laravel Blade,  /admin)
+   [API]  = Laravel REST API      (/api/...)
+   [APP]  = Flutter app, rider + driver roles
+   [ADM]  = Flutter in-app Admin area (admin login inside the app)
+
+ STATUS LEGEND (per surface cell):
+   Y  = built and wired to real data / real logic
+   -  = not applicable to that surface (feature doesn't belong there)
+   W  = handled on WEB admin only (by design — admin-config task)
+   *  = needs a one-time deploy/config step (noted at bottom), code is done
+
+ OVERALL LEGEND:
+   DONE      = works across every surface it should
+   DONE*     = code complete; needs a deploy/config step (Firestore rules / key / setting)
+   WEB-ONLY  = intentionally managed from the web admin, not the app
+
+================================================================================
+ SECTION A — MASTER STATUS TABLE
+================================================================================
+
+ #   Feature                          WEB  API  APP  ADM   Overall
+ --- -------------------------------- ---- ---- ---- ----  ---------
+ --- PHASE 1 — Core ride flow -----------------------------------------
+ 01  Driver Online/Offline Toggle      -    Y    Y    -    DONE
+ 02  Incoming Ride Requests            (Y)   Y    Y    Y    DONE
+ 03  Active Ride Screen (+phone call)   -    Y    Y    -    DONE
+ 04  Navigation to Rider (Maps nav)     -    Y    Y    -    DONE
+ 05  Ride Status Update                 Y    Y    Y    Y    DONE
+ 06  Firebase Push Setup                -    Y    Y    -    DONE   (key now installed)
+ 07  Ride Request Push                  -    Y    Y    -    DONE   (was blocked → live)
+ 08  Ride Status Push                   -    Y    Y    -    DONE   (was blocked → live)
+ 09  Payment Method Selection           -    Y    Y    -    DONE   (cash/wallet/card)
+ 10  All APIs in one file               -    -    Y    -    DONE   (api_service.dart)
+ 11  SSLCommerz Flutter (sandbox)       -    Y    Y    -    DONE
+ 12  Cash Payment Flow                  -    Y    Y    -    DONE
+ 13  Ride History API                   -    Y    Y    Y    DONE
+ 14  Ride Cancellation Flow             -    Y    Y    -    DONE
+ 15  Error Handling                     -    -    Y    -    DONE
+ 16  API Models                         -    -    Y    -    DONE
+ 17  GetX State Management              -    -    Y    -    DONE   (RideService)
+ --- PHASE 2 — Payments, wallet, earnings -------------------------------
+ 18  Fare Estimation (per-km)           Y    Y    Y    -    DONE
+ 19  Rate Passenger                     -    Y    Y    -    DONE
+ 20  Wallet (balance/top-up/history)    -    Y    Y    -    DONE
+ 21  Wallet Payment (+commission %)     Y    Y    Y    -    DONE
+ 22  Promo Code (apply as rider)        -    Y    Y    -    DONE
+ 23  Promotions/Banners (rider view)    Y    Y    Y    -    DONE
+ 24  Driver Earnings                    -    Y    Y    -    DONE
+ 25  Driver Trip History                -    Y    Y    -    DONE
+ 26  Payment Confirmation Push          -    Y    Y    -    DONE   (key now installed)
+ 27  Payment Receipt / Invoice (PDF)    -    Y    Y    -    DONE
+ --- PHASE 3 — Driver, vehicle, safety ----------------------------------
+ 28  Rate Rider                         -    Y    Y    -    DONE
+ 29  Driver Document Upload             Y    Y    Y    -    DONE
+ 30  Vehicle Management                 Y    Y    -    Y    DONE   (was mock → real)
+ 31  Driver Stats / Status Dashboard    -    Y    Y    -    DONE
+ 32  Driver Verification Status         Y    Y    Y    -    DONE
+ 33  SOS / Alerts                       Y    Y    Y    -    DONE   (web live map added)
+ --- PHASE 4 — Account & content ----------------------------------------
+ 34  Saved Addresses                    -    Y    Y    -    DONE
+ 35  Profile                            Y    Y    Y    Y    DONE
+ 36  Change Password                    Y    Y    Y    -    DONE
+ 37  Forgot Password                    -    Y    Y    -    DONE
+ 38  Notifications Screen (FCM)         Y    Y    Y    -    DONE
+ 39  Help Center + Terms/Privacy        -    Y    Y    -    DONE   (Legal pages added)
+ 40  About Screen                       -    -    Y    -    DONE
+ --- PHASE 5 — Chat & linking -------------------------------------------
+ 41  Driver Chat                        -   (FS)  Y    -    DONE*  (deploy Firestore rules)
+ 42  Real-Time Chat UI                  -   (FS)  Y    -    DONE*  (deploy Firestore rules)
+ 43  Deep Linking                       -    -    Y    -    DONE
+ --- PHASE 6 — Admin panel (was biggest gap; now filled) ----------------
+ 44  User Management                    Y    Y    -    Y    DONE   (was hardcoded → real)
+ 45  Driver Management                  Y    Y    -    Y    DONE   (now in-app too)
+ 46  Vehicle Management                 Y    Y    -    Y    DONE   (was mock → real)
+ 47  Live Ride Monitoring               Y    Y    -    Y    DONE   (UI now both sides)
+ 48  Revenue Dashboard                  Y    Y    Y    Y    DONE   (was hardcoded → real)
+ 49  Support Tickets (admin)            Y    Y    Y    Y    DONE   (was mock → real)
+ 50  Promo Management (create/edit)     Y    Y    -    W    WEB-ONLY
+ 51  Banner Management                  Y    Y    -    Y    DONE   (was mock → real)
+ 52  Pricing Settings (base + surge)    Y    Y    -    Y    DONE   (base-fare web-only)
+ 53  Reports & Analytics                Y    Y    -    Y    DONE   (was fake → real)
+ 54  System Settings                    Y    Y    -    Y    DONE   (was local-only → real)
+ --- PHASE 7 — Enterprise -----------------------------------------------
+ 55  Owner Module                       Y    Y    Y    -    DONE   (top cards now real)
+ 56  Corporate Module (+book employee)  Y    Y    Y    -    DONE   (booking screen added)
+ 57  Membership / Tier                  -    Y    Y    -    DONE   (was not built)
+ 58  Rewards / Points + Referral        -    Y    Y    -    DONE   (backend-only → UI added)
+ 59  Pay Later                          W    Y    Y    W    DONE   (was mock → real today)
+ 60  Split Payment (Wallet + Cash)      -    Y    Y    -    DONE   (was not built)
+ 61  Driver Payout System               Y    Y    -    Y    DONE   (API-only → UI both sides)
+
+ (Y) = shown in Live Ride Monitor / broadcast; not a dedicated admin action.
+ (FS)= real-time transport is Firebase Firestore, not the Laravel API.
+
+ TALLY: 61/61 items functional across the surfaces they belong to.
+        - 59 are DONE.
+        - 2 need a one-time deploy step (41, 42 → Firestore rules) = DONE*.
+        - 1 is intentionally web-admin-only (50 promo code editor).
+
+================================================================================
+ SECTION B — WHERE & HOW TO CHECK EACH RESULT
+================================================================================
+
+ -------------------------------------------------------------------------
+ SURFACE 1: [WEB] Browser Admin panel      URL: http://goride.test/admin
+ -------------------------------------------------------------------------
+ Log in with an admin account, then use the left sidebar.
+
+   Sidebar item / path              Checks item(s)   What you should see
+   -------------------------------  ---------------  ----------------------------
+   Dashboard (home)                 05,48            Real rides-today, revenue,
+                                                     online drivers, weekly chart
+   Users                            35,36,44         Real user list + actions
+   Drivers / Approvals              29,32,45         Approve / verify drivers
+   Vehicles                         30,46            Real vehicle list + status
+   Banners                          23,51            Add / edit / delete banners
+   Promo Codes                      22,50            Create / edit promo codes
+   Website Parameters               18,21,52         Base fare, per-km, commission%
+   Notifications (broadcast)        38               Send push to users
+   Corporates                       56               Corporate accounts / billing
+   Ride Operations > Live Rides     02,47            Live feed of ongoing rides
+   Ride Operations > Support Tickets 49              All tickets, reply, resolve
+   Ride Operations > Ride Reports   53               Revenue / rides / top drivers
+   Ride Operations > Driver Payouts 61               Pending payouts, pay, CSV
+   Ride Operations > SOS Alerts     33               LIVE MAP + resolve buttons
+   Ride Operations > Surge Pricing  52               Zones + multipliers
+
+ -------------------------------------------------------------------------
+ SURFACE 2: [API] Laravel REST API         Base: http://goride.test/api
+ -------------------------------------------------------------------------
+ Get a bearer token by logging in via the app or POST /api/login, then:
+   curl -H "Authorization: Bearer <TOKEN>" http://goride.test/api/<endpoint>
+
+   Endpoint                                Checks item(s)
+   --------------------------------------  --------------------
+   POST /driver/toggle-online              01
+   POST /ride-requests/match               02
+   GET  /ride-requests/{id}/offers         02
+   POST /ride-requests/{id}/status         05,08
+   GET  /ride-requests/{id}/detail         03,04
+   POST /ride-requests/{rideId}/decline    14
+   GET  /ride-requests/{rideId}/receipt    27
+   POST /ride-requests/{rideId}/pay-wallet 21,60
+   GET  /driver/earnings                   24
+   GET  /wallet/balance                    20,59  (returns pay_later_limit + due)
+   GET  /wallet/transactions               20,59
+   POST /wallet/top-up                     20
+   POST /promo/validate                    22
+   GET  /banners                           23
+   GET  /notifications                     38
+   POST /notifications/read-all            38
+   GET  /user/saved-addresses              34
+   GET  /support-tickets                   39,49
+   GET  /rewards                           57,58
+   GET  /referrals                         58
+   GET  /owner/dashboard | /fleet | /earnings         55
+   GET  /corporate/dashboard | /billing               56
+   POST /corporate/ride-request            56
+   GET  /admin/active-rides                47
+   GET  /admin/payouts/pending             61
+   POST /admin/payouts/process             61
+   GET  /admin/payouts/export              61  (CSV)
+   POST /admin/surge                       52
+   GET/POST/DELETE /admin/banners          51
+   GET  /admin/support-tickets             49
+   POST /payment/shurjopay/initiate        09,11  (sandbox)
+
+ -------------------------------------------------------------------------
+ SURFACE 3: [APP] Flutter app — RIDER + DRIVER
+ -------------------------------------------------------------------------
+ Log in as a passenger or driver.
+
+   Where in the app                        Checks item(s)
+   --------------------------------------  --------------------
+   Driver home > online/offline switch     01
+   Driver: incoming ride full-screen call  02,03,06,07  (rings even locked)
+   Driver active ride > NAVIGATE button    04
+   Trip screen > chat icon                 41,42
+   Payment sheet > Cash / Wallet / Card    09,12,21
+   Payment sheet > Split (Wallet + Cash)   60
+   Fare estimate sheet (before booking)    18
+   After trip > rating sheet               19,28
+   Notifications bell                      38
+   Ride History screen                     13,25
+   Cancel ride button                      14
+   Wallet screen                           20
+   Drawer > Saved Addresses                34
+   Drawer > Rewards & Invite               57,58
+   Drawer > Pay Later                      59  (real credit / due / txns)
+   Drawer > Help & Support                 39,49
+   Drawer > Terms / Privacy                39
+   Drawer > About                          40
+   Profile / Change / Forgot Password      35,36,37
+   Driver document upload / verify status  29,32
+   Driver stats dashboard                  31,24
+   SOS button (safety)                     33
+   Receipt / invoice (after payment)       27
+   Owner login > dashboard cards           55
+   Corporate login > Book Ride for Employee 56
+
+ -------------------------------------------------------------------------
+ SURFACE 4: [ADM] Flutter in-app Admin area
+ -------------------------------------------------------------------------
+ Log in with an admin account inside the app → dashboard tiles.
+ Each pulls LIVE API data; tapping through shows real rows + working actions.
+
+   Dashboard tile                          Checks item(s)
+   --------------------------------------  --------------------
+   User Management                         44
+   Driver Management (Drivers tab)         45
+   Vehicle Management                      30,46
+   Live Ride Monitor                       47
+   Reports & Analytics                     53
+   System Settings                         54
+   Support Tickets                         49
+   Banner Management                       51
+   Surge Management                        52
+   Payment Management > Driver Payouts     61
+
+================================================================================
+ SECTION C — DEPLOY / CONFIG STEPS STILL REQUIRED (code is done)
+================================================================================
+
+ 1. FIRESTORE RULES  (items 41, 42 — chat)
+    Deploy the security rules in goride/FIRESTORE_RULES.txt to your Firebase
+    project so chat reads/writes are allowed. Until then chat UI loads but
+    messages won't sync.
+
+ 2. PAY LATER LIMIT  (item 59)
+    Pay Later is OFF until an admin sets a limit > 0.
+    Web: Website Parameters / System Settings > pay_later_limit.
+    App admin: System Settings > Pay Later limit. (0 = feature disabled;
+    the app then shows a friendly "not available yet" screen.)
+
+ 3. FCM PUSH  (items 06, 07, 08, 26)  — ALREADY DONE
+    storage/app/firebase/service-account.json is installed (verified).
+    Push now works with the app closed / phone locked. No action needed.
+
+================================================================================
+ SECTION D — WHAT CHANGED SINCE THE OLD AUDIT (the list you pasted)
+================================================================================
+
+ The pasted audit was an EARLIER snapshot. Since then, these were fixed:
+
+   06/07/08/26  Push  ....... FCM key installed → now fully working.
+   30/46  Vehicle Mgmt ....... hardcoded mock → real API (list + status).
+   33     SOS  ............... web list → LIVE MAP with resolve.
+   39     Terms/Privacy ...... did not exist → LegalScreen (drawer+about).
+   44     User Mgmt  ......... fake 5 users → real users + approve/suspend.
+   47     Live Ride Monitor .. API only → in-app screen + web page.
+   48     Revenue Dashboard .. hardcoded numbers → real for all roles.
+   49     Support Tickets .... admin mock → real reply/resolve (app + web).
+   51     Banner Mgmt  ....... mock → real CRUD (app + web).
+   52     Pricing / Surge .... no UI → surge screen (app) + web pages.
+   53     Reports  ........... 100% fake → real report APIs wired.
+   54     System Settings .... local switches → saved to server.
+   55     Owner Module  ...... fake top cards → real dashboard data.
+   56     Corporate  ......... no booking screen → Book-for-Employee added.
+   57     Membership/Tier .... not built → Rewards tier card (Bronze..Platinum).
+   58     Rewards/Points  .... backend only → full Rewards & Invite screen.
+   59     Pay Later  ......... mock screen → real wallet/credit/due (today).
+   60     Split Payment  ..... not built → Wallet+Cash split at checkout.
+   61     Driver Payouts ..... API only → admin screen (app + web) + CSV.
+
+ Net result: the whole 1–61 feature set is now present and wired across all
+ four surfaces, minus the two deploy steps in Section C.
+
+================================================================================
+ END OF REPORT
+================================================================================

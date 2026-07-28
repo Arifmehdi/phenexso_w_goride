@@ -39,6 +39,8 @@ class Driver extends Authenticatable
         'profile_image', 'nid_front_image', 'nid_back_image', 'license_image', 'license_expiry',
         'vehicle_type', 'vehicle_model', 'vehicle_plate', 'vehicle_color', 'vehicle_year',
         'profile_completion', 'verification_status', 'rejection_reason',
+        // Referral — drivers can invite people too (mirrors users table)
+        'referral_code', 'referred_by', 'referral_credited',
     ];
 
     protected $hidden = [

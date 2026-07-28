@@ -30,15 +30,19 @@ class SosController extends Controller
             'status'          => 'active',
         ]);
 
-        // Notify all admins via FCM
-        $fcm = new FcmService();
-        User::where('role', 'admin')->whereNotNull('fcm_token')->each(function ($admin) use ($fcm, $user, $alert) {
-            $fcm->send(
-                $admin->fcm_token,
-                '🚨 SOS Alert!',
-                "{$user->name} triggered SOS" . ($alert->latitude ? " at {$alert->latitude},{$alert->longitude}" : ''),
-                ['type' => 'sos_alert', 'alert_id' => $alert->id, 'user_id' => $user->id]
-            );
+        // Notify every admin. SOS is safety-critical, so it must be RECORDED,
+        // not just pushed — a missed push used to mean the alert vanished.
+        // "Admin" exists in two places: the `admins` table, and users whose
+        // role is admin; both are covered here.
+        $title = '🚨 SOS Alert!';
+        $body  = "{$user->name} triggered SOS"
+            . ($alert->latitude ? " at {$alert->latitude},{$alert->longitude}" : '');
+        $payload = ['alert_id' => $alert->id, 'user_id' => $user->id];
+
+        notify()->toAllAdmins($title, $body, 'sos_alert', $payload);
+
+        User::where('role', 'admin')->each(function ($admin) use ($title, $body, $payload) {
+            notify()->toUser($admin, $title, $body, 'sos_alert', $payload);
         });
 
         // Task 51: SMS to emergency contact

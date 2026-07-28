@@ -73,6 +73,41 @@ class NotificationController extends Controller
     //     ]);
     // }
 
+    /**
+     * GET /api/notifications/unread-count — just the number, for the bell badge.
+     * Deliberately tiny: the app polls this, so it must stay cheap.
+     * Audience-aware (users / drivers / corporates / admins are separate tables).
+     */
+    public function unreadCount(Request $request)
+    {
+        $user = auth('sanctum')->user() ?? $request->user();
+        if (!$user) {
+            return response()->json(['success' => true, 'unread' => 0]);
+        }
+
+        $count = notificationQueryFor($user)
+            ->where('is_read', 0)
+            ->whereNotIn('id', $this->readBroadcastIds($user))
+            ->count();
+
+        return response()->json(['success' => true, 'unread' => $count]);
+    }
+
+    /**
+     * Broadcast notifications this account has already read.
+     *
+     * Broadcasts have `user_id = null`, so their single `is_read` flag can't
+     * track per-person state — that lives in `notification_reads`.
+     */
+    private function readBroadcastIds($user): array
+    {
+        return \DB::table('notification_reads')
+            ->where('user_id', $user->id)
+            ->where('owner_type', notificationAudience($user))
+            ->pluck('notification_id')
+            ->all();
+    }
+
     public function markAsRead(Request $request, $id)
     {
         $user = auth('sanctum')->user() ?? $request->user();
@@ -88,10 +123,30 @@ class NotificationController extends Controller
             ->first();
 
         if (!$notification) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Notification not found'
-            ], 404);
+            // Not personal — it may be a broadcast this account can see.
+            // Those are shared rows, so the read state is recorded per person.
+            $broadcast = Notification::where('id', $id)
+                ->where('all_show', 1)
+                ->whereIn('recipient_type', ['all', $audience])
+                ->first();
+
+            if (!$broadcast) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Notification not found'
+                ], 404);
+            }
+
+            \DB::table('notification_reads')->updateOrInsert(
+                [
+                    'notification_id' => $broadcast->id,
+                    'user_id'         => $user->id,
+                    'owner_type'      => $audience,
+                ],
+                ['read_at' => now(), 'updated_at' => now(), 'created_at' => now()]
+            );
+
+            return response()->json(['status' => true, 'message' => 'Notification marked as read']);
         }
 
         $notification->update(['is_read' => 1, 'read_at' => now()]);
@@ -109,10 +164,33 @@ class NotificationController extends Controller
             return response()->json(['status' => false, 'message' => 'Unauthenticated'], 401);
         }
 
+        $audience = notificationAudience($user);
+
         Notification::where('user_id', $user->id)
-            ->where('recipient_type', notificationAudience($user))
+            ->where('recipient_type', $audience)
             ->where('is_read', 0)
             ->update(['is_read' => 1, 'read_at' => now()]);
+
+        // Broadcasts are shared rows — mark them read for THIS account only,
+        // otherwise "mark all read" would leave the bell badge stuck.
+        $unreadBroadcasts = Notification::where('all_show', 1)
+            ->whereIn('recipient_type', ['all', $audience])
+            ->whereNotIn('id', $this->readBroadcastIds($user))
+            ->pluck('id');
+
+        if ($unreadBroadcasts->isNotEmpty()) {
+            $now = now();
+            \DB::table('notification_reads')->insertOrIgnore(
+                $unreadBroadcasts->map(fn ($id) => [
+                    'notification_id' => $id,
+                    'user_id'         => $user->id,
+                    'owner_type'      => $audience,
+                    'read_at'         => $now,
+                    'created_at'      => $now,
+                    'updated_at'      => $now,
+                ])->all()
+            );
+        }
 
         return response()->json([
             'status' => true,

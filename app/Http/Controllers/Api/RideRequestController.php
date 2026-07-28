@@ -111,18 +111,35 @@ class RideRequestController extends Controller
             if ($rider) $fcm->tripCompleted($rider, (string) $rideRequest->fare);
 
             // Referral bonus: when a referred rider completes their FIRST ride,
-            // credit the referrer ৳50 (once only).
+            // BOTH sides get paid (once only) — the referrer gets the referral
+            // bonus, the new rider gets the welcome bonus. Amounts are set by
+            // the admin; 0 disables that side.
             if ($rider && $rider->referred_by && !$rider->referral_credited) {
                 $isFirstRide = \App\Models\RideRequest::where('user_id', $rider->id)
                     ->where('status', 'completed')
                     ->where('id', '!=', $rideRequest->id)
                     ->doesntExist();
                 if ($isFirstRide) {
-                    \App\Http\Controllers\Api\WalletController::creditWallet(
-                        $rider->referred_by, 'user', 50,
-                        "Referral bonus — {$rider->name} completed their first ride",
-                        "referral_{$rider->id}"
-                    );
+                    $refCtrl = \App\Http\Controllers\Api\ReferralController::class;
+                    $bonus   = $refCtrl::referralBonus();
+                    $welcome = $refCtrl::refereeBonus();
+                    // Referrer may be a rider OR a driver — credit the right wallet.
+                    $refType = $rider->referred_by_type ?: 'user';
+
+                    if ($bonus > 0) {
+                        \App\Http\Controllers\Api\WalletController::creditWallet(
+                            $rider->referred_by, $refType, $bonus,
+                            "Referral bonus — {$rider->name} completed their first ride",
+                            "referral_{$rider->id}"
+                        );
+                    }
+                    if ($welcome > 0) {
+                        \App\Http\Controllers\Api\WalletController::creditWallet(
+                            $rider->id, 'user', $welcome,
+                            'Welcome bonus — thanks for joining with a referral code',
+                            "referral_welcome_{$rider->id}"
+                        );
+                    }
                     $rider->update(['referral_credited' => true]);
                 }
             }
@@ -176,11 +193,15 @@ class RideRequestController extends Controller
                 ]);
             }
 
-            // Notify the other party (driver token from drivers table, rider from users)
-            if ($cancelledBy === 'rider' && $driver && !empty($driver->fcm_token)) {
-                $fcm->send($driver->fcm_token, 'Ride Cancelled', 'The rider has cancelled this trip.', ['type' => 'ride_cancelled']);
-            } elseif ($cancelledBy === 'driver' && $rider && !empty($rider->fcm_token)) {
-                $fcm->send($rider->fcm_token, 'Ride Cancelled', 'Your driver has cancelled. We are finding another driver.', ['type' => 'ride_cancelled']);
+            // Notify the other party. notify() stores the in-app notification
+            // AND pushes, so a cancellation still shows in their list (and the
+            // bell badge) even if the push is missed or there's no token.
+            if ($cancelledBy === 'rider' && $driver) {
+                notify()->toDriver($driver, 'Ride Cancelled',
+                    'The rider has cancelled this trip.', 'ride_cancelled');
+            } elseif ($cancelledBy === 'driver' && $rider) {
+                notify()->toUser($rider, 'Ride Cancelled',
+                    'Your driver has cancelled. We are finding another driver.', 'ride_cancelled');
             }
         }
 

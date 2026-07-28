@@ -219,3 +219,34 @@ function currentUser()
 }
 
 
+
+if (!function_exists('sidebarOpen')) {
+    /**
+     * Returns AdminLTE's ' menu-open ' when the current request matches any of
+     * the given route-name patterns (e.g. 'admin.ride-ops.*').
+     *
+     * The sidebar's original highlighting relies on session('lsbm'), which a
+     * controller must set by calling menuSubmenu(). Pages that don't call it
+     * simply never highlight. This derives the state from the URL instead, so
+     * it always works; it is used ALONGSIDE the session checks, never
+     * replacing them.
+     */
+    function sidebarOpen(...$patterns): string
+    {
+        foreach ($patterns as $p) {
+            if (request()->routeIs($p)) return ' menu-open ';
+        }
+        return '';
+    }
+}
+
+if (!function_exists('sidebarActive')) {
+    /** Same as sidebarOpen(), but returns ' active ' for the link itself. */
+    function sidebarActive(...$patterns): string
+    {
+        foreach ($patterns as $p) {
+            if (request()->routeIs($p)) return ' active ';
+        }
+        return '';
+    }
+}

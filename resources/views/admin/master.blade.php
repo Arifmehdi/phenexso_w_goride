@@ -144,6 +144,28 @@
         }
         .menu-open > .nav-treeview { padding: 4px 0; }
 
+        /* Section dividers that group the menu (MAIN / RIDE OPERATIONS / …) */
+        .nav-sidebar .nav-header {
+            color: #6f8a7b !important;
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            padding: 16px 22px 6px !important;
+            margin-top: 4px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .nav-sidebar > .nav-header:first-child { border-top: 0; margin-top: 0; padding-top: 8px !important; }
+
+        /* Open group: tint the parent so it's obvious which section you're in */
+        .nav-sidebar .nav-item.menu-open > .nav-link {
+            background: rgba(22, 163, 74, 0.10) !important;
+            color: #fff !important;
+        }
+        /* Caret rotates when the group is open */
+        .nav-sidebar .nav-link .right { transition: transform .2s ease; }
+        .nav-sidebar .menu-open > .nav-link .right { transform: rotate(-90deg); }
+
         /* Custom scrollbar in sidebar */
         .sidebar::-webkit-scrollbar { width: 6px; }
         .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 3px; }
@@ -301,30 +323,191 @@
             <nav class="mt-2">
                 <ul class="nav nav-pills nav-sidebar flex-column pb-5" data-widget="treeview" role="menu" data-accordion="false">
 
-
-                    <li class="nav-item {{ session('lsbm') == 'dashboardM'? ' menu-open ' : ''}}">
-                        <a href="Javascript:void()" class="nav-link {{ session('lsbm') == 'dashboardM'? ' active ' : ''}}">
+                    <li class="nav-header">MAIN</li>
+                    {{-- Direct link — no dropdown, one click straight to the dashboard. --}}
+                    <li class="nav-item">
+                        <a href="{{route('admin.dashboard')}}" class="nav-link {{ session('lsbm') == 'dashboardM'? ' active ' : sidebarActive('admin.dashboard')}}">
                             <i class="nav-icon fas fa-tachometer-alt"></i>
+                            <p>Dashboard</p>
+                        </a>
+                    </li>
+
+                    <li class="nav-header">RIDE OPERATIONS</li>
+                    {{-- Ride Operations (live rides, tickets, reports, payouts, surge) --}}
+                    <li class="nav-item {{ sidebarOpen('admin.ride-ops.*', 'admin.rental.*') }}">
+                        <a href="#" class="nav-link {{ sidebarActive('admin.ride-ops.*', 'admin.rental.*') }}">
+                            <i class="nav-icon fas fa-taxi"></i>
                             <p>
-                                DashBoard
+                                Ride Operations
                                 <i class="fas fa-angle-left right"></i>
                             </p>
                         </a>
                         <ul class="nav nav-treeview">
                             <li class="nav-item">
-                                <a href="{{route('admin.dashboard')}}" class="nav-link {{ session('lsbsm') == 'dashboardSM'? ' active ' : ''}}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Admin DashBoard</p>
+                                <a href="{{ route('admin.ride-ops.live-rides') }}" class="nav-link {{ sidebarActive('admin.ride-ops.live-rides') }}">
+                                    <i class="far fa-circle nav-icon"></i><p>Live Rides</p>
                                 </a>
                             </li>
-                           
+                            <li class="nav-item">
+                                <a href="{{ route('admin.ride-ops.tickets') }}" class="nav-link {{ sidebarActive('admin.ride-ops.tickets') }}">
+                                    <i class="far fa-circle nav-icon"></i><p>Support Tickets</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.ride-ops.reports') }}" class="nav-link {{ sidebarActive('admin.ride-ops.reports') }}">
+                                    <i class="far fa-circle nav-icon"></i><p>Ride Reports</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.ride-ops.payouts') }}" class="nav-link {{ sidebarActive('admin.ride-ops.payouts') }}">
+                                    <i class="far fa-circle nav-icon"></i><p>Driver Payouts</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.ride-ops.sos') }}" class="nav-link {{ sidebarActive('admin.ride-ops.sos') }}">
+                                    <i class="far fa-circle nav-icon"></i><p>SOS Alerts</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.ride-ops.surge') }}" class="nav-link {{ sidebarActive('admin.ride-ops.surge') }}">
+                                    <i class="far fa-circle nav-icon"></i><p>Surge Pricing</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.ride-ops.rewards') }}" class="nav-link {{ sidebarActive('admin.ride-ops.rewards') }}">
+                                    <i class="far fa-circle nav-icon"></i><p>Rewards &amp; Referrals</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.rental.cars') }}" class="nav-link {{ sidebarActive('admin.rental.cars') }}">
+                                    <i class="far fa-circle nav-icon"></i><p>Rental Fleet</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.rental.bookings') }}" class="nav-link {{ sidebarActive('admin.rental.bookings') }}">
+                                    <i class="far fa-circle nav-icon"></i><p>Rental Bookings</p>
+                                </a>
+                            </li>
                         </ul>
                     </li>
 
+                    {{-- Approvals --}}
+                    <li class="nav-item {{ session('lsbm') == 'approvals'? ' menu-open ' : sidebarOpen('admin.approvals.index')}}">
+                        <a href="#" class="nav-link {{ session('lsbm') == 'approvals'? ' active ' : sidebarActive('admin.approvals.index')}}">
+                            <i class="nav-icon fas fa-check-double"></i>
+                            <p>
+                                Approvals
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{{ route('admin.approvals.index') }}" class="nav-link {{ session('lsbsm') == 'approvals' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Pending Approvals</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
 
+                    {{-- Ride Matching --}}
+                    <li class="nav-item {{ session('lsbm') == 'ride_matching'? ' menu-open ' : sidebarOpen('admin.ride-matching.index')}}">
+                        <a href="#" class="nav-link {{ session('lsbm') == 'ride_matching'? ' active ' : sidebarActive('admin.ride-matching.index')}}">
+                            <i class="nav-icon fas fa-route"></i>
+                            <p>
+                                Ride Matching
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{{ route('admin.ride-matching.index') }}" class="nav-link {{ session('lsbsm') == 'rideMatching' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Matching History</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
 
-                    <li class="nav-item {{ session('lsbm') == 'users'? ' menu-open ' : ''}}">
-                        <a href="#" class="nav-link {{ session('lsbm') == 'users'? ' active ' : ''}}">
+                    <li class="nav-header">FLEET &amp; DRIVERS</li>
+                    {{-- Drivers --}}
+                    <li class="nav-item {{ session('lsbm') == 'drivers'? ' menu-open ' : sidebarOpen('admin.drivers.index', 'admin.drivers.create')}}">
+                        <a href="#" class="nav-link {{ session('lsbm') == 'drivers'? ' active ' : sidebarActive('admin.drivers.index', 'admin.drivers.create')}}">
+                            <i class="nav-icon fas fa-user-friends"></i>
+                            <p>
+                                Drivers
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{{ route('admin.drivers.index') }}" class="nav-link {{ session('lsbsm') == 'allDrivers' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>All Drivers</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.drivers.create') }}" class="nav-link {{ session('lsbsm') == 'createDriver' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Add Driver</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    {{-- Vehicles --}}
+                    {{--<li class="nav-item {{ session('lsbm') == 'vehicles'? ' menu-open ' : ''}}">
+                        <a href="#" class="nav-link {{ session('lsbm') == 'vehicles'? ' active ' : ''}}">
+                            <i class="nav-icon fas fa-truck"></i> 
+                            <p>
+                                Vehicles
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{{ route('admin.vehicles.index') }}" class="nav-link {{ session('lsbsm') == 'allVehicles' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>All Vehicles</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.vehicles.create') }}" class="nav-link {{ session('lsbsm') == 'createVehicle' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Add Vehicle</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>--}}
+
+                    {{-- Vehicle Assignments --}}
+                    {{-- <li class="nav-item {{ session('lsbm') == 'vehicle_assignments'? ' menu-open ' : ''}}">
+                        <a href="#" class="nav-link {{ session('lsbm') == 'vehicle_assignments'? ' active ' : ''}}">
+                            <i class="nav-icon fas fa-clipboard-list"></i>
+                            <p>
+                                Vehicle Assignments
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{{ route('admin.vehicle_assignments.index') }}" class="nav-link {{ session('lsbsm') == 'allVehicleAssignments' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>All Assignments</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.vehicle_assignments.create') }}" class="nav-link {{ session('lsbsm') == 'createVehicleAssignment' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>New Assignment</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>--}}
+
+                    <li class="nav-header">CUSTOMERS &amp; ACCOUNTS</li>
+                    <li class="nav-item {{ session('lsbm') == 'users'? ' menu-open ' : sidebarOpen('admin.user', 'admin.create-user')}}">
+                        <a href="#" class="nav-link {{ session('lsbm') == 'users'? ' active ' : sidebarActive('admin.user', 'admin.create-user')}}">
                             <i class="nav-icon fas fa-users"></i>
                             <p>
                                 Users
@@ -347,54 +530,122 @@
                         </ul>
                     </li>
 
-                    <li class="nav-item {{ session('lsbm') == 'roles'? ' menu-open ' : ''}}">
-                        <a href="#" class="nav-link {{ session('lsbm') == 'roles'? ' active ' : ''}}">
-                            <i class="nav-icon fas fa-diagnoses"></i>
+                    {{-- Corporates --}}
+                    <li class="nav-item {{ session('lsbm') == 'corporates'? ' menu-open ' : sidebarOpen('admin.corporates.index', 'admin.corporates.create')}}">
+                        <a href="#" class="nav-link {{ session('lsbm') == 'corporates'? ' active ' : sidebarActive('admin.corporates.index', 'admin.corporates.create')}}">
+                            <i class="nav-icon fas fa-building"></i>
                             <p>
-                               Role Management
+                                Corporates
                                 <i class="fas fa-angle-left right"></i>
                             </p>
                         </a>
                         <ul class="nav nav-treeview">
                             <li class="nav-item">
-                                <a href="{{route('admin.manage-role')}}" class="nav-link {{ session('lsbsm') == 'allRoles'? ' active ' : ''}}">
+                                <a href="{{ route('admin.corporates.index') }}" class="nav-link {{ session('lsbsm') == 'allCorporates' ? ' active ' : '' }}">
                                     <i class="far fa-circle nav-icon"></i>
-                                    <p>Manage User Role</p>
+                                    <p>All Corporates</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="{{route('admin.assign-role')}}" class="nav-link {{ session('lsbsm') == 'assignRole'? ' active ' : ''}}">
+                                <a href="{{ route('admin.corporates.create') }}" class="nav-link {{ session('lsbsm') == 'createCorporate' ? ' active ' : '' }}">
                                     <i class="far fa-circle nav-icon"></i>
-                                    <p>Assign User Role</p>
+                                    <p>Add Corporate</p>
                                 </a>
                             </li>
                         </ul>
                     </li>
 
-
-                    {{--<li class="nav-item {{ session('lsbm') == 'slider'? ' menu-open ' : ''}}">
-                        <a href="#" class="nav-link {{ session('lsbm') == 'slider'? ' active ' : ''}}">
-                            <i class="nav-icon fas fa-search-location"></i>
+                    {{-- Admins --}}
+                    <li class="nav-item {{ session('lsbm') == 'admins'? ' menu-open ' : sidebarOpen('admin.admins.index', 'admin.admins.create')}}">
+                        <a href="#" class="nav-link {{ session('lsbm') == 'admins'? ' active ' : sidebarActive('admin.admins.index', 'admin.admins.create')}}">
+                            <i class="nav-icon fas fa-user-shield"></i>
                             <p>
-                                Sliders
+                                Admins
                                 <i class="fas fa-angle-left right"></i>
                             </p>
                         </a>
                         <ul class="nav nav-treeview">
                             <li class="nav-item">
-                                <a href="{{ route('sliders.index') }}" class="nav-link {{ session('lsbsm') == 'allFrontSlider' ? ' active ' : ''}}">
+                                <a href="{{ route('admin.admins.index') }}" class="nav-link {{ session('lsbsm') == 'allAdmins' ? ' active ' : '' }}">
                                     <i class="far fa-circle nav-icon"></i>
-                                    <p>All Sliders</p>
+                                    <p>All Admins</p>
                                 </a>
                             </li>
-
+                            <li class="nav-item">
+                                <a href="{{ route('admin.admins.create') }}" class="nav-link {{ session('lsbsm') == 'createAdmin' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Add Admin</p>
+                                </a>
+                            </li>
                         </ul>
-                    </li>--}}
+                    </li>
 
-                   
+                    <li class="nav-header">MARKETING</li>
+                    {{-- Promo Codes --}}
+                    <li class="nav-item {{ session('lsbm') == 'promo_codes'? ' menu-open ' : sidebarOpen('admin.promo-codes.index')}}">
+                        <a href="#" class="nav-link {{ session('lsbm') == 'promo_codes'? ' active ' : sidebarActive('admin.promo-codes.index')}}">
+                            <i class="nav-icon fas fa-tags"></i>
+                            <p>
+                                Promo Codes
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{{ route('admin.promo-codes.index') }}" class="nav-link {{ session('lsbsm') == 'promoCodesSM' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Manage Promo Codes</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
 
-                    <li class="nav-item {{ session('lsbm') == 'menupage' ? ' menu-open ' : ''}}">
-                        <a href="#" class="nav-link {{ session('lsbm') == 'menupage' ? ' active ' : ''}}">
+                    {{-- Banners --}}
+                    <li class="nav-item {{ session('lsbm') == 'banners'? ' menu-open ' : sidebarOpen('admin.banners.index')}}">
+                        <a href="#" class="nav-link {{ session('lsbm') == 'banners'? ' active ' : sidebarActive('admin.banners.index')}}">
+                            <i class="nav-icon fas fa-images"></i>
+                            <p>
+                                App Banners
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{{ route('admin.banners.index') }}" class="nav-link {{ session('lsbsm') == 'bannersSM' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Manage Banners</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item {{ session('lsbm') == 'testimonials' ? ' menu-open ' : sidebarOpen('testimonials.index', 'testimonials.create')}}">
+                        <a href="#" class="nav-link {{ session('lsbm') == 'testimonials' ? ' active ' : sidebarActive('testimonials.index', 'testimonials.create')}}">
+                            <i class="nav-icon fas fa-quote-right"></i>
+                            <p>
+                                Testimonials
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{{ route('testimonials.index') }}" class="nav-link {{ session('lsbsm') == 'testimonialsAll' ? ' active ' : ''}}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>All Testimonials</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('testimonials.create') }}" class="nav-link {{ session('lsbsm') == 'createTestimonial' ? ' active ' : ''}}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Create Testimonial</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-header">CONTENT</li>
+                    <li class="nav-item {{ session('lsbm') == 'menupage' ? ' menu-open ' : sidebarOpen('admin.menusAll', 'admin.pagesAll')}}">
+                        <a href="#" class="nav-link {{ session('lsbm') == 'menupage' ? ' active ' : sidebarActive('admin.menusAll', 'admin.pagesAll')}}">
                             <i class="nav-icon fas fa-bezier-curve"></i>
                             <p>
                                 Menus & Pages
@@ -421,8 +672,8 @@
                         </ul>
                     </li>
 
-                    <li class="nav-item {{ session('lsbm') == 'pagecontents' ? ' menu-open ' : ''}}">
-                        <a href="#" class="nav-link {{ session('lsbm') == 'pagecontents' ? ' active ' : ''}}">
+                    <li class="nav-item {{ session('lsbm') == 'pagecontents' ? ' menu-open ' : sidebarOpen('admin.page_contents.index', 'admin.page_contents.create')}}">
+                        <a href="#" class="nav-link {{ session('lsbm') == 'pagecontents' ? ' active ' : sidebarActive('admin.page_contents.index', 'admin.page_contents.create')}}">
                             <i class="nav-icon fas fa-file-alt"></i>
                             <p>
                                 Page Contents
@@ -444,6 +695,136 @@
                             </li>
                         </ul>
                     </li>
+
+                    <li class="nav-item {{ session('lsbm') == 'mediaM'? ' menu-open ' : sidebarOpen('medias.index')}}">
+                        <a href="#" class="nav-link {{ session('lsbm') == 'mediaM'? ' active ' : sidebarActive('medias.index')}}">
+                            <i class="nav-icon fas fa-pager"></i>
+                            <p>
+                                Media
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{{ route('medias.index') }}" class="nav-link {{ session('lsbsm') == 'mediaSM'? ' active ' : ''}}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>All Media</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    {{--<li class="nav-item {{ session('lsbm') == 'galleries' ? ' menu-open ' : '' }}">
+                        <a href="#" class="nav-link {{ session('lsbm') == 'galleries' ? ' active ' : '' }}">
+                            <i class="nav-icon fas fas fa-bell"></i>
+                            <p>
+                                Galleries
+                                <i class="right fas fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{{ route('galleries.index') }}"
+                                    class="nav-link {{ session('lsbsm') == 'all_gallery' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>All Galleries</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('galleries.create') }}"
+                                    class="nav-link {{ session('lsbsm') == 'create_gallery' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Create Gallery</p>
+                                </a>
+                            </li>
+
+                        </ul>
+                    </li>--}}
+
+                    {{--<li class="nav-item {{ session('lsbm') == 'posts'? ' menu-open ' : ''}}">
+                        <a href="#" class="nav-link {{ session('lsbm') == 'posts'? ' active ' : ''}}">
+                            <i class="nav-icon far fa-share-square"></i>
+                            <p>
+                                News
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+
+                            <li class="nav-item">
+                                <a href="{{route('categories.index')}}" class="nav-link {{ session('lsbsm') == 'allCategories' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>All  Category</p>
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a href="{{route('categories.create')}}" class="nav-link {{ session('lsbsm') == 'createCategory' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Create  Category</p>
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a href="{{route('news.index')}}" class="nav-link {{ session('lsbsm') == 'allPosts' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>All News</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{route('news.create')}}" class="nav-link {{ session('lsbsm') == 'storePost' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Create News</p>
+                                </a>
+                            </li>
+
+                        </ul>
+                    </li>--}}
+
+
+                   {{-- <li class="nav-item {{ session('lsbm') == 'ambulances'? ' menu-open ' : ''}}">
+                        <a href="#" class="nav-link {{ session('lsbm') == 'ambulances'? ' active ' : ''}}">
+                            <i class="nav-icon fas fa-users"></i>
+                            <p>
+                                Ambulance Services
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{{route('ambulances.index')}}" class="nav-link {{ session('lsbsm') == 'allAmbulances' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>All Ambulance Services</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{route('ambulances.create')}}" class="nav-link {{ session('lsbsm') == 'createAmbulance' ? ' active ' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Create Ambulance Service</p>
+                                </a>
+                            </li>
+
+                        </ul>
+                    </li>--}}
+
+                    {{--<li class="nav-item {{ session('lsbm') == 'slider'? ' menu-open ' : ''}}">
+                        <a href="#" class="nav-link {{ session('lsbm') == 'slider'? ' active ' : ''}}">
+                            <i class="nav-icon fas fa-search-location"></i>
+                            <p>
+                                Sliders
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{{ route('sliders.index') }}" class="nav-link {{ session('lsbsm') == 'allFrontSlider' ? ' active ' : ''}}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>All Sliders</p>
+                                </a>
+                            </li>
+
+                        </ul>
+                    </li>--}}
 
                     {{--<li class="nav-item {{ session('lsbm') == 'categories'? ' menu-open ' : ''}}">
                         <a href="#" class="nav-link {{ session('lsbm') == 'categories'? ' active ' : ''}}">
@@ -548,143 +929,6 @@
                         </ul>
                     </li>--}}
 
-
-                    <li class="nav-item {{ session('lsbm') == 'mediaM'? ' menu-open ' : ''}}">
-                        <a href="#" class="nav-link {{ session('lsbm') == 'mediaM'? ' active ' : ''}}">
-                            <i class="nav-icon fas fa-pager"></i>
-                            <p>
-                                Media
-                                <i class="fas fa-angle-left right"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview">
-                            <li class="nav-item">
-                                <a href="{{ route('medias.index') }}" class="nav-link {{ session('lsbsm') == 'mediaSM'? ' active ' : ''}}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>All Media</p>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-
-                    <li class="nav-item {{ session('lsbm') == 'posts'? ' menu-open ' : ''}}">
-                        <a href="#" class="nav-link {{ session('lsbm') == 'posts'? ' active ' : ''}}">
-                            <i class="nav-icon far fa-share-square"></i>
-                            <p>
-                                News
-                                <i class="fas fa-angle-left right"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview">
-
-                            <li class="nav-item">
-                                <a href="{{route('categories.index')}}" class="nav-link {{ session('lsbsm') == 'allCategories' ? ' active ' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>All  Category</p>
-                                </a>
-                            </li>
-
-                            <li class="nav-item">
-                                <a href="{{route('categories.create')}}" class="nav-link {{ session('lsbsm') == 'createCategory' ? ' active ' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Create  Category</p>
-                                </a>
-                            </li>
-
-                            <li class="nav-item">
-                                <a href="{{route('news.index')}}" class="nav-link {{ session('lsbsm') == 'allPosts' ? ' active ' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>All News</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{route('news.create')}}" class="nav-link {{ session('lsbsm') == 'storePost' ? ' active ' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Create News</p>
-                                </a>
-                            </li>
-
-                        </ul>
-                    </li>
-
-
-                   {{-- <li class="nav-item {{ session('lsbm') == 'ambulances'? ' menu-open ' : ''}}">
-                        <a href="#" class="nav-link {{ session('lsbm') == 'ambulances'? ' active ' : ''}}">
-                            <i class="nav-icon fas fa-users"></i>
-                            <p>
-                                Ambulance Services
-                                <i class="fas fa-angle-left right"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview">
-                            <li class="nav-item">
-                                <a href="{{route('ambulances.index')}}" class="nav-link {{ session('lsbsm') == 'allAmbulances' ? ' active ' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>All Ambulance Services</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{route('ambulances.create')}}" class="nav-link {{ session('lsbsm') == 'createAmbulance' ? ' active ' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Create Ambulance Service</p>
-                                </a>
-                            </li>
-
-                        </ul>
-                    </li>--}}
-
-
-                    <li class="nav-item {{ session('lsbm') == 'galleries' ? ' menu-open ' : '' }}">
-                        <a href="#" class="nav-link {{ session('lsbm') == 'galleries' ? ' active ' : '' }}">
-                            <i class="nav-icon fas fas fa-bell"></i>
-                            <p>
-                                Galleries
-                                <i class="right fas fa-angle-left"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview">
-                            <li class="nav-item">
-                                <a href="{{ route('galleries.index') }}"
-                                    class="nav-link {{ session('lsbsm') == 'all_gallery' ? ' active ' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>All Galleries</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{ route('galleries.create') }}"
-                                    class="nav-link {{ session('lsbsm') == 'create_gallery' ? ' active ' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Create Gallery</p>
-                                </a>
-                            </li>
-
-                        </ul>
-                    </li>
-
-                    <li class="nav-item {{ session('lsbm') == 'testimonials' ? ' menu-open ' : ''}}">
-                        <a href="#" class="nav-link {{ session('lsbm') == 'testimonials' ? ' active ' : ''}}">
-                            <i class="nav-icon fas fa-quote-right"></i>
-                            <p>
-                                Testimonials
-                                <i class="fas fa-angle-left right"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview">
-                            <li class="nav-item">
-                                <a href="{{ route('testimonials.index') }}" class="nav-link {{ session('lsbsm') == 'testimonialsAll' ? ' active ' : ''}}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>All Testimonials</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{ route('testimonials.create') }}" class="nav-link {{ session('lsbsm') == 'createTestimonial' ? ' active ' : ''}}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Create Testimonial</p>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-
                     {{--<li class="nav-item {{ session('lsbm') == 'appointments'? ' menu-open ' : ''}}">
                         <a href="#" class="nav-link {{ session('lsbm') == 'appointments'? ' active ' : ''}}">
                             <i class="nav-icon fas fa-pager"></i>
@@ -703,7 +947,6 @@
 
                         </ul>
                     </li>--}}
-
 
                     {{-- Products --}}
                     {{--<li class="nav-item {{ session('lsbm') == 'product'? ' menu-open ' : ''}}">
@@ -734,246 +977,6 @@
                                 </a>
                             </li>
 
-                        </ul>
-                    </li>--}}
-
-                                            
-                    {{-- Vehicles --}}
-                    {{--<li class="nav-item {{ session('lsbm') == 'vehicles'? ' menu-open ' : ''}}">
-                        <a href="#" class="nav-link {{ session('lsbm') == 'vehicles'? ' active ' : ''}}">
-                            <i class="nav-icon fas fa-truck"></i> 
-                            <p>
-                                Vehicles
-                                <i class="fas fa-angle-left right"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview">
-                            <li class="nav-item">
-                                <a href="{{ route('admin.vehicles.index') }}" class="nav-link {{ session('lsbsm') == 'allVehicles' ? ' active ' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>All Vehicles</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{ route('admin.vehicles.create') }}" class="nav-link {{ session('lsbsm') == 'createVehicle' ? ' active ' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Add Vehicle</p>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>--}}
-
-                    {{-- Drivers --}}
-                    <li class="nav-item {{ session('lsbm') == 'drivers'? ' menu-open ' : ''}}">
-                        <a href="#" class="nav-link {{ session('lsbm') == 'drivers'? ' active ' : ''}}">
-                            <i class="nav-icon fas fa-user-friends"></i>
-                            <p>
-                                Drivers
-                                <i class="fas fa-angle-left right"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview">
-                            <li class="nav-item">
-                                <a href="{{ route('admin.drivers.index') }}" class="nav-link {{ session('lsbsm') == 'allDrivers' ? ' active ' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>All Drivers</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{ route('admin.drivers.create') }}" class="nav-link {{ session('lsbsm') == 'createDriver' ? ' active ' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Add Driver</p>
-                                </a>
-                            </li>
-                        </ul>
-
-                    {{-- Approvals --}}
-                    <li class="nav-item {{ session('lsbm') == 'approvals'? ' menu-open ' : ''}}">
-                        <a href="#" class="nav-link {{ session('lsbm') == 'approvals'? ' active ' : ''}}">
-                            <i class="nav-icon fas fa-check-double"></i>
-                            <p>
-                                Approvals
-                                <i class="fas fa-angle-left right"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview">
-                            <li class="nav-item">
-                                <a href="{{ route('admin.approvals.index') }}" class="nav-link {{ session('lsbsm') == 'approvals' ? ' active ' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Pending Approvals</p>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                    </li>
-
-                    {{-- Ride Matching --}}
-                    <li class="nav-item {{ session('lsbm') == 'ride_matching'? ' menu-open ' : ''}}">
-                        <a href="#" class="nav-link {{ session('lsbm') == 'ride_matching'? ' active ' : ''}}">
-                            <i class="nav-icon fas fa-route"></i>
-                            <p>
-                                Ride Matching
-                                <i class="fas fa-angle-left right"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview">
-                            <li class="nav-item">
-                                <a href="{{ route('admin.ride-matching.index') }}" class="nav-link {{ session('lsbsm') == 'rideMatching' ? ' active ' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Matching History</p>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-
-                    {{-- Ride Operations (live rides, tickets, reports, payouts, surge) --}}
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <i class="nav-icon fas fa-taxi"></i>
-                            <p>
-                                Ride Operations
-                                <i class="fas fa-angle-left right"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview">
-                            <li class="nav-item">
-                                <a href="{{ route('admin.ride-ops.live-rides') }}" class="nav-link">
-                                    <i class="far fa-circle nav-icon"></i><p>Live Rides</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{ route('admin.ride-ops.tickets') }}" class="nav-link">
-                                    <i class="far fa-circle nav-icon"></i><p>Support Tickets</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{ route('admin.ride-ops.reports') }}" class="nav-link">
-                                    <i class="far fa-circle nav-icon"></i><p>Ride Reports</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{ route('admin.ride-ops.payouts') }}" class="nav-link">
-                                    <i class="far fa-circle nav-icon"></i><p>Driver Payouts</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{ route('admin.ride-ops.surge') }}" class="nav-link">
-                                    <i class="far fa-circle nav-icon"></i><p>Surge Pricing</p>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-
-                    {{-- Promo Codes --}}
-                    <li class="nav-item {{ session('lsbm') == 'promo_codes'? ' menu-open ' : ''}}">
-                        <a href="#" class="nav-link {{ session('lsbm') == 'promo_codes'? ' active ' : ''}}">
-                            <i class="nav-icon fas fa-tags"></i>
-                            <p>
-                                Promo Codes
-                                <i class="fas fa-angle-left right"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview">
-                            <li class="nav-item">
-                                <a href="{{ route('admin.promo-codes.index') }}" class="nav-link {{ session('lsbsm') == 'promoCodesSM' ? ' active ' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Manage Promo Codes</p>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-
-                    {{-- Banners --}}
-                    <li class="nav-item {{ session('lsbm') == 'banners'? ' menu-open ' : ''}}">
-                        <a href="#" class="nav-link {{ session('lsbm') == 'banners'? ' active ' : ''}}">
-                            <i class="nav-icon fas fa-images"></i>
-                            <p>
-                                App Banners
-                                <i class="fas fa-angle-left right"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview">
-                            <li class="nav-item">
-                                <a href="{{ route('admin.banners.index') }}" class="nav-link {{ session('lsbsm') == 'bannersSM' ? ' active ' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Manage Banners</p>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-
-                    {{-- Corporates --}}
-                    <li class="nav-item {{ session('lsbm') == 'corporates'? ' menu-open ' : ''}}">
-                        <a href="#" class="nav-link {{ session('lsbm') == 'corporates'? ' active ' : ''}}">
-                            <i class="nav-icon fas fa-building"></i>
-                            <p>
-                                Corporates
-                                <i class="fas fa-angle-left right"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview">
-                            <li class="nav-item">
-                                <a href="{{ route('admin.corporates.index') }}" class="nav-link {{ session('lsbsm') == 'allCorporates' ? ' active ' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>All Corporates</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{ route('admin.corporates.create') }}" class="nav-link {{ session('lsbsm') == 'createCorporate' ? ' active ' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Add Corporate</p>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-
-                    {{-- Admins --}}
-                    <li class="nav-item {{ session('lsbm') == 'admins'? ' menu-open ' : ''}}">
-                        <a href="#" class="nav-link {{ session('lsbm') == 'admins'? ' active ' : ''}}">
-                            <i class="nav-icon fas fa-user-shield"></i>
-                            <p>
-                                Admins
-                                <i class="fas fa-angle-left right"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview">
-                            <li class="nav-item">
-                                <a href="{{ route('admin.admins.index') }}" class="nav-link {{ session('lsbsm') == 'allAdmins' ? ' active ' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>All Admins</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{ route('admin.admins.create') }}" class="nav-link {{ session('lsbsm') == 'createAdmin' ? ' active ' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Add Admin</p>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-
-                    {{-- Vehicle Assignments --}}
-                    {{-- <li class="nav-item {{ session('lsbm') == 'vehicle_assignments'? ' menu-open ' : ''}}">
-                        <a href="#" class="nav-link {{ session('lsbm') == 'vehicle_assignments'? ' active ' : ''}}">
-                            <i class="nav-icon fas fa-clipboard-list"></i>
-                            <p>
-                                Vehicle Assignments
-                                <i class="fas fa-angle-left right"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview">
-                            <li class="nav-item">
-                                <a href="{{ route('admin.vehicle_assignments.index') }}" class="nav-link {{ session('lsbsm') == 'allVehicleAssignments' ? ' active ' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>All Assignments</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{ route('admin.vehicle_assignments.create') }}" class="nav-link {{ session('lsbsm') == 'createVehicleAssignment' ? ' active ' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>New Assignment</p>
-                                </a>
-                            </li>
                         </ul>
                     </li>--}}
 
@@ -1015,6 +1018,49 @@
                         </ul>
                     </li>--}}
 
+                   {{--<li class="nav-item {{ session('lsbm') == 'shipping' ? 'menu-open' : '' }}">
+                        <a href="#" class="nav-link {{ session('lsbm') == 'shipping' ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-shopping-bag"></i>
+                            <p>
+                            Shipping Method
+                            <i class="right fas fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                            <a href="{{ route('shipping.index') }}" class="nav-link {{ session('lsbsm') == 'shippingMethod' ? 'active' : '' }}">
+                                <i class="far fa-dot-circle nav-icon"></i>
+                                <p>Method List</p>
+                            </a>
+                            </li>
+                        </ul>
+                    </li>--}}
+
+                    {{--<li class="nav-item {{ session('lsbm') == 'roles'? ' menu-open ' : ''}}">
+                        <a href="#" class="nav-link {{ session('lsbm') == 'roles'? ' active ' : ''}}">
+                            <i class="nav-icon fas fa-diagnoses"></i>
+                            <p>
+                               Role Management
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{{route('admin.manage-role')}}" class="nav-link {{ session('lsbsm') == 'allRoles'? ' active ' : ''}}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Manage User Role</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{route('admin.assign-role')}}" class="nav-link {{ session('lsbsm') == 'assignRole'? ' active ' : ''}}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Assign User Role</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>--}}
+
+                    <li class="nav-header">SETTINGS</li>
                     {{-- Contact Messages --}}
                     <li class="nav-item {{ session('lsbm') == 'contacts' ? 'menu-open' : '' }}">
                         <a href="#" class="nav-link {{ session('lsbm') == 'contacts' ? 'active' : '' }}">
@@ -1034,28 +1080,8 @@
                         </ul>
                     </li>
 
-                   {{--<li class="nav-item {{ session('lsbm') == 'shipping' ? 'menu-open' : '' }}">
-                        <a href="#" class="nav-link {{ session('lsbm') == 'shipping' ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-shopping-bag"></i>
-                            <p>
-                            Shipping Method
-                            <i class="right fas fa-angle-left"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview">
-                            <li class="nav-item">
-                            <a href="{{ route('shipping.index') }}" class="nav-link {{ session('lsbsm') == 'shippingMethod' ? 'active' : '' }}">
-                                <i class="far fa-dot-circle nav-icon"></i>
-                                <p>Method List</p>
-                            </a>
-                            </li>
-                        </ul>
-                    </li>--}}
-                   
-                   
-
-                    <li class="nav-item {{ session('lsbm') == 'websiteparam'? ' menu-open ' : ''}}">
-                        <a href="#" class="nav-link {{ session('lsbm') == 'websiteparam'? ' active ' : ''}}">
+                    <li class="nav-item {{ session('lsbm') == 'websiteparam'? ' menu-open ' : sidebarOpen('websiteparam')}}">
+                        <a href="#" class="nav-link {{ session('lsbm') == 'websiteparam'? ' active ' : sidebarActive('websiteparam')}}">
                             <i class="nav-icon fas fa-desktop"></i>
                             <p>
                                  Website Settings
@@ -1072,6 +1098,7 @@
 
                         </ul>
                     </li>
+
               
               
                 </ul>

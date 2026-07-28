@@ -49,6 +49,7 @@ class User extends Authenticatable implements CanResetPassword
         'company_name',
         'referral_code',
         'referred_by',
+        'referred_by_type',
         'referral_credited',
     ];
 

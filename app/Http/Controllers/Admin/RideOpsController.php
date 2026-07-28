@@ -164,6 +164,38 @@ class RideOpsController extends Controller
         }, $filename, ['Content-Type' => 'text/csv']);
     }
 
+    // ── SOS alerts (live map) ──────────────────────────────────
+
+    public function sos()
+    {
+        $alerts = \App\Models\SosAlert::with('user:id,name,mobile,emergency_contact_name,emergency_contact_phone')
+            ->orderByRaw("FIELD(status,'active','resolved')")
+            ->orderByDesc('created_at')
+            ->take(100)
+            ->get();
+
+        // Points with coordinates, for the map markers.
+        $points = $alerts->filter(fn ($a) => $a->latitude && $a->longitude)
+            ->map(fn ($a) => [
+                'id'     => $a->id,
+                'lat'    => (float) $a->latitude,
+                'lng'    => (float) $a->longitude,
+                'name'   => $a->user->name ?? 'Unknown',
+                'mobile' => $a->user->mobile ?? '',
+                'status' => $a->status,
+                'time'   => $a->created_at->format('d M H:i'),
+            ])->values();
+
+        return view('admin.ride_ops.sos', compact('alerts', 'points'));
+    }
+
+    public function sosResolve($id)
+    {
+        $alert = \App\Models\SosAlert::findOrFail($id);
+        $alert->update(['status' => 'resolved', 'resolved_at' => now()]);
+        return back()->with('success', 'SOS alert marked resolved.');
+    }
+
     // ── Surge zones ────────────────────────────────────────────
 
     public function surgeIndex()
@@ -200,5 +232,86 @@ class RideOpsController extends Controller
         $zone = SurgeZone::findOrFail($id);
         $zone->update(['is_active' => !$zone->is_active]);
         return back()->with('success', 'Surge zone ' . ($zone->is_active ? 'activated' : 'deactivated') . '.');
+    }
+
+    /**
+     * Rewards & Referrals — the settings that drive point/bonus maths, plus a
+     * leaderboard of who is actually inviting people.
+     */
+    public function rewards()
+    {
+        $ref = \App\Http\Controllers\Api\ReferralController::class;
+
+        $settings = [
+            'taka_per_point' => $ref::takaPerPoint(),
+            'referral_bonus' => $ref::referralBonus(),
+            'referee_bonus'  => $ref::refereeBonus(),
+        ];
+
+        // Top referrers across BOTH riders and drivers. Counted with a grouped
+        // query so we don't need a relationship on the model.
+        $riderCounts = \App\Models\User::whereNotNull('referred_by')
+            ->where(function ($q) {
+                $q->where('referred_by_type', 'user')->orWhereNull('referred_by_type');
+            })
+            ->selectRaw('referred_by, COUNT(*) as c')
+            ->groupBy('referred_by')->pluck('c', 'referred_by');
+
+        $topRiders = \App\Models\User::whereIn('id', $riderCounts->keys())
+            ->get(['id', 'name', 'mobile', 'referral_code'])
+            ->map(fn ($u) => (object) [
+                'name' => $u->name, 'mobile' => $u->mobile, 'role' => 'Rider',
+                'code' => $u->referral_code, 'count' => (int) ($riderCounts[$u->id] ?? 0),
+            ]);
+
+        $topDrivers = collect();
+        if (\Schema::hasColumn('drivers', 'referral_code')) {
+            $topDrivers = \App\Models\Driver::whereNotNull('referral_code')
+                ->take(200)->get(['id', 'name', 'mobile', 'referral_code'])
+                ->map(function ($d) {
+                    $count = \App\Models\Driver::where('referred_by', $d->id)
+                        ->where('referred_by_type', 'driver')->count()
+                        + \App\Models\User::where('referred_by', $d->id)
+                            ->where('referred_by_type', 'driver')->count();
+                    return (object) [
+                        'name' => $d->name, 'mobile' => $d->mobile, 'role' => 'Driver',
+                        'code' => $d->referral_code, 'count' => $count,
+                    ];
+                })->filter(fn ($d) => $d->count > 0);
+        }
+
+        $leaders = $topRiders->concat($topDrivers)
+            ->sortByDesc('count')->take(20)->values();
+
+        // Programme totals.
+        $stats = [
+            'total_referred'  => \App\Models\User::whereNotNull('referred_by')->count()
+                + (\Schema::hasColumn('drivers', 'referred_by')
+                    ? \App\Models\Driver::whereNotNull('referred_by')->count() : 0),
+            'total_credited'  => \App\Models\User::where('referral_credited', true)->count(),
+        ];
+        $stats['bonus_paid'] = $stats['total_credited']
+            * ($settings['referral_bonus'] + $settings['referee_bonus']);
+
+        return view('admin.ride_ops.rewards', compact('settings', 'leaders', 'stats'));
+    }
+
+    /** Saves the rewards/referral settings. */
+    public function rewardsSave(Request $request)
+    {
+        $request->validate([
+            'taka_per_point' => 'required|numeric|min:1',
+            'referral_bonus' => 'required|numeric|min:0',
+            'referee_bonus'  => 'required|numeric|min:0',
+        ]);
+
+        foreach (['taka_per_point', 'referral_bonus', 'referee_bonus'] as $key) {
+            \App\Models\AppSetting::updateOrCreate(
+                ['key' => $key],
+                ['value' => (string) $request->input($key)]
+            );
+        }
+
+        return back()->with('success', 'Rewards settings saved.');
     }
 }

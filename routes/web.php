@@ -745,6 +745,18 @@ Route::middleware(['auth:admin,web', 'userRole:admin'])->prefix('admin')->group(
     Route::get('/payouts', [\App\Http\Controllers\Admin\RideOpsController::class, 'payouts'])->name('admin.ride-ops.payouts');
     Route::post('/payouts/process', [\App\Http\Controllers\Admin\RideOpsController::class, 'payoutProcess'])->name('admin.ride-ops.payouts.process');
     Route::get('/payouts/export', [\App\Http\Controllers\Admin\RideOpsController::class, 'payoutsExport'])->name('admin.ride-ops.payouts.export');
+    Route::get('/sos-alerts', [\App\Http\Controllers\Admin\RideOpsController::class, 'sos'])->name('admin.ride-ops.sos');
+    Route::post('/sos-alerts/{id}/resolve', [\App\Http\Controllers\Admin\RideOpsController::class, 'sosResolve'])->name('admin.ride-ops.sos.resolve');
+    // ── Rent a Car ──
+    Route::get('/rental/cars',                 [\App\Http\Controllers\Admin\RentalController::class, 'cars'])->name('admin.rental.cars');
+    Route::post('/rental/cars/save',           [\App\Http\Controllers\Admin\RentalController::class, 'saveCar'])->name('admin.rental.cars.save');
+    Route::delete('/rental/cars/{id}',         [\App\Http\Controllers\Admin\RentalController::class, 'deleteCar'])->name('admin.rental.cars.delete');
+    Route::post('/rental/cars/{id}/toggle',    [\App\Http\Controllers\Admin\RentalController::class, 'toggleCar'])->name('admin.rental.cars.toggle');
+    Route::get('/rental/bookings',             [\App\Http\Controllers\Admin\RentalController::class, 'bookings'])->name('admin.rental.bookings');
+    Route::post('/rental/bookings/{id}/status',[\App\Http\Controllers\Admin\RentalController::class, 'updateBookingStatus'])->name('admin.rental.bookings.status');
+
+    Route::get('/rewards', [\App\Http\Controllers\Admin\RideOpsController::class, 'rewards'])->name('admin.ride-ops.rewards');
+    Route::post('/rewards', [\App\Http\Controllers\Admin\RideOpsController::class, 'rewardsSave'])->name('admin.ride-ops.rewards.save');
     Route::get('/surge', [\App\Http\Controllers\Admin\RideOpsController::class, 'surgeIndex'])->name('admin.ride-ops.surge');
     Route::post('/surge', [\App\Http\Controllers\Admin\RideOpsController::class, 'surgeStore'])->name('admin.ride-ops.surge.store');
     Route::post('/surge/{id}/toggle', [\App\Http\Controllers\Admin\RideOpsController::class, 'surgeToggle'])->name('admin.ride-ops.surge.toggle');
@@ -752,6 +764,7 @@ Route::middleware(['auth:admin,web', 'userRole:admin'])->prefix('admin')->group(
     // Admin and Corporate management
     Route::resource('admins', AdminController::class)->names('admin.admins');
     Route::resource('corporates', CorporateController::class)->names('admin.corporates');
+    Route::post('corporates/{corporate}/settle', [CorporateController::class, 'settleBills'])->name('admin.corporates.settle');
 
 });
 

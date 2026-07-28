@@ -110,6 +110,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [ApiAuthController::class, 'me']);
     // 
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
+    Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
+
+    // ── Rent a Car ──
+    Route::get('/rental/cars',                    [\App\Http\Controllers\Api\RentalController::class, 'cars']);
+    Route::post('/rental/bookings',               [\App\Http\Controllers\Api\RentalController::class, 'book']);
+    Route::get('/rental/bookings',                [\App\Http\Controllers\Api\RentalController::class, 'myBookings']);
+    Route::post('/rental/bookings/{id}/cancel',   [\App\Http\Controllers\Api\RentalController::class, 'cancel']);
+    // Admin
+    Route::get('/admin/rental/bookings',              [\App\Http\Controllers\Api\RentalController::class, 'adminBookings']);
+    Route::post('/admin/rental/bookings/{id}/status', [\App\Http\Controllers\Api\RentalController::class, 'adminUpdateStatus']);
+    Route::get('/admin/rental/cars',                  [\App\Http\Controllers\Api\RentalController::class, 'adminCars']);
+    Route::post('/admin/rental/cars',                 [\App\Http\Controllers\Api\RentalController::class, 'adminSaveCar']);
+    Route::delete('/admin/rental/cars/{id}',          [\App\Http\Controllers\Api\RentalController::class, 'adminDeleteCar']);
 
     // ── Driver Ratings ──
     Route::post('/driver-ratings', [\App\Http\Controllers\Api\DriverRatingController::class, 'store']);
@@ -260,6 +273,11 @@ Route::middleware('auth:sanctum')->group(function () {
             'commission_rate'    => (float) ($wp->commission_rate ?? 15),
             'per_km_rate'        => (float) ($wp->per_km_rate ?? 20),
             'matching_radius_km' => (int) ($wp->matching_radius_km ?? 10),
+            // Rewards/referral economics live in app_settings (key/value).
+            'taka_per_point'     => \App\Http\Controllers\Api\ReferralController::takaPerPoint(),
+            'referral_bonus'     => \App\Http\Controllers\Api\ReferralController::referralBonus(),
+            'referee_bonus'      => \App\Http\Controllers\Api\ReferralController::refereeBonus(),
+            'pay_later_limit'    => (float) \App\Models\AppSetting::getValue('pay_later_limit', 0),
         ]]);
     });
     Route::post('/admin/settings', function (\Illuminate\Http\Request $request) {
@@ -278,6 +296,17 @@ Route::middleware('auth:sanctum')->group(function () {
             $wp->matching_radius_km = max(1, min(100, $r)); // clamp 1–100 km
         }
         $wp->save();
+
+        // Rewards/referral + PayLater economics are key/value app settings.
+        foreach (['taka_per_point', 'referral_bonus', 'referee_bonus', 'pay_later_limit'] as $key) {
+            if ($request->filled($key) || $request->input($key) === 0 || $request->input($key) === '0') {
+                \App\Models\AppSetting::updateOrCreate(
+                    ['key' => $key],
+                    ['value' => (string) max(0, (float) $request->input($key))]
+                );
+            }
+        }
+
         return response()->json(['success' => true, 'message' => 'Settings saved']);
     });
 
@@ -319,6 +348,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/corporate/ride-request',          [\App\Http\Controllers\Api\CorporateController::class, 'createRideRequest']);
     Route::get('/corporate/billing',                [\App\Http\Controllers\Api\CorporateController::class, 'billing']);
     Route::get('/corporate/billing/{month}/pdf',    [\App\Http\Controllers\Api\CorporateController::class, 'billingPdf']);
+    Route::get('/corporate/rides',                  [\App\Http\Controllers\Api\CorporateController::class, 'rides']);
+    Route::get('/corporate/employees',              [\App\Http\Controllers\Api\CorporateController::class, 'employees']);
+    Route::post('/corporate/employees',             [\App\Http\Controllers\Api\CorporateController::class, 'saveEmployee']);
+    Route::delete('/corporate/employees/{id}',      [\App\Http\Controllers\Api\CorporateController::class, 'deleteEmployee']);
 
     // ── Ride Pooling ──
     Route::get('/ride-requests/pool/available', [\App\Http\Controllers\Api\RidePoolController::class, 'available']);

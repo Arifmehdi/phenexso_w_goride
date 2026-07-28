@@ -182,10 +182,43 @@ class FcmService
      * Notify a user by their stored FCM token.
      */
     /**
+     * Saves the notification so it appears in the in-app Notifications list
+     * and counts toward the bell badge.
+     *
+     * A push is transient — if the phone is off, the token is stale, or the
+     * user simply swipes the banner away, the message would otherwise be lost
+     * forever. Persisting always (whether or not delivery succeeded) is what
+     * makes the notification history and unread count meaningful.
+     *
+     * `recipient_type` matters: users / drivers / corporates / admins are
+     * separate tables with separate id spaces, so the id alone is ambiguous.
+     */
+    private function persist($model, string $title, string $body, array $data = []): void
+    {
+        try {
+            \App\Models\Notification::create([
+                'user_id'        => $model->id,
+                'recipient_type' => notificationAudience($model),
+                'title'          => $title,
+                'message'        => $body,
+                'type'           => $data['type'] ?? 'system',
+                'data'           => $data ?: null,
+                'all_show'       => 0,
+                'is_read'        => 0,
+            ]);
+        } catch (\Throwable $e) {
+            // Never let a logging failure break the ride flow.
+            Log::warning('Notification persist failed: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Notify a User (rider/owner/corporate) — reads fcm_token from users table.
+     * The row is always saved; only the push depends on having a token.
      */
     public function notifyUser(\App\Models\User $user, string $title, string $body, array $data = []): bool
     {
+        $this->persist($user, $title, $body, $data);
         if (empty($user->fcm_token)) return false;
         return $this->send($user->fcm_token, $title, $body, $data);
     }
@@ -195,6 +228,7 @@ class FcmService
      */
     public function notifyDriver(\App\Models\Driver $driver, string $title, string $body, array $data = []): bool
     {
+        $this->persist($driver, $title, $body, $data);
         if (empty($driver->fcm_token)) return false;
         return $this->send($driver->fcm_token, $title, $body, $data);
     }

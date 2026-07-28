@@ -23,6 +23,7 @@
                     </a>
 
                     <div class="dropdown-menu" aria-labelledby="dropdownMenuLink{{$corporate->id}}">
+                        <a class="dropdown-item" href="{{route('admin.corporates.show',$corporate->id)}}"><i class="fas fa-eye"></i> View Trips &amp; Billing</a>
                         <a class="dropdown-item" href="{{route('admin.corporates.edit',$corporate->id)}}"><i class="fas fa-edit"></i> Edit</a>
                         <form action="{{ route('admin.corporates.destroy', $corporate->id) }}" method="POST" onsubmit="return confirm('Are you sure?')">
                             @csrf

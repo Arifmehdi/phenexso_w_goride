@@ -41,8 +41,9 @@ class CorporateController extends Controller
     public function createRideRequest(Request $request)
     {
         $request->validate([
-            'employee_name'   => 'required|string|max:255',
-            'employee_mobile' => 'required|string|max:20',
+            'employee_id'     => 'nullable|exists:corporate_employees,id',
+            'employee_name'   => 'required_without:employee_id|string|max:255',
+            'employee_mobile' => 'required_without:employee_id|string|max:20',
             'ride_type'       => 'required|string',
             'pickup_latitude'         => 'required|numeric',
             'pickup_longitude'        => 'required|numeric',
@@ -50,16 +51,44 @@ class CorporateController extends Controller
             'destination_latitude'    => 'required|numeric',
             'destination_longitude'   => 'required|numeric',
             'destination_address'     => 'required|string',
-            'fare' => 'required|numeric',
         ]);
 
         $corporateId = auth()->id();
 
+        // Booking for a saved employee fills the name/mobile from the record.
+        $name   = $request->employee_name;
+        $mobile = $request->employee_mobile;
+        if ($request->filled('employee_id')) {
+            $emp = \App\Models\CorporateEmployee::where('id', $request->employee_id)
+                ->where('corporate_id', $corporateId)->first();
+            if (!$emp) {
+                return response()->json([
+                    'success' => false, 'message' => 'Employee not found for this company.',
+                ], 404);
+            }
+            $name   = $emp->name;
+            $mobile = $emp->mobile;
+        }
+
+        // Fare is calculated HERE from the admin's per-km rate, never taken
+        // from the app — otherwise a tampered request could book at any price.
+        $fare = $this->estimateFare(
+            (float) $request->pickup_latitude,
+            (float) $request->pickup_longitude,
+            (float) $request->destination_latitude,
+            (float) $request->destination_longitude,
+            (string) $request->ride_type
+        );
+
         $ride = RideRequest::create([
-            'user_id'              => $corporateId, // billed against the corporate account
+            // user_id stays NULL: this trip belongs to the company, not to a
+            // rider account. `users` and `corporates` are separate tables with
+            // separate id spaces, so putting the corporate id here would
+            // attribute the trip to an unrelated rider.
+            'user_id'              => null,
             'corporate_id'         => $corporateId,
-            'booked_for_name'      => $request->employee_name,
-            'booked_for_mobile'    => $request->employee_mobile,
+            'booked_for_name'      => $name,
+            'booked_for_mobile'    => $mobile,
             'ride_type'            => $request->ride_type,
             'pickup_latitude'      => $request->pickup_latitude,
             'pickup_longitude'     => $request->pickup_longitude,
@@ -67,11 +96,42 @@ class CorporateController extends Controller
             'destination_latitude' => $request->destination_latitude,
             'destination_longitude'=> $request->destination_longitude,
             'destination_address'  => $request->destination_address,
-            'fare'                 => $request->fare,
+            'fare'                 => $fare,
             'status'               => 'pending',
         ]);
 
         return response()->json(['success' => true, 'ride_request' => $ride], 201);
+    }
+
+    /**
+     * Straight-line distance × the admin's per-km rate, with the same ride-type
+     * multipliers the rider app uses. Keeps corporate pricing consistent with
+     * normal bookings.
+     */
+    private function estimateFare(float $lat1, float $lng1, float $lat2, float $lng2, string $rideType): float
+    {
+        $earthKm = 6371;
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLng = deg2rad($lng2 - $lng1);
+        $a = sin($dLat / 2) ** 2
+            + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLng / 2) ** 2;
+        $km = $earthKm * 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+        $wp = \App\Models\WebsiteParameter::first();
+        $perKm = (float) ($wp->per_km_rate ?? 20);
+        // website_parameters has no base_fare column today; read it from
+        // app_settings so an admin can introduce one without a schema change.
+        $base = (float) \App\Models\AppSetting::getValue('base_fare', 0);
+
+        $multiplier = match ($rideType) {
+            'bike'     => 0.6,
+            'cng'      => 0.8,
+            'premium'  => 1.6,
+            'rent_car' => 1.5,
+            default    => 1.0, // car
+        };
+
+        return round(($base + ($km * $perKm)) * $multiplier, 2);
     }
 
     /**
@@ -122,5 +182,100 @@ class CorporateController extends Controller
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html)->setPaper('a4');
 
         return $pdf->download("goride-invoice-{$month}.pdf");
+    }
+
+    // ─────────────────────── Ride history ───────────────────────
+
+    /**
+     * GET /api/corporate/rides — every trip booked by this company.
+     * Query: status (optional), limit (default 100)
+     */
+    public function rides(Request $request)
+    {
+        $query = RideRequest::where('corporate_id', auth()->id())
+            ->orderByDesc('created_at');
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $rides = $query->take((int) $request->get('limit', 100))->get([
+            'id', 'booked_for_name', 'booked_for_mobile', 'ride_type',
+            'pickup_address', 'destination_address', 'fare', 'status',
+            'payment_status', 'driver_id', 'created_at', 'completed_at',
+        ]);
+
+        // Attach the driver's name without an N+1 query.
+        $driverNames = \App\Models\Driver::whereIn('id', $rides->pluck('driver_id')->filter()->unique())
+            ->pluck('name', 'id');
+
+        $rides->transform(function ($r) use ($driverNames) {
+            $r->driver_name = $r->driver_id ? ($driverNames[$r->driver_id] ?? null) : null;
+            $r->fare = (float) $r->fare;
+            return $r;
+        });
+
+        return response()->json([
+            'success' => true,
+            'total'   => $rides->count(),
+            'rides'   => $rides,
+        ]);
+    }
+
+    // ───────────────────── Employee directory ─────────────────────
+
+    /** GET /api/corporate/employees */
+    public function employees()
+    {
+        $employees = \App\Models\CorporateEmployee::where('corporate_id', auth()->id())
+            ->orderBy('name')->get();
+
+        return response()->json(['success' => true, 'employees' => $employees]);
+    }
+
+    /** POST /api/corporate/employees — create or update. */
+    public function saveEmployee(Request $request)
+    {
+        $data = $request->validate([
+            'id'            => 'nullable|integer',
+            'name'          => 'required|string|max:255',
+            'mobile'        => 'required|string|max:30',
+            'email'         => 'nullable|email|max:255',
+            'department'    => 'nullable|string|max:100',
+            'employee_code' => 'nullable|string|max:50',
+            'is_active'     => 'nullable|boolean',
+        ]);
+
+        $corporateId = auth()->id();
+
+        // Scope the lookup to THIS company so an id from another company can't
+        // be overwritten.
+        $employee = \App\Models\CorporateEmployee::where('corporate_id', $corporateId)
+            ->where('id', $data['id'] ?? 0)->first();
+
+        if ($employee) {
+            $employee->update($data);
+        } else {
+            $employee = \App\Models\CorporateEmployee::create(
+                $data + ['corporate_id' => $corporateId]
+            );
+        }
+
+        return response()->json(['success' => true, 'employee' => $employee]);
+    }
+
+    /** DELETE /api/corporate/employees/{id} */
+    public function deleteEmployee($id)
+    {
+        $employee = \App\Models\CorporateEmployee::where('corporate_id', auth()->id())
+            ->where('id', $id)->first();
+
+        if (!$employee) {
+            return response()->json(['success' => false, 'message' => 'Employee not found'], 404);
+        }
+
+        $employee->delete();
+
+        return response()->json(['success' => true, 'message' => 'Employee removed']);
     }
 }
